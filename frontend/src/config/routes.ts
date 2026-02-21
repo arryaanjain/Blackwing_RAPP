@@ -34,6 +34,7 @@ export const ROUTES = {
   PROTECTED: {
     // Shared or base protected routes
     DASHBOARD_SELECT: '/dashboard/select',
+    WALLET: '/wallet',
 
     // Company specific routes
     COMPANY: {
