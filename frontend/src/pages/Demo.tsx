@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import BasePage from '../components/BasePage';
+import { ROUTES } from '../config/routes';
 
 const Demo: React.FC = () => {
   return (
@@ -35,26 +37,30 @@ const Demo: React.FC = () => {
 
         {/* Interactive Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-indigo-500/10 group">
+          <div className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-indigo-500/10 group text-center md:text-left">
             <h3 className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] mb-6">Environment A</h3>
             <h4 className="text-3xl font-black text-white mb-6 tracking-tighter uppercase">Company Console</h4>
             <p className="text-gray-400 mb-10 text-lg leading-relaxed font-medium">
               Explore how companies create listings, manage vendors, and track procurement activities in real-time.
             </p>
-            <button className="w-full py-5 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all duration-300 shadow-xl shadow-white/5">
-              Launch Company Sandbox
-            </button>
+            <Link to={ROUTES.PUBLIC.ONBOARDING}>
+              <button className="w-full py-5 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all duration-300 shadow-xl shadow-white/5">
+                Launch Company Sandbox
+              </button>
+            </Link>
           </div>
 
-          <div className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-purple-500/10 group">
+          <div className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-purple-500/10 group text-center md:text-left">
             <h3 className="text-xs font-black text-purple-500 uppercase tracking-[0.3em] mb-6">Environment B</h3>
             <h4 className="text-3xl font-black text-white mb-6 tracking-tighter uppercase">Vendor Terminal</h4>
             <p className="text-gray-400 mb-10 text-lg leading-relaxed font-medium">
               Experience the vendor perspective - browse listings, submit bids, and manage secured contracts.
             </p>
-            <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
-              Launch Vendor Terminal
-            </button>
+            <Link to={ROUTES.PUBLIC.ONBOARDING}>
+              <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
+                Launch Vendor Terminal
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -80,21 +86,6 @@ const Demo: React.FC = () => {
                 <p className="text-gray-500 font-medium leading-relaxed">{f.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Schedule Demo */}
-        <div className="relative rounded-[40px] overflow-hidden p-12 text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-700"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-4xl font-black text-white mb-6 uppercase tracking-tighter">Request Personalized Audit</h2>
-            <p className="text-white/80 mb-10 text-lg font-medium">
-              Schedule a deep-dive session with our solutions architects to identify your procurement optimization surface.
-            </p>
-            <button className="px-12 py-5 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-gray-100 transition-all duration-300 shadow-2xl shadow-black/20">
-              Book Strategic Call
-            </button>
           </div>
         </div>
       </div>

@@ -1,15 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+// motion removed as unused
 import BasePage from '../components/BasePage';
 
 const Careers: React.FC = () => {
-  const jobOpenings = [
-    { title: "Protocol Engineer", department: "Engineering", location: "Remote / Dubai", type: "Full-time" },
-    { title: "Smart Contract Auditor", department: "Security", location: "Remote", type: "Full-time" },
-    { title: "Senior UI Designer", department: "Product", location: "Global Remote", type: "Full-time" },
-    { title: "Head of Growth", department: "Marketing", location: "London / Hybrid", type: "Full-time" }
-  ];
-
   return (
     <BasePage
       title="Careers"
@@ -43,34 +36,22 @@ const Careers: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-premium rounded-[40px] p-10 border-indigo-500/10 relative overflow-hidden">
+        <div className="glass-premium rounded-[40px] p-12 border-indigo-500/10 relative overflow-hidden flex flex-col items-center justify-center text-center bg-[#05070a]/40">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full"></div>
-          <h3 className="text-2xl font-black text-white mb-10 tracking-tight uppercase">Current Openings</h3>
-          <div className="space-y-4">
-            {jobOpenings.map((job, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ x: 8 }}
-                {...({ className: "p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-indigo-500/30 transition-all cursor-pointer group" } as any)}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-white font-black uppercase tracking-tight mb-1 group-hover:text-indigo-400 transition-colors">{job.title}</h4>
-                    <div className="flex gap-4">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{job.department}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500/70">{job.location}</span>
-                    </div>
-                  </div>
-                  <svg className="h-5 w-5 text-gray-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </motion.div>
-            ))}
+
+          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/10">
+            <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
           </div>
-          <button className="w-full mt-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
-            View All Positions
-          </button>
+
+          <h3 className="text-2xl font-black text-white mb-6 uppercase tracking-tight">Current Openings</h3>
+          <p className="text-gray-400 font-medium text-lg mb-8">
+            No current openings available.
+          </p>
+          <p className="text-gray-600 text-sm max-w-xs uppercase tracking-widest font-bold">
+            Follow our social channels for future opportunities.
+          </p>
         </div>
       </div>
     </BasePage>
