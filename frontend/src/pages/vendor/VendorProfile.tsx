@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
 
 const VendorProfile: React.FC = () => {
-  const { currentProfile, user } = useAuth();
+  const { currentProfile } = useAuth();
   const vendorProfile = currentProfile?.type === 'vendor' ? currentProfile : null;
   const { showToast } = useToast();
 
