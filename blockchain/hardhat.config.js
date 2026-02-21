@@ -4,8 +4,9 @@ require("dotenv").config({ path: "../backend/.env" });
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-    version: "0.8.19",
+    version: "0.8.20",
     settings: {
+      viaIR: true,
       optimizer: {
         enabled: true,
         runs: 200
@@ -28,7 +29,7 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       chainId: 1337
     },
-    
+
     // Ethereum Testnets
     sepolia: {
       url: process.env.BLOCKCHAIN_NODE_URL || "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID",
@@ -44,7 +45,7 @@ module.exports = {
       gas: 2100000,
       gasPrice: 8000000000
     },
-    
+
     // Ethereum Mainnet
     mainnet: {
       url: process.env.BLOCKCHAIN_NODE_URL || "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
@@ -53,7 +54,7 @@ module.exports = {
       gas: 2100000,
       gasPrice: 20000000000 // 20 gwei
     },
-    
+
     // Polygon Networks
     mumbai: {
       url: process.env.BLOCKCHAIN_NODE_URL || "https://polygon-mumbai.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY",
@@ -69,7 +70,7 @@ module.exports = {
       gas: 2100000,
       gasPrice: 8000000000
     },
-    
+
     // Arbitrum Networks
     arbitrumSepolia: {
       url: "https://sepolia-rollup.arbitrum.io/rpc",
@@ -81,7 +82,7 @@ module.exports = {
       accounts: process.env.BLOCKCHAIN_ADMIN_PRIVATE_KEY ? [process.env.BLOCKCHAIN_ADMIN_PRIVATE_KEY] : [],
       chainId: 42161
     },
-    
+
     // Linea Networks
     lineaSepolia: {
       url: process.env.BLOCKCHAIN_NODE_URL || "https://linea-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY",
