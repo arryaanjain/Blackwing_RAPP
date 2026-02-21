@@ -50,28 +50,39 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
       setLoading(true);
       setError(null);
 
-      // Load listing
-      const listingResponse = await listingService.getListing(parseInt(listingId!));
-      setListing(listingResponse.data);
+      let currentListing: Listing | null = null;
+      let currentQuote: Quote | null = null;
 
-      // If editing, load existing quote
+      // If editing, load existing quote first
       if (mode === 'edit' && quoteId) {
         const quoteResponse = await listingService.getQuote(parseInt(quoteId));
-        const quoteData = quoteResponse.data;
-        setQuote(quoteData);
+        currentQuote = quoteResponse.data;
+        setQuote(currentQuote);
+        currentListing = currentQuote.listing;
+        setListing(currentListing);
 
         setFormData({
-          quoted_price: quoteData.quoted_price,
-          proposal_details: quoteData.proposal_details,
-          delivery_days: quoteData.delivery_days,
-          terms_and_conditions: quoteData.terms_and_conditions || '',
-          line_items: quoteData.line_items || [],
-          expires_at: quoteData.expires_at ? new Date(quoteData.expires_at).toISOString().slice(0, 16) : ''
+          quoted_price: currentQuote.quoted_price,
+          proposal_details: currentQuote.proposal_details,
+          delivery_days: currentQuote.delivery_days,
+          terms_and_conditions: currentQuote.terms_and_conditions || '',
+          line_items: currentQuote.line_items || [],
+          expires_at: currentQuote.expires_at ? new Date(currentQuote.expires_at).toISOString().slice(0, 16) : ''
         });
 
-        if (quoteData.line_items && quoteData.line_items.length > 0) {
-          setLineItems(quoteData.line_items);
+        if (currentQuote.line_items && currentQuote.line_items.length > 0) {
+          setLineItems(currentQuote.line_items);
         }
+      } else if (listingId) {
+        // Load listing for create mode
+        const listingResponse = await listingService.getListing(parseInt(listingId));
+        currentListing = listingResponse.data;
+        setListing(currentListing);
+
+        setFormData(prev => ({
+          ...prev,
+          listing_id: currentListing?.id || 0
+        }));
       }
     } catch (err: any) {
       setError(err.response?.data?.message || `Failed to load ${mode === 'edit' ? 'quote' : 'listing'}`);
@@ -201,7 +212,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
               <Link
                 to={mode === 'edit'
                   ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                  : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
+                  : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(listing.id))}
                 className="text-blue-300 hover:text-blue-100"
               >
                 ← Back
@@ -429,7 +440,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
             <Link
               to={mode === 'edit'
                 ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
+                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(listing.id))}
               className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Cancel

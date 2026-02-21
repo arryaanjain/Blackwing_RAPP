@@ -84,7 +84,7 @@ const VendorDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-indigo-800 to-indigo-950 rounded-lg shadow-xl p-6 border border-indigo-700 shadow-indigo-900/30">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-indigo-700 bg-opacity-40">
@@ -98,7 +98,7 @@ const VendorDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-purple-800 to-purple-950 rounded-lg shadow-xl p-6 border border-purple-700 shadow-purple-900/30">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-purple-700 bg-opacity-40">
@@ -133,7 +133,7 @@ const VendorDashboard: React.FC = () => {
               <span className="text-white font-medium">My Quotes</span>
             </div>
           </Link>
-          
+
           <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="flex items-center justify-center p-6 bg-gradient-to-r from-purple-700 to-pink-800 rounded-lg shadow-xl hover:from-purple-800 hover:to-pink-900 transition duration-200 shadow-purple-900/30">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,14 +187,12 @@ const VendorDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                        <div className={`px-3 py-1 rounded-full text-sm flex items-center ${
-                          bidSubmitted
+                        <div className={`px-3 py-1 rounded-full text-sm flex items-center ${bidSubmitted
                             ? 'bg-green-900/50 text-green-300'
                             : 'bg-yellow-900/50 text-yellow-300'
-                        }`}>
-                          <span className={`h-2 w-2 rounded-full mr-2 ${
-                            bidSubmitted ? 'bg-green-500' : 'bg-yellow-500'
-                          }`}></span>
+                          }`}>
+                          <span className={`h-2 w-2 rounded-full mr-2 ${bidSubmitted ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}></span>
                           <span>{bidSubmitted ? 'Quote Submitted' : 'Not Quoted Yet'}</span>
                         </div>
                         {listing.closes_at && (
@@ -206,12 +204,11 @@ const VendorDashboard: React.FC = () => {
                     </div>
                     <div className="mt-4 flex justify-end">
                       <Link
-                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
-                        className={`${
-                          bidSubmitted
+                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
+                        className={`${bidSubmitted
                             ? 'bg-blue-700 hover:bg-blue-600'
                             : 'bg-green-700 hover:bg-green-600'
-                        } text-white px-4 py-2 rounded-md shadow-md shadow-blue-950/20 transition-colors flex items-center text-sm font-medium`}
+                          } text-white px-4 py-2 rounded-md shadow-md shadow-blue-950/20 transition-colors flex items-center text-sm font-medium`}
                       >
                         {bidSubmitted ? (
                           <>

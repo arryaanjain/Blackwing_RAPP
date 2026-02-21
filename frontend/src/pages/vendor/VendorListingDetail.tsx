@@ -7,7 +7,7 @@ import { ROUTES } from '../../config/routes';
 import type { Listing } from '../../types/listings';
 
 const VendorListingDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { listingId } = useParams<{ listingId: string }>();
   const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,19 +15,19 @@ const VendorListingDetail: React.FC = () => {
   const [hasExistingQuote, setHasExistingQuote] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (listingId) {
       loadListing();
     }
-  }, [id]);
+  }, [listingId]);
 
   const loadListing = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await listingService.getListing(parseInt(id!));
+      const response = await listingService.getListing(parseInt(listingId!));
       const listingData = response.data;
       setListing(listingData);
-      
+
       // Check if vendor has already submitted a quote
       if (listingData.quotes && user?.id) {
         const existingQuote = listingData.quotes.find(quote => quote.vendor_user_id === user.id);
@@ -118,9 +118,9 @@ const VendorListingDetail: React.FC = () => {
     );
   }
 
-  const canSubmitQuote = listing.status === 'active' && 
-                        (!listing.closes_at || !isPastDeadline(listing.closes_at)) && 
-                        !hasExistingQuote;
+  const canSubmitQuote = listing.status === 'active' &&
+    (!listing.closes_at || !isPastDeadline(listing.closes_at)) &&
+    !hasExistingQuote;
 
   return (
     <DashboardLayout>
@@ -141,13 +141,12 @@ const VendorListingDetail: React.FC = () => {
               by <span className="font-medium">{listing.company.name}</span>
             </p>
           </div>
-          
+
           <div className="text-right">
             <span className={`px-4 py-2 text-sm font-medium rounded-full ${getStatusColor(listing.status)}`}>
-              <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
-                listing.status === 'active' ? 'bg-green-500' : 
+              <span className={`inline-block h-2 w-2 rounded-full mr-2 ${listing.status === 'active' ? 'bg-green-500' :
                 listing.status === 'closed' ? 'bg-red-500' : 'bg-gray-500'
-              }`}></span>
+                }`}></span>
               {listing.status.toUpperCase()}
             </span>
             {listing.base_price && (
@@ -277,18 +276,17 @@ const VendorListingDetail: React.FC = () => {
             {/* Listing Info */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Listing Details</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Category</label>
                   <p className="text-white">{listing.category}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Visibility</label>
-                  <span className={`px-2 py-1 text-xs font-medium rounded ${
-                    listing.visibility === 'public' ? 'bg-green-900/50 text-green-300' : 'bg-yellow-900/50 text-yellow-300'
-                  }`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${listing.visibility === 'public' ? 'bg-green-900/50 text-green-300' : 'bg-yellow-900/50 text-yellow-300'
+                    }`}>
                     {listing.visibility.toUpperCase()}
                   </span>
                 </div>
@@ -298,12 +296,7 @@ const VendorListingDetail: React.FC = () => {
                   <p className="text-white text-sm">{formatDate(listing.created_at)}</p>
                 </div>
 
-                {listing.opens_at && (
-                  <div>
-                    <label className="block text-sm font-medium text-blue-200 mb-1">Opens</label>
-                    <p className="text-white text-sm">{formatDate(listing.opens_at)}</p>
-                  </div>
-                )}
+
 
                 {listing.closes_at && (
                   <div>
@@ -331,31 +324,31 @@ const VendorListingDetail: React.FC = () => {
             {/* Company Info */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Company Information</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Company</label>
                   <p className="text-white font-medium">{listing.company.name}</p>
                 </div>
-                
+
                 {listing.company.industry && (
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-1">Industry</label>
                     <p className="text-blue-100 text-sm">{listing.company.industry}</p>
                   </div>
                 )}
-                
+
                 {listing.company.description && (
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-1">About</label>
                     <p className="text-blue-100 text-sm line-clamp-3">{listing.company.description}</p>
                   </div>
                 )}
-                
+
                 {listing.company.website && (
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-1">Website</label>
-                    <a 
+                    <a
                       href={listing.company.website}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -377,13 +370,13 @@ const VendorListingDetail: React.FC = () => {
             {listing.quotes && listing.quotes.length > 0 && (
               <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Quote Activity</h3>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-blue-200">Total Quotes:</span>
                     <span className="text-white font-medium">{listing.quotes.length}</span>
                   </div>
-                  
+
                   {listing.quotes.length > 0 && (
                     <>
                       <div className="flex justify-between">
@@ -407,7 +400,7 @@ const VendorListingDetail: React.FC = () => {
             {/* Actions */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
-              
+
               <div className="space-y-3">
                 {canSubmitQuote && (
                   <Link

@@ -25,7 +25,7 @@ const VendorQuotesManager: React.FC = () => {
       setError(null);
       const response = await listingService.getQuotes(filters, currentPage);
       const data: PaginatedResponse<Quote> = response.data;
-      
+
       setQuotes(data.data);
       setTotalPages(data.last_page);
     } catch (err: any) {
@@ -64,12 +64,19 @@ const VendorQuotesManager: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -180,27 +187,26 @@ const VendorQuotesManager: React.FC = () => {
                       Quote #{quote.quote_number}
                     </h3>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(quote.status)}`}>
-                      <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
-                        quote.status === 'accepted' ? 'bg-green-500' : 
+                      <span className={`inline-block h-2 w-2 rounded-full mr-2 ${quote.status === 'accepted' ? 'bg-green-500' :
                         quote.status === 'rejected' ? 'bg-red-500' :
-                        quote.status === 'under_review' ? 'bg-yellow-500' :
-                        quote.status === 'withdrawn' ? 'bg-gray-500' : 'bg-blue-500'
-                      }`}></span>
-                      {quote.status.replace('_', ' ').toUpperCase()}
+                          quote.status === 'under_review' ? 'bg-yellow-500' :
+                            quote.status === 'withdrawn' ? 'bg-gray-500' : 'bg-blue-500'
+                        }`}></span>
+                      {quote.status?.replace('_', ' ').toUpperCase() || quote.status}
                     </span>
                   </div>
-                  
+
                   <p className="text-blue-200 mb-3">
-                    <Link 
-                      to={`/dashboard/vendor/listings/${quote.listing.id}`}
+                    <Link
+                      to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}
                       className="text-blue-300 hover:text-blue-100 font-medium"
                     >
-                      {quote.listing.title}
+                      {quote.listing?.title || 'Unknown Listing'}
                     </Link>
                   </p>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-blue-300">
-                    <span>Company: {quote.listing.company.name}</span>
+                    <span>Company: {quote.listing?.company?.name || 'Unknown Company'}</span>
                     <span>Delivery: {quote.delivery_days} days</span>
                     <span>Submitted: {formatDate(quote.submitted_at)}</span>
                     {quote.expires_at && (
@@ -208,14 +214,14 @@ const VendorQuotesManager: React.FC = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-300 mb-2">
                     {formatCurrency(quote.quoted_price)}
                   </div>
                   {quote.reviewed_at && quote.reviewed_by_user && (
                     <p className="text-sm text-blue-400">
-                      Reviewed by {quote.reviewed_by_user.name} on{' '}
+                      Reviewed by {quote.reviewed_by_user?.name || 'Admin'} on{' '}
                       {formatDate(quote.reviewed_at)}
                     </p>
                   )}
@@ -262,16 +268,16 @@ const VendorQuotesManager: React.FC = () => {
               {/* Action buttons */}
               <div className="flex gap-3 pt-4 border-t border-blue-800/40">
                 <Link
-                  to={`/dashboard/vendor/quotes/${quote.id}`}
+                  to={ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote.id))}
                   className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                 >
                   View Details
                 </Link>
-                
+
                 {quote.status === 'submitted' && (
                   <>
                     <Link
-                      to={`/dashboard/vendor/quotes/${quote.id}/edit`}
+                      to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
                       className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                     >
                       Edit
@@ -286,7 +292,7 @@ const VendorQuotesManager: React.FC = () => {
                 )}
 
                 <Link
-                  to={`/dashboard/vendor/listings/${quote.listing.id}`}
+                  to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}
                   className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                 >
                   View Listing
@@ -324,24 +330,23 @@ const VendorQuotesManager: React.FC = () => {
             >
               Previous
             </button>
-            
+
             {[...Array(totalPages)].map((_, i) => {
               const page = i + 1;
               return (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 border rounded-md ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-blue-800/30 border-blue-700/50 hover:bg-blue-700/30 text-white'
-                  }`}
+                  className={`px-3 py-2 border rounded-md ${currentPage === page
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-blue-800/30 border-blue-700/50 hover:bg-blue-700/30 text-white'
+                    }`}
                 >
                   {page}
                 </button>
               );
             })}
-            
+
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}

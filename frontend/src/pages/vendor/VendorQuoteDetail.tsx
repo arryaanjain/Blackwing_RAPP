@@ -40,7 +40,7 @@ const VendorQuoteDetail: React.FC = () => {
 
     try {
       await listingService.withdrawQuote(quote.id);
-      navigate('/dashboard/vendor/quotes');
+      navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to withdraw quote');
     }
@@ -57,14 +57,21 @@ const VendorQuoteDetail: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -120,7 +127,7 @@ const VendorQuoteDetail: React.FC = () => {
           <div>
             <div className="flex items-center gap-4 mb-2">
               <Link
-                to="/dashboard/vendor/quotes"
+                to={ROUTES.PROTECTED.VENDOR.QUOTES}
                 className="text-blue-300 hover:text-blue-100"
               >
                 ← Back to Quotes
@@ -130,27 +137,26 @@ const VendorQuoteDetail: React.FC = () => {
               Quote #{quote.quote_number}
             </h1>
             <p className="text-blue-300">
-              For listing: <Link 
-                to={`/dashboard/vendor/listings/${quote.listing.id}`}
+              For listing: <Link
+                to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}
                 className="text-blue-300 hover:text-blue-100 font-medium underline"
               >
-                {quote.listing.title}
+                {quote.listing?.title || 'Unknown Listing'}
               </Link>
             </p>
           </div>
-          
+
           <div className="text-right">
             <div className="text-3xl font-bold text-green-300 mb-2">
               {formatCurrency(quote.quoted_price)}
             </div>
             <span className={`px-4 py-2 text-sm font-medium rounded-full ${getStatusColor(quote.status)}`}>
-              <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
-                quote.status === 'accepted' ? 'bg-green-500' : 
+              <span className={`inline-block h-2 w-2 rounded-full mr-2 ${quote.status === 'accepted' ? 'bg-green-500' :
                 quote.status === 'rejected' ? 'bg-red-500' :
-                quote.status === 'under_review' ? 'bg-yellow-500' :
-                quote.status === 'withdrawn' ? 'bg-gray-500' : 'bg-blue-500'
-              }`}></span>
-              {quote.status.replace('_', ' ').toUpperCase()}
+                  quote.status === 'under_review' ? 'bg-yellow-500' :
+                    quote.status === 'withdrawn' ? 'bg-gray-500' : 'bg-blue-500'
+                }`}></span>
+              {quote.status?.replace('_', ' ').toUpperCase() || quote.status}
             </span>
           </div>
         </div>
@@ -159,7 +165,7 @@ const VendorQuoteDetail: React.FC = () => {
         {quote.status === 'submitted' && (
           <div className="flex gap-3">
             <Link
-              to={`/dashboard/vendor/quotes/${quote.id}/edit`}
+              to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Edit Quote
@@ -185,7 +191,7 @@ const VendorQuoteDetail: React.FC = () => {
             {/* Quote Details */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-white mb-4">Quote Details</h2>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -222,7 +228,7 @@ const VendorQuoteDetail: React.FC = () => {
             {quote.line_items && quote.line_items.length > 0 && (
               <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Line Items</h2>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -272,7 +278,7 @@ const VendorQuoteDetail: React.FC = () => {
                 <p className="text-yellow-100 whitespace-pre-wrap">{quote.review_notes}</p>
                 {quote.reviewed_by_user && quote.reviewed_at && (
                   <p className="text-sm text-yellow-300 mt-3">
-                    Reviewed by {quote.reviewed_by_user.name} on {formatDate(quote.reviewed_at)}
+                    Reviewed by {quote.reviewed_by_user?.name || 'Admin'} on {formatDate(quote.reviewed_at)}
                   </p>
                 )}
               </div>
@@ -284,7 +290,7 @@ const VendorQuoteDetail: React.FC = () => {
             {/* Quote Timeline */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Timeline</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -293,13 +299,12 @@ const VendorQuoteDetail: React.FC = () => {
                     <p className="text-blue-300 text-sm">{formatDate(quote.submitted_at)}</p>
                   </div>
                 </div>
-                
+
                 {quote.reviewed_at && (
                   <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                      quote.status === 'accepted' ? 'bg-green-500' : 
+                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${quote.status === 'accepted' ? 'bg-green-500' :
                       quote.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
-                    }`}></div>
+                      }`}></div>
                     <div>
                       <p className="text-blue-100 font-medium">Quote Reviewed</p>
                       <p className="text-blue-300 text-sm">{formatDate(quote.reviewed_at)}</p>
@@ -323,26 +328,25 @@ const VendorQuoteDetail: React.FC = () => {
             {/* Listing Info */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Listing Information</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Company</label>
-                  <p className="text-white">{quote.listing.company.name}</p>
+                  <p className="text-white">{quote.listing?.company?.name || 'Unknown Company'}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Title</label>
-                  <p className="text-white">{quote.listing.title}</p>
+                  <p className="text-white">{quote.listing?.title || 'Unknown Listing'}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Status</label>
-                  <span className={`px-2 py-1 text-xs font-medium rounded ${
-                    quote.listing.status === 'active' ? 'bg-green-900/50 text-green-300' :
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${quote.listing.status === 'active' ? 'bg-green-900/50 text-green-300' :
                     quote.listing.status === 'closed' ? 'bg-red-900/50 text-red-300' :
-                    'bg-gray-900/50 text-gray-300'
-                  }`}>
-                    {quote.listing.status.toUpperCase()}
+                      'bg-gray-900/50 text-gray-300'
+                    }`}>
+                    {quote.listing?.status?.toUpperCase() || 'UNKNOWN'}
                   </span>
                 </div>
 
@@ -354,9 +358,9 @@ const VendorQuoteDetail: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 <Link
-                  to={`/dashboard/vendor/listings/${quote.listing.id}`}
+                  to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium mt-3"
                 >
                   View Full Listing
@@ -367,24 +371,24 @@ const VendorQuoteDetail: React.FC = () => {
             {/* Company Contact Info */}
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Company Information</h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-blue-200 mb-1">Company Name</label>
-                  <p className="text-white">{quote.listing.company.name}</p>
+                  <p className="text-white">{quote.listing?.company?.name || 'Unknown Company'}</p>
                 </div>
-                
+
                 {quote.listing.company.description && (
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-1">Description</label>
                     <p className="text-blue-100 text-sm">{quote.listing.company.description}</p>
                   </div>
                 )}
-                
+
                 {quote.listing.company.website && (
                   <div>
                     <label className="block text-sm font-medium text-blue-200 mb-1">Website</label>
-                    <a 
+                    <a
                       href={quote.listing.company.website}
                       target="_blank"
                       rel="noopener noreferrer"
