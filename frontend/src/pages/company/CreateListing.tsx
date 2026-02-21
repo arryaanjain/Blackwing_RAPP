@@ -8,7 +8,7 @@ import { ROUTES } from '../../config/routes';
 
 // Mock vendors for the demo
 const MOCK_VENDORS = [
-  { id: 1, address: '0x1234...5678', name: 'ABC Suppliers', status: 'approved' },
+  { id: 1, address: '0x1234...5678', name: 'ABC Vendors', status: 'approved' },
   { id: 2, address: '0x2345...6789', name: 'XYZ Corporation', status: 'approved' },
   { id: 3, address: '0x3456...7890', name: 'Global Ventures', status: 'approved' },
   { id: 4, address: '0x4567...8901', name: 'Tech Providers', status: 'approved' },

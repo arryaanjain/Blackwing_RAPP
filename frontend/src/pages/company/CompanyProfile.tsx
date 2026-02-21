@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
 
 const CompanyProfile: React.FC = () => {
-  const { currentProfile, user } = useAuth();
+  const { currentProfile } = useAuth();
   const companyProfile = currentProfile?.type === 'company' ? currentProfile : null;
   const { showToast } = useToast();
 
@@ -38,7 +38,7 @@ const CompanyProfile: React.FC = () => {
 
       showToast({
         title: "Profile Updated",
-        description: "Your enterprise profile has been successfully updated on-chain.",
+        description: "Your Company profile has been successfully updated on-chain.",
         status: "success"
       });
       setIsEditing(false);
@@ -61,7 +61,7 @@ const CompanyProfile: React.FC = () => {
           <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
           <h1 className="text-5xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">Company <span className="text-indigo-500">Identity</span></h1>
           <p className="text-gray-400 text-lg font-medium max-w-2xl">
-            Manage your enterprise credentials and blockchain-verified procurement profile.
+            Manage your Company credentials and blockchain-verified procurement profile.
           </p>
         </div>
 
@@ -97,7 +97,7 @@ const CompanyProfile: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Enterprise Name</label>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Company Name</label>
                   <input
                     type="text"
                     name="name"
@@ -202,7 +202,7 @@ const CompanyProfile: React.FC = () => {
             <div className="space-y-12 animate-in fade-in duration-500">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="group">
-                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Enterprise Name</h3>
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Company Name</h3>
                   <p className="text-2xl font-black text-white uppercase tracking-tight">{companyProfile?.name || 'Not provided'}</p>
                 </div>
 
