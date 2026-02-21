@@ -14,13 +14,13 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
   const { listingId, quoteId } = useParams<{ listingId: string; quoteId?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [listing, setListing] = useState<Listing | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState<CreateQuoteData | UpdateQuoteData>({
     listing_id: parseInt(listingId || '0'),
     quoted_price: 0,
@@ -30,7 +30,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
     line_items: [],
     expires_at: ''
   });
-  
+
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { id: crypto.randomUUID(), description: '', quantity: 1, unit_price: 0, total_price: 0 }
   ]);
@@ -49,17 +49,17 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Load listing
       const listingResponse = await listingService.getListing(parseInt(listingId!));
       setListing(listingResponse.data);
-      
+
       // If editing, load existing quote
       if (mode === 'edit' && quoteId) {
         const quoteResponse = await listingService.getQuote(parseInt(quoteId));
         const quoteData = quoteResponse.data;
         setQuote(quoteData);
-        
+
         setFormData({
           quoted_price: quoteData.quoted_price,
           proposal_details: quoteData.proposal_details,
@@ -68,7 +68,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
           line_items: quoteData.line_items || [],
           expires_at: quoteData.expires_at ? new Date(quoteData.expires_at).toISOString().slice(0, 16) : ''
         });
-        
+
         if (quoteData.line_items && quoteData.line_items.length > 0) {
           setLineItems(quoteData.line_items);
         }
@@ -87,12 +87,12 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
   const handleLineItemChange = (index: number, field: keyof LineItem, value: any) => {
     const newLineItems = [...lineItems];
     newLineItems[index] = { ...newLineItems[index], [field]: value };
-    
+
     // Recalculate total price for this line item
     if (field === 'quantity' || field === 'unit_price') {
       newLineItems[index].total_price = newLineItems[index].quantity * newLineItems[index].unit_price;
     }
-    
+
     setLineItems(newLineItems);
   };
 
@@ -111,12 +111,12 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.proposal_details?.trim()) {
       setError('Proposal details are required');
       return;
     }
-    
+
     if ((formData.quoted_price || 0) <= 0) {
       setError('Quoted price must be greater than 0');
       return;
@@ -125,19 +125,19 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
     try {
       setSaving(true);
       setError(null);
-      
+
       const submitData = {
         ...formData,
         line_items: lineItems.filter(item => item.description.trim()),
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : undefined
       };
-      
+
       if (mode === 'create') {
         await listingService.createQuote(submitData as CreateQuoteData);
         navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
       } else if (quote) {
         await listingService.updateQuote(quote.id, submitData as UpdateQuoteData);
-        navigate(ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', quote.id.toString()));
+        navigate(ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote.id)));
       }
     } catch (err: any) {
       setError(err.response?.data?.message || `Failed to ${mode} quote`);
@@ -201,7 +201,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
               <Link
                 to={mode === 'edit'
                   ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                  : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                  : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
                 className="text-blue-300 hover:text-blue-100"
               >
                 ← Back
@@ -225,7 +225,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
         {/* Listing Summary */}
         <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Listing Details</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-blue-200 mb-1">Company</label>
@@ -273,7 +273,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
           {/* Basic Quote Info */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Quote Information</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
@@ -288,7 +288,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
                   Quote Expires (Optional)
@@ -342,7 +342,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                 Add Item
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {lineItems.map((item, index) => (
                 <div key={item.id} className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
@@ -357,7 +357,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                         className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-blue-200 mb-1">Quantity</label>
                       <input
@@ -369,7 +369,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                         className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-blue-200 mb-1">Unit Price</label>
                       <input
@@ -381,7 +381,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                         className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-blue-200 mb-1">Total</label>
                       <div className="p-2 bg-blue-800/50 border border-blue-700/50 rounded text-white">
@@ -389,7 +389,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mb-3">
                     <label className="block text-sm font-medium text-blue-200 mb-1">Specifications (Optional)</label>
                     <input
@@ -400,7 +400,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                       className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   {lineItems.length > 1 && (
                     <button
                       type="button"
@@ -413,7 +413,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-blue-700/30">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium text-blue-200">Total Quote Price:</span>
@@ -429,7 +429,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
             <Link
               to={mode === 'edit'
                 ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
               className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Cancel
