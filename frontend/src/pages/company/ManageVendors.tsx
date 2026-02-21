@@ -22,7 +22,7 @@ const ManageVendors: React.FC = () => {
     try {
       // DEBUG: Test health endpoints first
       console.log('🔍 DEBUGGING (Company): Testing health endpoints...');
-      
+
       try {
         const healthResponse = await httpClient.healthCheck();
         console.log('✅ Health check (no auth):', healthResponse.data);
@@ -39,7 +39,7 @@ const ManageVendors: React.FC = () => {
 
       // Now try the actual connection service calls
       console.log('🔍 DEBUGGING (Company): Testing connection service calls...');
-      
+
       if (activeTab === 'requests') {
         const response = await connectionService.getCompanyRequests();
         console.log('✅ Company requests response:', response);
@@ -116,119 +116,120 @@ const ManageVendors: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto bg-blue-900/40 rounded-xl shadow-lg p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">Manage Vendors</h1>
-          <div className="flex space-x-4">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Network <span className="text-indigo-500">Terminals</span></h1>
+            <p className="text-gray-500 text-xs font-black uppercase tracking-widest mt-2 ml-1">Manage and verify secure vendor connections</p>
+          </div>
+
+          <div className="flex p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-glass">
             <button
               onClick={() => setActiveTab('requests')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'requests'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-blue-800 text-blue-300 hover:bg-blue-700'
-              }`}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'requests'
+                  ? 'bg-indigo-600 text-white shadow-glow-primary'
+                  : 'text-gray-500 hover:text-white hover:bg-white/5'
+                }`}
             >
-              Connection Requests ({requests.filter(r => r.status === 'pending').length})
+              Requests ({requests.filter(r => r.status === 'pending').length})
             </button>
             <button
               onClick={() => setActiveTab('connections')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'connections'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-blue-800 text-blue-300 hover:bg-blue-700'
-              }`}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'connections'
+                  ? 'bg-indigo-600 text-white shadow-glow-primary'
+                  : 'text-gray-500 hover:text-white hover:bg-white/5'
+                }`}
             >
-              Active Connections ({connections.filter(c => c.is_active).length})
+              Active ({connections.filter(c => c.is_active).length})
             </button>
           </div>
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
+        <div className="relative group">
           <input
             type="text"
-            placeholder={`Search ${activeTab === 'requests' ? 'requests' : 'connections'}...`}
+            placeholder={`Search ${activeTab === 'requests' ? 'protocol requests' : 'active terminals'}...`}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full py-3 pl-10 pr-4 rounded-lg bg-blue-800 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full py-5 pl-14 pr-6 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium backdrop-blur-sm"
           />
-          <FaSearch className="absolute left-3 top-3.5 text-blue-300" />
+          <FaSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-indigo-400 transition-colors" />
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            <p className="text-blue-300 mt-4">Loading...</p>
+          <div className="text-center py-24 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md animate-pulse">
+            <div className="inline-block h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-indigo-400 font-black uppercase text-[10px] tracking-[0.3em] mt-6">Establishing Data Link...</p>
           </div>
         ) : (
-          <>
+          <div className="animate-in fade-in duration-700">
             {activeTab === 'requests' ? (
               <div className="space-y-4">
                 {filteredRequests.length === 0 ? (
-                  <div className="text-center py-12 text-blue-400">
-                    {search ? 'No requests found matching your search.' : 'No connection requests found.'}
+                  <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl text-gray-600 font-medium">
+                    {search ? 'No data packets match current search query.' : 'No pending connection requests on current block.'}
                   </div>
                 ) : (
                   filteredRequests.map(request => (
-                    <div key={request.id} className="bg-blue-800/50 rounded-lg p-6 border border-blue-700">
-                      <div className="flex items-start justify-between">
+                    <div key={request.id} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-8 hover:bg-white/[0.07] transition-all group relative overflow-hidden shadow-glass">
+                      <div className="absolute inset-y-0 left-0 w-1 bg-indigo-500/20 group-hover:bg-indigo-500 transition-colors" />
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold text-white">
-                              {request.vendor?.vendor_profile?.vendor_name || request.vendor?.name || 'Unknown Vendor'}
+                          <div className="flex items-center gap-4 mb-4">
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">
+                              {request.vendor?.vendor_profile?.vendor_name || request.vendor?.name || 'Unknown Terminal'}
                             </h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(request.status)}`}>
-                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${request.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : getStatusBadge(request.status)
+                              }`}>
+                              {request.status}
                             </span>
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-6">
                             <div>
-                              <p className="text-blue-300 text-sm">Specialization</p>
-                              <p className="text-white">{request.vendor_profile_data?.specialization || 'Not specified'}</p>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Specialization</p>
+                              <p className="text-white font-medium">{request.vendor_profile_data?.specialization || 'General Protocol'}</p>
                             </div>
                             <div>
-                              <p className="text-blue-300 text-sm">Location</p>
-                              <p className="text-white">{request.vendor_profile_data?.location || 'Not specified'}</p>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Base Location</p>
+                              <p className="text-white font-medium">{request.vendor_profile_data?.location || 'Unknown'}</p>
                             </div>
                             <div>
-                              <p className="text-blue-300 text-sm">Contact Email</p>
-                              <p className="text-white">{request.vendor_profile_data?.contact_email || 'Not provided'}</p>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Identity Vector</p>
+                              <p className="text-indigo-400 font-medium">{request.vendor_profile_data?.contact_email || 'Not provided'}</p>
                             </div>
                             <div>
-                              <p className="text-blue-300 text-sm">Requested On</p>
-                              <p className="text-white">{formatDate(request.created_at)}</p>
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Request Timestamp</p>
+                              <p className="text-white font-medium">{formatDate(request.created_at)}</p>
                             </div>
                           </div>
 
                           {request.message && (
-                            <div className="mb-4">
-                              <p className="text-blue-300 text-sm mb-1">Message</p>
-                              <p className="text-white bg-blue-900/50 p-3 rounded">{request.message}</p>
-                            </div>
-                          )}
-
-                          {request.review_notes && (
-                            <div className="mb-4">
-                              <p className="text-blue-300 text-sm mb-1">Review Notes</p>
-                              <p className="text-white bg-blue-900/50 p-3 rounded">{request.review_notes}</p>
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/5 border-l-Indigo-500/50">
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Protocol Message</p>
+                              <p className="text-gray-300 text-sm leading-relaxed italic">"{request.message}"</p>
                             </div>
                           )}
                         </div>
 
                         {request.status === 'pending' && (
-                          <div className="flex flex-col gap-2 ml-4">
+                          <div className="flex lg:flex-col gap-3">
                             <button
                               onClick={() => handleApproveRequest(request.id)}
-                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                              className="px-8 py-3 bg-white/5 hover:bg-indigo-600 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:shadow-glow-primary active:scale-95 group/btn"
                             >
-                              <FaCheck /> Approve
+                              <div className="flex items-center gap-2">
+                                <FaCheck className="text-emerald-500 group-hover/btn:text-white" /> Verify Access
+                              </div>
                             </button>
                             <button
                               onClick={() => handleDenyRequest(request.id)}
-                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                              className="px-8 py-3 bg-white/5 hover:bg-red-600/20 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:border-red-500/50 active:scale-95 group/btn"
                             >
-                              <FaTimes /> Deny
+                              <div className="flex items-center gap-2">
+                                <FaTimes className="text-red-500 group-hover/btn:text-white" /> Block Node
+                              </div>
                             </button>
                           </div>
                         )}
@@ -238,65 +239,67 @@ const ManageVendors: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-blue-800/60">
-                      <th className="px-4 py-3 text-blue-200">Vendor</th>
-                      <th className="px-4 py-3 text-blue-200">Specialization</th>
-                      <th className="px-4 py-3 text-blue-200">Location</th>
-                      <th className="px-4 py-3 text-blue-200">Connected</th>
-                      <th className="px-4 py-3 text-blue-200">Last Access</th>
-                      <th className="px-4 py-3 text-blue-200">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredConnections.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-6 text-center text-blue-400">
-                          {search ? 'No connections found matching your search.' : 'No active connections found.'}
-                        </td>
+              <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl overflow-hidden shadow-glass">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Active Terminal</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Field</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Location</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Verified Since</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Last Sync</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] text-right">Actions</th>
                       </tr>
-                    ) : (
-                      filteredConnections.map(connection => (
-                        <tr key={connection.id} className="border-b border-blue-800 hover:bg-blue-800/30 transition-all">
-                          <td className="px-4 py-3">
-                            <div>
-                              <p className="text-white font-medium">
-                                {connection.vendor?.vendor_profile?.vendor_name || connection.vendor?.name || 'Unknown'}
-                              </p>
-                              <p className="text-blue-300 text-sm">{connection.vendor?.email}</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-blue-200">
-                            {connection.vendor?.vendor_profile?.specialization || 'Not specified'}
-                          </td>
-                          <td className="px-4 py-3 text-blue-200">
-                            {connection.vendor?.vendor_profile?.location || 'Not specified'}
-                          </td>
-                          <td className="px-4 py-3 text-blue-200">
-                            {formatDate(connection.connected_at)}
-                          </td>
-                          <td className="px-4 py-3 text-blue-200">
-                            {connection.last_accessed_at ? formatDate(connection.last_accessed_at) : 'Never'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => handleRevokeConnection(connection.id)}
-                              className="text-red-400 hover:text-red-600 transition-colors mr-2"
-                              title="Revoke Connection"
-                            >
-                              <FaTrashAlt />
-                            </button>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {filteredConnections.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-8 py-20 text-center text-gray-600 font-medium">
+                            {search ? 'Search parameters returned zero node results.' : 'No active terminal connections established.'}
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        filteredConnections.map(connection => (
+                          <tr key={connection.id} className="hover:bg-white/[0.03] transition-colors group">
+                            <td className="px-8 py-6">
+                              <div>
+                                <p className="text-white font-black uppercase tracking-tighter text-lg group-hover:text-indigo-400 transition-colors">
+                                  {connection.vendor?.vendor_profile?.vendor_name || connection.vendor?.name || 'Unknown'}
+                                </p>
+                                <p className="text-gray-500 text-xs font-medium">{connection.vendor?.email}</p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 font-medium text-gray-400">
+                              {connection.vendor?.vendor_profile?.specialization || 'General'}
+                            </td>
+                            <td className="px-6 py-6 font-medium text-gray-400">
+                              {connection.vendor?.vendor_profile?.location || 'Unknown'}
+                            </td>
+                            <td className="px-6 py-6 font-medium text-indigo-400 text-xs tracking-wider uppercase">
+                              {formatDate(connection.connected_at)}
+                            </td>
+                            <td className="px-6 py-6 font-medium text-gray-500 text-xs uppercase">
+                              {connection.last_accessed_at ? formatDate(connection.last_accessed_at) : 'NEVER'}
+                            </td>
+                            <td className="px-8 py-6 text-right">
+                              <button
+                                onClick={() => handleRevokeConnection(connection.id)}
+                                className="p-3 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 rounded-xl transition-all shadow-glow-indigo active:scale-95"
+                                title="Revoke Protocol Access"
+                              >
+                                <FaTrashAlt className="text-sm" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </DashboardLayout>

@@ -41,6 +41,7 @@ const VendorQuoteDetail: React.FC = () => {
     try {
       await listingService.withdrawQuote(quote.id);
       navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
+      navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to withdraw quote');
     }
@@ -121,7 +122,7 @@ const VendorQuoteDetail: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -161,27 +162,29 @@ const VendorQuoteDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Global Actions */}
         {quote.status === 'submitted' && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-4 px-6 py-4 bg-white/2 border border-white/5 rounded-[32px] backdrop-blur-sm">
             <Link
+              to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
               to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
             >
-              Edit Quote
+              Modify Protocol
             </Link>
             <button
               onClick={handleWithdraw}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium"
+              className="px-8 py-4 bg-white/5 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-premium text-center"
             >
-              Withdraw Quote
+              Terminate Transmission
             </button>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-900/30 border border-red-800 text-red-300 px-4 py-3 rounded-lg">
-            {error}
+          <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-[32px] backdrop-blur-md overflow-hidden relative">
+            <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
+            <p className="relative z-10 text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">{error}</p>
           </div>
         )}
 
@@ -198,33 +201,33 @@ const VendorQuoteDetail: React.FC = () => {
                     <label className="block text-sm font-medium text-blue-200 mb-1">Delivery Time</label>
                     <p className="text-white font-medium">{quote.delivery_days} days</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-blue-200 mb-1">Quoted Price</label>
-                    <p className="text-white font-medium">{formatCurrency(quote.quoted_price)}</p>
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Valuation lock</p>
+                    <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-emerald-500 font-black uppercase text-sm tracking-widest">
+                      {formatCurrency(quote.quoted_price)}
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-blue-200 mb-2">Proposal Details</label>
-                  <div className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
-                    <p className="text-blue-100 whitespace-pre-wrap">{quote.proposal_details}</p>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Proposal Synthesis</label>
+                  <div className="bg-white/5 border border-white/10 rounded-[28px] p-8 leading-relaxed">
+                    <p className="text-gray-300 font-medium whitespace-pre-wrap selection:bg-indigo-500/30">{quote.proposal_details}</p>
                   </div>
                 </div>
 
                 {quote.terms_and_conditions && (
-                  <div>
-                    <label className="block text-sm font-medium text-blue-200 mb-2">Terms & Conditions</label>
-                    <div className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
-                      <p className="text-blue-100 whitespace-pre-wrap">{quote.terms_and_conditions}</p>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Legal Protocol & Terms</label>
+                    <div className="bg-white/5 border border-white/10 rounded-[28px] p-8 leading-relaxed italic opacity-80">
+                      <p className="text-gray-400 font-medium whitespace-pre-wrap text-sm">{quote.terms_and_conditions}</p>
                     </div>
                   </div>
                 )}
-
-
               </div>
             </div>
 
-            {/* Line Items */}
+            {/* Matrix of items */}
             {quote.line_items && quote.line_items.length > 0 && (
               <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Line Items</h2>
@@ -271,7 +274,7 @@ const VendorQuoteDetail: React.FC = () => {
               </div>
             )}
 
-            {/* Review Notes */}
+            {/* Feedback from Mesh */}
             {quote.review_notes && (
               <div className="bg-yellow-900/20 border border-yellow-800/40 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-yellow-200 mb-4">Review Notes</h2>
@@ -300,6 +303,7 @@ const VendorQuoteDetail: React.FC = () => {
                   </div>
                 </div>
 
+
                 {quote.reviewed_at && (
                   <div className="flex items-start gap-3">
                     <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${quote.status === 'accepted' ? 'bg-green-500' :
@@ -314,11 +318,11 @@ const VendorQuoteDetail: React.FC = () => {
                 )}
 
                 {quote.expires_at && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <div>
-                      <p className="text-blue-100 font-medium">Expires</p>
-                      <p className="text-blue-300 text-sm">{formatDate(quote.expires_at)}</p>
+                  <div className="relative flex items-start gap-4">
+                    <div className="w-4 h-4 rounded-full bg-red-500 shadow-glow-red mt-1.5 flex-shrink-0 z-10 border-4 border-slate-900" />
+                    <div className="space-y-1">
+                      <p className="text-white font-black text-[10px] uppercase tracking-widest">Temporal Threshold</p>
+                      <p className="text-gray-500 font-medium text-[10px] uppercase">{formatDate(quote.expires_at)}</p>
                     </div>
                   </div>
                 )}
@@ -351,19 +355,20 @@ const VendorQuoteDetail: React.FC = () => {
                 </div>
 
                 {quote.listing.closes_at && (
-                  <div>
-                    <label className="block text-sm font-medium text-blue-200 mb-1">Closes</label>
-                    <p className="text-white text-sm">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Temporal Close</p>
+                    <p className="text-gray-300 font-medium text-[10px] uppercase">
                       {formatDate(quote.listing.closes_at)}
                     </p>
                   </div>
                 )}
 
+
                 <Link
                   to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium mt-3"
                 >
-                  View Full Listing
+                  Registry Archive
                 </Link>
               </div>
             </div>
@@ -378,12 +383,14 @@ const VendorQuoteDetail: React.FC = () => {
                   <p className="text-white">{quote.listing?.company?.name || 'Unknown Company'}</p>
                 </div>
 
+
                 {quote.listing.company.description && (
-                  <div>
-                    <label className="block text-sm font-medium text-blue-200 mb-1">Description</label>
-                    <p className="text-blue-100 text-sm">{quote.listing.company.description}</p>
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Core synthesis</p>
+                    <p className="text-gray-500 font-medium text-xs leading-relaxed italic line-clamp-4">{quote.listing.company.description}</p>
                   </div>
                 )}
+
 
                 {quote.listing.company.website && (
                   <div>
@@ -392,9 +399,9 @@ const VendorQuoteDetail: React.FC = () => {
                       href={quote.listing.company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-300 hover:text-blue-100 underline"
+                      className="text-indigo-400 hover:text-white transition-colors uppercase text-[10px] font-black tracking-widest border-b border-indigo-500/20 block truncate"
                     >
-                      {quote.listing.company.website}
+                      {quote.listing.company.website.replace('https://', '')}
                     </a>
                   </div>
                 )}
