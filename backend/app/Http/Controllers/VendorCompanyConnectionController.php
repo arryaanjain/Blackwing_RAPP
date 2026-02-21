@@ -214,8 +214,10 @@ class VendorCompanyConnectionController extends Controller
     {
         try {
             $user = Auth::user();
-            
-            if ($user->current_profile_type !== 'company') {
+
+            // Check if user has a company profile (not just current_profile_type,
+            // since the same user may switch between vendor/company modes)
+            if (!$user->companyProfile) {
                 return response()->json([
                     'message' => 'Only companies can view their requests',
                     'error' => 'unauthorized_user_type'

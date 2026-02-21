@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
+import { ROUTES } from '../../config/routes';
 import type { Listing } from '../../types/listings';
 
 const VendorListingDetail: React.FC = () => {
@@ -107,7 +108,7 @@ const VendorListingDetail: React.FC = () => {
         <div className="bg-red-900/20 backdrop-blur-sm border border-red-800/40 rounded-lg p-6 text-center">
           <p className="text-red-300 mb-4">{error || 'Listing not found'}</p>
           <Link
-            to="/dashboard/vendor/listings"
+            to={ROUTES.PROTECTED.VENDOR.LISTINGS}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
           >
             Back to Listings
@@ -129,7 +130,7 @@ const VendorListingDetail: React.FC = () => {
           <div>
             <div className="flex items-center gap-4 mb-2">
               <Link
-                to="/dashboard/vendor/listings"
+                to={ROUTES.PROTECTED.VENDOR.LISTINGS}
                 className="text-blue-300 hover:text-blue-100"
               >
                 ← Back to Listings
@@ -168,7 +169,7 @@ const VendorListingDetail: React.FC = () => {
                 </p>
               </div>
               <Link
-                to={`/dashboard/vendor/listings/${listing.id}/quote`}
+                to={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE.replace(':listingId', listing.id.toString())}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium whitespace-nowrap"
               >
                 Submit Quote
@@ -188,7 +189,7 @@ const VendorListingDetail: React.FC = () => {
                 </p>
               </div>
               <Link
-                to="/dashboard/vendor/quotes"
+                to={ROUTES.PROTECTED.VENDOR.QUOTES}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium whitespace-nowrap"
               >
                 View My Quotes
@@ -410,22 +411,22 @@ const VendorListingDetail: React.FC = () => {
               <div className="space-y-3">
                 {canSubmitQuote && (
                   <Link
-                    to={`/dashboard/vendor/listings/${listing.id}/quote`}
+                    to={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE.replace(':listingId', listing.id.toString())}
                     className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium text-center block"
                   >
                     Submit Quote
                   </Link>
                 )}
-                
+
                 <Link
-                  to="/dashboard/vendor/quotes"
+                  to={ROUTES.PROTECTED.VENDOR.QUOTES}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium text-center block"
                 >
                   View My Quotes
                 </Link>
-                
+
                 <Link
-                  to="/dashboard/vendor/listings"
+                  to={ROUTES.PROTECTED.VENDOR.LISTINGS}
                   className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium text-center block"
                 >
                   Browse More Listings
