@@ -1,6 +1,11 @@
 import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { motion } from 'framer-motion';
+import Header from './Header';
+import Footer from './Footer';
+import CursorGlow from './ui/CursorGlow';
+import HeroParticles from './ui/HeroParticles';
+import Section from './ui/Section';
+import Container from './ui/Container';
 
 interface BasePageProps {
   title: string;
@@ -10,30 +15,50 @@ interface BasePageProps {
 
 const BasePage: React.FC<BasePageProps> = ({ title, subtitle, children }) => {
   return (
-    <div className="min-h-screen bg-blue-950">
+    <div className="min-h-screen relative overflow-x-hidden bg-[#020617]">
+      {/* Immersive Background System */}
+      <div className="bg-mesh" />
+      <div className="noise-overlay" />
+      <CursorGlow />
+      <HeroParticles />
+
       <Header />
-      
-      <main className="pt-16">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-blue-900 to-indigo-900 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{title}</h1>
+
+      <main className="relative z-10">
+        <Section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+          <Container className="text-center">
+            {/* Page Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9] text-shimmer uppercase">
+                {title}
+              </h1>
               {subtitle && (
-                <p className="text-xl text-blue-200 max-w-3xl mx-auto">{subtitle}</p>
+                <p className="max-w-2xl mx-auto text-gray-400 text-lg md:text-xl mb-12 leading-relaxed font-medium">
+                  {subtitle}
+                </p>
               )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Content */}
-        <div className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
-        </div>
+            </motion.div>
+          </Container>
+        </Section>
+
+        {/* Content Section */}
+        <Section className="pb-32">
+          <Container>
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {children}
+            </motion.div>
+          </Container>
+        </Section>
       </main>
-      
+
       <Footer />
     </div>
   );
