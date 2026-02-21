@@ -5,644 +5,732 @@ namespace App\Services;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Web3p\EthereumTx\Transaction;
 use kornrunner\Keccak;
 
+/**
+ * BlockchainService — Multi-contract integration for the RAPP platform.
+ *
+ * Supports 5 contracts on the same chain:
+ *   1. RAPPRegistry        — entity registration
+ *   2. ConnectionManager   — vendor-company connections
+ *   3. ListingManager      — product listings
+ *   4. QuoteManager        — vendor quotations
+ *   5. RAPPToken           — ERC-20 points/credits
+ *
+ * Each public method:
+ *   1. ABI-encodes the function call
+ *   2. Sends a signed transaction via web3p/ethereum-tx
+ *   3. Waits for receipt (blocks until mined)
+ *   4. Returns ['success' => true, 'transactionHash' => '0x...']
+ */
 class BlockchainService
 {
-    private $nodeUrl;
-    private $contractAddress;
-    private $adminPrivateKey;
-    private $contractAbi;
+    private string $nodeUrl;
+    private string $adminPrivateKey;
+
+    // Contract addresses
+    private string $registryAddress;
+    private string $connectionManagerAddress;
+    private string $listingManagerAddress;
+    private string $quoteManagerAddress;
+    private string $rappTokenAddress;
 
     public function __construct()
     {
         $this->nodeUrl = env('BLOCKCHAIN_NODE_URL', 'http://127.0.0.1:8545');
-        $this->contractAddress = env('BLOCKCHAIN_CONTRACT_ADDRESS', '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
         $this->adminPrivateKey = env('BLOCKCHAIN_ADMIN_PRIVATE_KEY', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
-        $this->loadContractAbi();
-        $this->validateProductionConfig();
+
+        $this->registryAddress = env('BLOCKCHAIN_REGISTRY_ADDRESS', '');
+        $this->connectionManagerAddress = env('BLOCKCHAIN_CONNECTION_MANAGER_ADDRESS', '');
+        $this->listingManagerAddress = env('BLOCKCHAIN_LISTING_MANAGER_ADDRESS', '');
+        $this->quoteManagerAddress = env('BLOCKCHAIN_QUOTE_MANAGER_ADDRESS', '');
+        $this->rappTokenAddress = env('BLOCKCHAIN_RAPP_TOKEN_ADDRESS', '');
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  1. REGISTRY — registerEntity, deactivateEntity
+    // ═══════════════════════════════════════════════════════════════
+
     /**
-     * Validate that production configuration is properly set
+     * Register a company or vendor entity on the RAPPRegistry contract.
+     *
+     * Solidity: registerEntity(string _shareId, string _name, uint8 _entityType, string _metadataHash)
+     * _entityType: 0 = COMPANY, 1 = VENDOR
      */
-    private function validateProductionConfig()
+    public function registerEntity(string $shareId, string $name, int $entityType, string $metadataHash): array
     {
-        if (app()->environment('production')) {
-            $issues = [];
+        Log::info('Blockchain: registerEntity', compact('shareId', 'name', 'entityType'));
 
-            // Check for placeholder values that shouldn't be in production
-            if (str_contains($this->nodeUrl, 'REPLACE_WITH') || $this->nodeUrl === 'url') {
-                $issues[] = 'BLOCKCHAIN_NODE_URL is not configured for production';
-            }
+        $sig = $this->getFunctionSignature('registerEntity', ['string', 'string', 'uint8', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'string', 'value' => $shareId],
+            ['type' => 'string', 'value' => $name],
+            ['type' => 'uint8', 'value' => $entityType],
+            ['type' => 'string', 'value' => $metadataHash],
+        ]);
 
-            if (str_contains($this->contractAddress, 'REPLACE_WITH') || $this->contractAddress === 'contract_address') {
-                $issues[] = 'BLOCKCHAIN_CONTRACT_ADDRESS is not configured for production';
-            }
-
-            if (str_contains($this->adminPrivateKey, 'REPLACE_WITH') || $this->adminPrivateKey === 'private_key') {
-                $issues[] = 'BLOCKCHAIN_ADMIN_PRIVATE_KEY is not configured for production';
-            }
-
-            // Check for local development values in production
-            if (str_contains($this->nodeUrl, '127.0.0.1') || str_contains($this->nodeUrl, 'localhost')) {
-                $issues[] = 'BLOCKCHAIN_NODE_URL should not use localhost in production';
-            }
-
-            if ($this->contractAddress === '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512') {
-                $issues[] = 'BLOCKCHAIN_CONTRACT_ADDRESS is using local development address in production';
-            }
-
-            if ($this->adminPrivateKey === '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80') {
-                $issues[] = 'BLOCKCHAIN_ADMIN_PRIVATE_KEY is using local development key in production (SECURITY RISK!)';
-            }
-
-            if (!empty($issues)) {
-                Log::error('Blockchain configuration issues detected in production:', $issues);
-                throw new Exception('Blockchain not properly configured for production: ' . implode(', ', $issues));
-            }
-        }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->registryAddress, 500000);
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  2. CONNECTION MANAGER
+    // ═══════════════════════════════════════════════════════════════
+
     /**
-     * Load the contract ABI from the artifacts
-     * Using RegistrationContract.sol (deployed to Sepolia)
+     * sendConnectionRequest(string _vendorShareId, string _companyShareId, string _messageHash)
      */
-    private function loadContractAbi()
+    public function sendConnectionRequest(string $vendorShareId, string $companyShareId, string $messageHash): array
     {
-        try {
-            // Path to RegistrationContract ABI in backend storage
-            $abiPath = storage_path('blockchain/artifacts/contracts/RegistrationContract.sol/RegistrationContract.json');
+        Log::info('Blockchain: sendConnectionRequest', compact('vendorShareId', 'companyShareId'));
 
-            Log::info('Attempting to load contract ABI', ['path' => $abiPath]);
+        $sig = $this->getFunctionSignature('sendConnectionRequest', ['string', 'string', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'string', 'value' => $vendorShareId],
+            ['type' => 'string', 'value' => $companyShareId],
+            ['type' => 'string', 'value' => $messageHash],
+        ]);
 
-            if (file_exists($abiPath)) {
-                $contractData = json_decode(file_get_contents($abiPath), true);
-                $this->contractAbi = $contractData['abi'];
-                Log::info('Contract ABI loaded successfully', [
-                    'contract' => 'RegistrationContract',
-                    'functions' => count($this->contractAbi)
-                ]);
-            } else {
-                Log::error('Contract ABI not found', [
-                    'path' => $abiPath,
-                    'file_exists' => file_exists($abiPath)
-                ]);
-                $this->contractAbi = null;
-            }
-        } catch (Exception $e) {
-            Log::error('Failed to load contract ABI: ' . $e->getMessage());
-            $this->contractAbi = null;
-        }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->connectionManagerAddress, 500000);
     }
 
     /**
-     * Register a company on the blockchain
+     * approveRequest(uint256 _requestId, string _reviewNotesHash)
      */
-    public function registerCompany($companyName, $shareId, $businessType, $location = '')
+    public function approveConnectionRequest(int $requestId, string $reviewNotesHash): array
     {
-        try {
-            Log::info('Registering company on blockchain', [
-                'shareId' => $shareId,
-                'companyName' => $companyName,
-                'businessType' => $businessType,
-                'location' => $location
-            ]);
+        Log::info('Blockchain: approveConnectionRequest', compact('requestId'));
 
-            // RegistrationContract uses: registerEntity(shareId, entityId, name, entityType, ipfsHash)
-            // EntityType.COMPANY = 0
-            $functionSignature = $this->getFunctionSignature('registerEntity', ['string', 'string', 'string', 'uint8', 'string']);
+        $sig = $this->getFunctionSignature('approveRequest', ['uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $requestId],
+            ['type' => 'string', 'value' => $reviewNotesHash],
+        ]);
 
-            Log::info('Function signature calculated', [
-                'signature' => $functionSignature,
-                'functionString' => 'registerEntity(string,string,string,uint8,string)'
-            ]);
-
-            // Encode parameters: shareId, entityId (use shareId), name, entityType (0 for COMPANY), ipfsHash (empty)
-            $encodedParams = $this->encodeRegisterEntityParameters(
-                $shareId,              // shareId
-                $shareId,              // entityId (use shareId as ID)
-                $companyName,          // name
-                0,                     // entityType (0 = COMPANY)
-                ''                     // ipfsHash (empty for now)
-            );
-
-            Log::info('Encoded parameters', [
-                'params' => $encodedParams,
-                'length' => strlen($encodedParams)
-            ]);
-
-            $data = '0x' . $functionSignature . $encodedParams;
-
-            Log::info('Final transaction data', [
-                'data' => $data,
-                'dataLength' => strlen($data)
-            ]);
-
-            // Send the transaction using web3p library
-            $transactionHash = $this->sendTransaction($data, 500000);
-
-            // Wait for the transaction to be mined
-            $receipt = $this->waitForTransactionReceipt($transactionHash);
-
-            Log::info('Company registered on blockchain successfully', [
-                'shareId' => $shareId,
-                'companyName' => $companyName,
-                'transactionHash' => $transactionHash,
-                'blockNumber' => hexdec($receipt['blockNumber']),
-                'gasUsed' => hexdec($receipt['gasUsed'])
-            ]);
-
-            return [
-                'success' => true,
-                'transactionHash' => $transactionHash,
-                'blockNumber' => hexdec($receipt['blockNumber']),
-                'gasUsed' => hexdec($receipt['gasUsed'])
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Blockchain company registration failed: ' . $e->getMessage());
-            throw new Exception('Blockchain registration failed: ' . $e->getMessage());
-        }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->connectionManagerAddress, 500000);
     }
 
     /**
-     * Register a vendor on the blockchain
+     * denyRequest(uint256 _requestId, string _reviewNotesHash)
      */
-    public function registerVendor($vendorName, $shareId, $specialization, $location = '')
+    public function denyConnectionRequest(int $requestId, string $reviewNotesHash): array
     {
-        try {
-            Log::info('Registering vendor on blockchain', [
-                'shareId' => $shareId,
-                'vendorName' => $vendorName,
-                'specialization' => $specialization,
-                'location' => $location
-            ]);
+        Log::info('Blockchain: denyConnectionRequest', compact('requestId'));
 
-            // RegistrationContract uses: registerEntity(shareId, entityId, name, entityType, ipfsHash)
-            // EntityType.VENDOR = 1
-            $functionSignature = $this->getFunctionSignature('registerEntity', ['string', 'string', 'string', 'uint8', 'string']);
+        $sig = $this->getFunctionSignature('denyRequest', ['uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $requestId],
+            ['type' => 'string', 'value' => $reviewNotesHash],
+        ]);
 
-            // Encode parameters: shareId, entityId (use shareId), name, entityType (1 for VENDOR), ipfsHash (empty)
-            $encodedParams = $this->encodeRegisterEntityParameters(
-                $shareId,              // shareId
-                $shareId,              // entityId (use shareId as ID)
-                $vendorName,           // name
-                1,                     // entityType (1 = VENDOR)
-                ''                     // ipfsHash (empty for now)
-            );
-
-            $data = '0x' . $functionSignature . $encodedParams;
-
-            // Send the transaction using web3p library
-            $transactionHash = $this->sendTransaction($data, 500000);
-
-            // Wait for the transaction to be mined
-            $receipt = $this->waitForTransactionReceipt($transactionHash);
-
-            Log::info('Vendor registered on blockchain successfully', [
-                'shareId' => $shareId,
-                'vendorName' => $vendorName,
-                'transactionHash' => $transactionHash,
-                'blockNumber' => hexdec($receipt['blockNumber']),
-                'gasUsed' => hexdec($receipt['gasUsed'])
-            ]);
-
-            return [
-                'success' => true,
-                'transactionHash' => $transactionHash,
-                'blockNumber' => hexdec($receipt['blockNumber']),
-                'gasUsed' => hexdec($receipt['gasUsed'])
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Blockchain vendor registration failed: ' . $e->getMessage());
-            throw new Exception('Blockchain registration failed: ' . $e->getMessage());
-        }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->connectionManagerAddress, 300000);
     }
 
     /**
-     * Verify a share ID on the blockchain
+     * cancelRequest(uint256 _requestId)
      */
-    public function verifyShareId(string $shareId): array
+    public function cancelConnectionRequest(int $requestId): array
     {
-        try {
-            Log::info('Simulating share ID verification on blockchain', [
-                'shareId' => $shareId,
-                'contractAddress' => $this->contractAddress
-            ]);
+        Log::info('Blockchain: cancelConnectionRequest', compact('requestId'));
 
-            // For now, simulate verification
-            // In real implementation, you would call the smart contract's verify function
+        $sig = $this->getFunctionSignature('cancelRequest', ['uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $requestId],
+        ]);
 
-            return [
-                'verified' => true,
-                'exists_on_blockchain' => true,
-                'registration_type' => 'company', // or 'vendor'
-                'registered_at' => now()->toISOString(),
-                'message' => 'Share ID verified on blockchain (simulated)'
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Failed to verify share ID on blockchain', [
-                'error' => $e->getMessage(),
-                'shareId' => $shareId
-            ]);
-
-            return [
-                'verified' => false,
-                'exists_on_blockchain' => false,
-                'error' => $e->getMessage(),
-                'message' => 'Failed to verify share ID on blockchain'
-            ];
-        }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->connectionManagerAddress, 200000);
     }
 
     /**
-     * Get current block number from blockchain
+     * revokeConnection(uint256 _connectionId, string _reasonHash)
      */
-    public function getCurrentBlockNumber(): ?int
+    public function revokeConnection(int $connectionId, string $reasonHash): array
     {
-        try {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
-            }
+        Log::info('Blockchain: revokeConnection', compact('connectionId'));
 
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_blockNumber',
-                'params' => [],
-                'id' => 1
-            ]);
+        $sig = $this->getFunctionSignature('revokeConnection', ['uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $connectionId],
+            ['type' => 'string', 'value' => $reasonHash],
+        ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                if (isset($data['result'])) {
-                    return hexdec($data['result']);
-                }
-            }
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->connectionManagerAddress, 300000);
+    }
 
-            return null;
-        } catch (Exception $e) {
-            Log::error('Failed to get current block number', ['error' => $e->getMessage()]);
-            return null;
-        }
+    // ═══════════════════════════════════════════════════════════════
+    //  3. LISTING MANAGER
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * createListing(string, string, string, uint256, uint8, uint8, uint256, string[])
+     */
+    public function createListing(
+        string $listingNumber,
+        string $companyShareId,
+        string $contentHash,
+        int $basePrice,
+        int $visibility,  // 0=PUBLIC, 1=PRIVATE
+        int $status,      // 0=DRAFT, 1=ACTIVE
+        int $closesAt,
+        array $authorizedVendorShareIds = []
+    ): array {
+        Log::info('Blockchain: createListing', compact('listingNumber', 'companyShareId', 'visibility'));
+
+        $sig = $this->getFunctionSignature('createListing', [
+            'string', 'string', 'string', 'uint256', 'uint8', 'uint8', 'uint256', 'string[]'
+        ]);
+        $encoded = $this->encodeParams([
+            ['type' => 'string', 'value' => $listingNumber],
+            ['type' => 'string', 'value' => $companyShareId],
+            ['type' => 'string', 'value' => $contentHash],
+            ['type' => 'uint256', 'value' => $basePrice],
+            ['type' => 'uint8', 'value' => $visibility],
+            ['type' => 'uint8', 'value' => $status],
+            ['type' => 'uint256', 'value' => $closesAt],
+            ['type' => 'string[]', 'value' => $authorizedVendorShareIds],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->listingManagerAddress, 800000);
     }
 
     /**
-     * Check if blockchain connection is working
+     * updateListing(uint256 _listingId, string _newContentHash, uint8 _newStatus)
+     */
+    public function updateListing(int $listingId, string $contentHash, int $status): array
+    {
+        Log::info('Blockchain: updateListing', compact('listingId'));
+
+        $sig = $this->getFunctionSignature('updateListing', ['uint256', 'string', 'uint8']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $listingId],
+            ['type' => 'string', 'value' => $contentHash],
+            ['type' => 'uint8', 'value' => $status],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->listingManagerAddress, 300000);
+    }
+
+    /**
+     * closeListing(uint256 _listingId)
+     */
+    public function closeListing(int $listingId): array
+    {
+        Log::info('Blockchain: closeListing', compact('listingId'));
+
+        $sig = $this->getFunctionSignature('closeListing', ['uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $listingId],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->listingManagerAddress, 200000);
+    }
+
+    /**
+     * grantVendorAccess(uint256 _listingId, string _vendorShareId)
+     */
+    public function grantVendorAccess(int $listingId, string $vendorShareId): array
+    {
+        Log::info('Blockchain: grantVendorAccess', compact('listingId', 'vendorShareId'));
+
+        $sig = $this->getFunctionSignature('grantVendorAccess', ['uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $listingId],
+            ['type' => 'string', 'value' => $vendorShareId],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->listingManagerAddress, 200000);
+    }
+
+    /**
+     * revokeVendorAccess(uint256 _listingId, string _vendorShareId)
+     */
+    public function revokeVendorAccess(int $listingId, string $vendorShareId): array
+    {
+        Log::info('Blockchain: revokeVendorAccess', compact('listingId', 'vendorShareId'));
+
+        $sig = $this->getFunctionSignature('revokeVendorAccess', ['uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $listingId],
+            ['type' => 'string', 'value' => $vendorShareId],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->listingManagerAddress, 200000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  4. QUOTE MANAGER
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * submitQuote(string, uint256, string, uint256, string, uint256, uint256)
+     */
+    public function submitQuote(
+        string $quoteNumber,
+        int $listingId,
+        string $vendorShareId,
+        int $quotedPrice,
+        string $proposalHash,
+        int $deliveryDays,
+        int $expiresAt
+    ): array {
+        Log::info('Blockchain: submitQuote', compact('quoteNumber', 'listingId', 'vendorShareId'));
+
+        $sig = $this->getFunctionSignature('submitQuote', [
+            'string', 'uint256', 'string', 'uint256', 'string', 'uint256', 'uint256'
+        ]);
+        $encoded = $this->encodeParams([
+            ['type' => 'string', 'value' => $quoteNumber],
+            ['type' => 'uint256', 'value' => $listingId],
+            ['type' => 'string', 'value' => $vendorShareId],
+            ['type' => 'uint256', 'value' => $quotedPrice],
+            ['type' => 'string', 'value' => $proposalHash],
+            ['type' => 'uint256', 'value' => $deliveryDays],
+            ['type' => 'uint256', 'value' => $expiresAt],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->quoteManagerAddress, 500000);
+    }
+
+    /**
+     * updateQuote(uint256 _quoteId, uint256 _newPrice, string _newProposalHash, uint256 _newDeliveryDays)
+     */
+    public function updateQuote(int $quoteId, int $newPrice, string $proposalHash, int $deliveryDays): array
+    {
+        Log::info('Blockchain: updateQuote', compact('quoteId'));
+
+        $sig = $this->getFunctionSignature('updateQuote', ['uint256', 'uint256', 'string', 'uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $quoteId],
+            ['type' => 'uint256', 'value' => $newPrice],
+            ['type' => 'string', 'value' => $proposalHash],
+            ['type' => 'uint256', 'value' => $deliveryDays],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->quoteManagerAddress, 300000);
+    }
+
+    /**
+     * withdrawQuote(uint256 _quoteId)
+     */
+    public function withdrawQuote(int $quoteId): array
+    {
+        Log::info('Blockchain: withdrawQuote', compact('quoteId'));
+
+        $sig = $this->getFunctionSignature('withdrawQuote', ['uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $quoteId],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->quoteManagerAddress, 200000);
+    }
+
+    /**
+     * reviewQuote(uint256 _quoteId, uint8 _newStatus, string _reviewNotesHash)
+     * Status: 1=UNDER_REVIEW, 2=ACCEPTED, 3=REJECTED
+     */
+    public function reviewQuote(int $quoteId, int $newStatus, string $reviewNotesHash): array
+    {
+        Log::info('Blockchain: reviewQuote', compact('quoteId', 'newStatus'));
+
+        $sig = $this->getFunctionSignature('reviewQuote', ['uint256', 'uint8', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $quoteId],
+            ['type' => 'uint8', 'value' => $newStatus],
+            ['type' => 'string', 'value' => $reviewNotesHash],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->quoteManagerAddress, 300000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  5. RAPP TOKEN
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * mint(address _to, uint256 _amount, string _reason)
+     */
+    public function mintTokens(string $toAddress, int $amount, string $reason): array
+    {
+        Log::info('Blockchain: mintTokens', compact('toAddress', 'amount'));
+
+        $sig = $this->getFunctionSignature('mint', ['address', 'uint256', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'address', 'value' => $toAddress],
+            ['type' => 'uint256', 'value' => $amount],
+            ['type' => 'string', 'value' => $reason],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->rappTokenAddress, 200000);
+    }
+
+    /**
+     * deductForListing(address _user, string _reason)
+     */
+    public function deductForListing(string $userAddress, string $reason): array
+    {
+        Log::info('Blockchain: deductForListing', compact('userAddress'));
+
+        $sig = $this->getFunctionSignature('deductForListing', ['address', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'address', 'value' => $userAddress],
+            ['type' => 'string', 'value' => $reason],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->rappTokenAddress, 200000);
+    }
+
+    /**
+     * deductForQuote(address _user, string _reason)
+     */
+    public function deductForQuote(string $userAddress, string $reason): array
+    {
+        Log::info('Blockchain: deductForQuote', compact('userAddress'));
+
+        $sig = $this->getFunctionSignature('deductForQuote', ['address', 'string']);
+        $encoded = $this->encodeParams([
+            ['type' => 'address', 'value' => $userAddress],
+            ['type' => 'string', 'value' => $reason],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->rappTokenAddress, 200000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  UTILITY / VIEW METHODS
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Check if blockchain connection is healthy
      */
     public function isConnectionHealthy(): bool
     {
         try {
-            $blockNumber = $this->getCurrentBlockNumber();
-            return $blockNumber !== null;
+            return $this->getCurrentBlockNumber() !== null;
         } catch (Exception $e) {
             return false;
         }
     }
 
     /**
-     * Get transaction status
+     * Get current block number
      */
-    public function getTransactionStatus(string $transactionHash): array
+    public function getCurrentBlockNumber(): ?int
     {
         try {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
-            }
-
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_getTransactionReceipt',
-                'params' => [$transactionHash],
-                'id' => 1
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                if (isset($data['result']) && $data['result']) {
-                    $receipt = $data['result'];
-                    return [
-                        'confirmed' => true,
-                        'status' => $receipt['status'] === '0x1' ? 'success' : 'failed',
-                        'block_number' => hexdec($receipt['blockNumber']),
-                        'gas_used' => hexdec($receipt['gasUsed']),
-                    ];
-                }
-            }
-
-            return [
-                'confirmed' => false,
-                'status' => 'pending',
-                'message' => 'Transaction not yet confirmed'
-            ];
-
+            $response = $this->rpcCall('eth_blockNumber');
+            return isset($response['result']) ? hexdec($response['result']) : null;
         } catch (Exception $e) {
-            Log::error('Failed to get transaction status', [
-                'error' => $e->getMessage(),
-                'transactionHash' => $transactionHash
-            ]);
-
-            return [
-                'confirmed' => false,
-                'status' => 'error',
-                'error' => $e->getMessage()
-            ];
+            Log::error('Failed to get block number: ' . $e->getMessage());
+            return null;
         }
     }
 
     /**
-     * Get platform statistics from blockchain
+     * Get transaction receipt/status
+     */
+    public function getTransactionStatus(string $txHash): array
+    {
+        try {
+            $response = $this->rpcCall('eth_getTransactionReceipt', [$txHash]);
+
+            if (isset($response['result']) && $response['result']) {
+                $receipt = $response['result'];
+                return [
+                    'confirmed' => true,
+                    'status' => $receipt['status'] === '0x1' ? 'success' : 'failed',
+                    'block_number' => hexdec($receipt['blockNumber']),
+                    'gas_used' => hexdec($receipt['gasUsed']),
+                ];
+            }
+
+            return ['confirmed' => false, 'status' => 'pending'];
+        } catch (Exception $e) {
+            return ['confirmed' => false, 'status' => 'error', 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Verify a share ID is registered on-chain.
+     * Calls RAPPRegistry.isRegistered(string) → bool
+     */
+    public function verifyShareId(string $shareId): array
+    {
+        try {
+            $sig = $this->getFunctionSignature('isRegistered', ['string']);
+            $encoded = $this->encodeParams([
+                ['type' => 'string', 'value' => $shareId],
+            ]);
+
+            $response = $this->rpcCall('eth_call', [
+                ['to' => $this->registryAddress, 'data' => '0x' . $sig . $encoded],
+                'latest'
+            ]);
+
+            $isRegistered = isset($response['result']) && hexdec($response['result']) === 1;
+
+            return [
+                'verified' => $isRegistered,
+                'exists_on_blockchain' => $isRegistered,
+                'message' => $isRegistered ? 'Share ID verified on blockchain' : 'Share ID not found on blockchain',
+            ];
+        } catch (Exception $e) {
+            Log::error('verifyShareId failed: ' . $e->getMessage());
+            return ['verified' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get platform stats from RAPPRegistry
      */
     public function getPlatformStatsFromBlockchain(): array
     {
         try {
-            // Simulate getting stats from blockchain
-            // In real implementation, you would call smart contract view functions
-
-            return [
-                'total_companies_on_chain' => 0,
-                'total_vendors_on_chain' => 0,
-                'total_registrations' => 0,
-                'contract_address' => $this->contractAddress,
-                'latest_block' => $this->getCurrentBlockNumber(),
-                'message' => 'Platform stats retrieved from blockchain (simulated)'
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Failed to get platform stats from blockchain', [
-                'error' => $e->getMessage()
+            $sig = $this->getFunctionSignature('getPlatformStats', []);
+            $response = $this->rpcCall('eth_call', [
+                ['to' => $this->registryAddress, 'data' => '0x' . $sig],
+                'latest'
             ]);
 
-            return [
-                'error' => $e->getMessage(),
-                'message' => 'Failed to get platform stats from blockchain'
-            ];
+            if (isset($response['result'])) {
+                $result = $response['result'];
+                // Decode 3 uint256 values (companies, vendors, total)
+                $companies = hexdec(substr($result, 2, 64));
+                $vendors = hexdec(substr($result, 66, 64));
+                $total = hexdec(substr($result, 130, 64));
+
+                return [
+                    'total_companies_on_chain' => $companies,
+                    'total_vendors_on_chain' => $vendors,
+                    'total_registrations' => $total,
+                    'latest_block' => $this->getCurrentBlockNumber(),
+                ];
+            }
+
+            return ['error' => 'Failed to fetch stats'];
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  PRIVATE: TRANSACTION ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
     /**
-     * Verify a transaction on the blockchain
+     * Execute a write transaction: sign → send → wait for receipt → return hash
      */
-    public function verifyTransaction($transactionHash)
+    private function executeTransaction(string $data, string $contractAddress, int $gasLimit): array
     {
         try {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
-            }
+            $txHash = $this->sendTransaction($data, $contractAddress, $gasLimit);
+            $receipt = $this->waitForTransactionReceipt($txHash);
 
-            $response = $request->post('http://127.0.0.1:8545', [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_getTransactionReceipt',
-                'params' => [$transactionHash],
-                'id' => 1
+            Log::info('Transaction confirmed', [
+                'txHash' => $txHash,
+                'blockNumber' => hexdec($receipt['blockNumber']),
+                'gasUsed' => hexdec($receipt['gasUsed']),
             ]);
-
-            $result = $response->json();
-
-            if (isset($result['error'])) {
-                return [
-                    'success' => false,
-                    'error' => $result['error']['message']
-                ];
-            }
-
-            $receipt = $result['result'];
-
-            if (!$receipt) {
-                return [
-                    'success' => false,
-                    'error' => 'Transaction not found'
-                ];
-            }
 
             return [
                 'success' => true,
-                'status' => hexdec($receipt['status']) === 1 ? 'success' : 'failed',
+                'transactionHash' => $txHash,
                 'blockNumber' => hexdec($receipt['blockNumber']),
                 'gasUsed' => hexdec($receipt['gasUsed']),
-                'contractAddress' => $receipt['contractAddress'] ?? null,
-                'from' => $receipt['from'],
-                'to' => $receipt['to']
             ];
-
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
+        } catch (Exception $e) {
+            Log::error('Transaction failed: ' . $e->getMessage());
+            throw new Exception('Blockchain transaction failed: ' . $e->getMessage());
         }
     }
 
     /**
-     * Helper method to encode string parameters for contract calls
+     * Sign and send a transaction
      */
-    private function encodeString($string)
+    private function sendTransaction(string $data, string $contractAddress, int $gasLimit): string
     {
-        // Simplified ABI encoding - pad to 32 bytes
-        $hex = bin2hex($string);
-        $length = strlen($hex);
-        $paddedLength = str_pad(dechex($length / 2), 64, '0', STR_PAD_LEFT);
-        $paddedString = str_pad($hex, ceil($length / 64) * 64, '0', STR_PAD_RIGHT);
-        return $paddedLength . $paddedString;
+        $from = $this->getAddressFromPrivateKey($this->adminPrivateKey);
+        $nonce = $this->getNonce($from);
+        $gasPrice = $this->getGasPrice();
+        $chainId = $this->getChainId();
+
+        $txParams = [
+            'nonce' => '0x' . dechex($nonce),
+            'gasPrice' => '0x' . dechex($gasPrice),
+            'gasLimit' => '0x' . dechex($gasLimit),
+            'to' => $contractAddress,
+            'value' => '0x0',
+            'data' => $data,
+            'chainId' => $chainId,
+        ];
+
+        $tx = new Transaction($txParams);
+        $privateKey = str_replace('0x', '', $this->adminPrivateKey);
+        $signedTx = '0x' . $tx->sign($privateKey);
+
+        $response = $this->rpcCall('eth_sendRawTransaction', [$signedTx]);
+
+        if (isset($response['error'])) {
+            throw new Exception('RPC Error: ' . json_encode($response['error']));
+        }
+
+        return $response['result'];
     }
 
     /**
-     * Wait for transaction to be mined and return receipt
+     * Wait for transaction to be mined
      */
-    private function waitForTransactionReceipt($transactionHash, $maxAttempts = 30)
+    private function waitForTransactionReceipt(string $txHash, int $maxAttempts = 30): array
     {
-        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
-            }
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $response = $this->rpcCall('eth_getTransactionReceipt', [$txHash]);
 
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_getTransactionReceipt',
-                'params' => [$transactionHash],
-                'id' => 1
-            ]);
-
-            $result = $response->json();
-
-            if (isset($result['result']) && $result['result']) {
-                $receipt = $result['result'];
-
+            if (isset($response['result']) && $response['result']) {
+                $receipt = $response['result'];
                 if (hexdec($receipt['status']) !== 1) {
-                    throw new Exception('Transaction failed on blockchain');
+                    throw new Exception('Transaction reverted on-chain (status=0x0)');
                 }
-
                 return $receipt;
             }
 
-            // Wait 1 second before next attempt
-            sleep(1);
+            usleep(500000); // 0.5s (fast on local Hardhat)
         }
 
-        throw new Exception('Transaction confirmation timeout');
+        throw new Exception('Transaction confirmation timeout (waited ' . ($maxAttempts * 0.5) . 's)');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  PRIVATE: ABI ENCODING
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Keccak-256 function selector (first 4 bytes)
+     */
+    private function getFunctionSignature(string $functionName, array $paramTypes): string
+    {
+        $sig = $functionName . '(' . implode(',', $paramTypes) . ')';
+        return substr(Keccak::hash($sig, 256), 0, 8);
     }
 
     /**
-     * Send a transaction to the blockchain using web3p library
-     * 
-     * @param string $data The encoded function call data
-     * @param int $gasLimit Gas limit for the transaction
-     * @return string Transaction hash
+     * Generic ABI encoder.
+     *
+     * Supports: string, uint256, uint8, address, string[]
+     *
+     * @param array $params Array of ['type' => ..., 'value' => ...]
+     * @return string Hex-encoded ABI data (no 0x prefix)
      */
-    private function sendTransaction($data, $gasLimit = 500000)
+    private function encodeParams(array $params): string
     {
-        try {
-            // Get transaction parameters
-            $from = $this->getAddressFromPrivateKey($this->adminPrivateKey);
-            $nonce = $this->getNonce($from);
-            $gasPrice = $this->getGasPrice();
-            $chainId = $this->getChainId();
+        $headParts = [];
+        $tailParts = [];
+        $headSize = count($params) * 32; // each head slot is 32 bytes
 
-            // Create transaction array
-            $txParams = [
-                'nonce' => '0x' . dechex($nonce),
-                'gasPrice' => '0x' . dechex($gasPrice),
-                'gasLimit' => '0x' . dechex($gasLimit),
-                'to' => $this->contractAddress,
-                'value' => '0x0',
-                'data' => $data,
-                'chainId' => $chainId
-            ];
+        foreach ($params as $param) {
+            $type = $param['type'];
+            $value = $param['value'];
 
-            // Create and sign the transaction
-            $tx = new Transaction($txParams);
-            $privateKey = str_replace('0x', '', $this->adminPrivateKey);
-            $signedTx = '0x' . $tx->sign($privateKey);
-
-            // Send the signed transaction
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
+            if ($type === 'uint256' || $type === 'uint8') {
+                // Static type: value goes directly in head
+                $headParts[] = str_pad(dechex(intval($value)), 64, '0', STR_PAD_LEFT);
+                $tailParts[] = null; // no tail data
+            } elseif ($type === 'address') {
+                // Address: 20 bytes, left-padded to 32
+                $addr = str_replace('0x', '', $value);
+                $headParts[] = str_pad($addr, 64, '0', STR_PAD_LEFT);
+                $tailParts[] = null;
+            } elseif ($type === 'string') {
+                // Dynamic type: head contains offset, tail contains encoded string
+                $headParts[] = 'OFFSET'; // placeholder
+                $tailParts[] = $this->encodeString($value);
+            } elseif ($type === 'string[]') {
+                // Dynamic type: head contains offset, tail contains encoded string array
+                $headParts[] = 'OFFSET';
+                $tailParts[] = $this->encodeStringArray($value);
+            } else {
+                throw new Exception("Unsupported ABI type: {$type}");
             }
-
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_sendRawTransaction',
-                'params' => [$signedTx],
-                'id' => 1
-            ]);
-
-            if (!$response->successful()) {
-                throw new Exception('Failed to send transaction: ' . $response->body());
-            }
-
-            $result = $response->json();
-
-            if (isset($result['error'])) {
-                throw new Exception('RPC Error: ' . json_encode($result['error']));
-            }
-
-            return $result['result'];
-
-        } catch (Exception $e) {
-            Log::error('Failed to send blockchain transaction', [
-                'error' => $e->getMessage(),
-                'data' => $data
-            ]);
-            throw $e;
         }
-    }
 
-    /**
-     * Get Ethereum address from private key
-     */
-    private function getAddressFromPrivateKey($privateKey)
-    {
-        $privateKey = str_replace('0x', '', $privateKey);
+        // Calculate offsets for dynamic params
+        $currentTailOffset = $headSize;
+        $resolvedHead = '';
+        $resolvedTail = '';
 
-        // Use secp256k1 to get public key
-        $secp256k1 = new \Elliptic\EC('secp256k1');
-        $keyPair = $secp256k1->keyFromPrivate($privateKey, 'hex');
-        $publicKey = $keyPair->getPublic('hex');
-
-        // Remove '04' prefix from uncompressed public key
-        $publicKey = substr($publicKey, 2);
-
-        // Hash with Keccak-256 and take last 20 bytes
-        $hash = Keccak::hash(hex2bin($publicKey), 256);
-
-        return '0x' . substr($hash, -40);
-    }
-
-    /**
-     * Get current gas price from network
-     */
-    private function getGasPrice()
-    {
-        try {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
+        for ($i = 0; $i < count($headParts); $i++) {
+            if ($headParts[$i] === 'OFFSET') {
+                // Set offset to current tail position
+                $resolvedHead .= str_pad(dechex($currentTailOffset), 64, '0', STR_PAD_LEFT);
+                // Add tail data length (in bytes = hex chars / 2)
+                $currentTailOffset += strlen($tailParts[$i]) / 2;
+            } else {
+                $resolvedHead .= $headParts[$i];
             }
 
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_gasPrice',
-                'params' => [],
-                'id' => 1
-            ]);
-
-            $result = $response->json();
-            if (isset($result['error'])) {
-                // Fallback to 20 gwei if gas price fetch fails
-                return 20000000000;
+            if ($tailParts[$i] !== null) {
+                $resolvedTail .= $tailParts[$i];
             }
-
-            return hexdec($result['result']);
-        } catch (Exception $e) {
-            // Fallback to 20 gwei
-            return 20000000000;
         }
+
+        return $resolvedHead . $resolvedTail;
     }
 
     /**
-     * Get chain ID from network
+     * ABI-encode a string value (length-prefixed, 32-byte padded)
      */
-    private function getChainId()
+    private function encodeString(string $value): string
     {
-        try {
-            $request = Http::asJson();
-            if (app()->environment('local')) {
-                $request = $request->withoutVerifying();
-            }
-
-            $response = $request->post($this->nodeUrl, [
-                'jsonrpc' => '2.0',
-                'method' => 'eth_chainId',
-                'params' => [],
-                'id' => 1
-            ]);
-
-            $result = $response->json();
-            if (isset($result['error'])) {
-                throw new Exception('Failed to get chain ID: ' . $result['error']['message']);
-            }
-
-            return hexdec($result['result']);
-        } catch (Exception $e) {
-            Log::error('Failed to get chain ID: ' . $e->getMessage());
-            // Default to Sepolia (11155111) as fallback
-            return 11155111;
+        $hex = bin2hex($value);
+        $byteLength = strlen($value);
+        $paddedHex = str_pad($hex, ceil(strlen($hex) / 64) * 64, '0', STR_PAD_RIGHT);
+        // If empty string, still need 0 bytes of data with 0-padded length
+        if ($byteLength === 0) {
+            $paddedHex = '';
         }
+        return str_pad(dechex($byteLength), 64, '0', STR_PAD_LEFT) . $paddedHex;
     }
 
     /**
-     * Get nonce for an address
+     * ABI-encode a string[] array
      */
-    private function getNonce($address)
+    private function encodeStringArray(array $values): string
+    {
+        $count = count($values);
+        // Array length
+        $result = str_pad(dechex($count), 64, '0', STR_PAD_LEFT);
+
+        if ($count === 0) {
+            return $result;
+        }
+
+        // Each element is a dynamic type, so we need offsets
+        $offsets = [];
+        $encodedStrings = [];
+
+        // Offset base: count * 32 bytes (one slot per element's offset)
+        $offsetBase = $count * 32;
+        $currentOffset = $offsetBase;
+
+        foreach ($values as $val) {
+            $offsets[] = str_pad(dechex($currentOffset), 64, '0', STR_PAD_LEFT);
+            $encoded = $this->encodeString($val);
+            $encodedStrings[] = $encoded;
+            $currentOffset += strlen($encoded) / 2;
+        }
+
+        $result .= implode('', $offsets);
+        $result .= implode('', $encodedStrings);
+
+        return $result;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  PRIVATE: RPC & CRYPTO HELPERS
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Make a JSON-RPC call
+     */
+    private function rpcCall(string $method, array $params = []): array
     {
         $request = Http::asJson();
         if (app()->environment('local')) {
@@ -651,130 +739,57 @@ class BlockchainService
 
         $response = $request->post($this->nodeUrl, [
             'jsonrpc' => '2.0',
-            'method' => 'eth_getTransactionCount',
-            'params' => [$address, 'latest'],
-            'id' => 1
+            'method' => $method,
+            'params' => $params,
+            'id' => 1,
         ]);
 
-        $result = $response->json();
-        if (isset($result['error'])) {
-            throw new Exception('Failed to get nonce: ' . $result['error']['message']);
+        if (!$response->successful()) {
+            throw new Exception("RPC call failed: {$method} — " . $response->body());
         }
 
-        return hexdec($result['result']);
+        return $response->json();
     }
 
     /**
-     * Get function signature hash (first 4 bytes of keccak256)
+     * Derive Ethereum address from private key
      */
-    private function getFunctionSignature($functionName, $paramTypes)
+    private function getAddressFromPrivateKey(string $privateKey): string
     {
-        $functionString = $functionName . '(' . implode(',', $paramTypes) . ')';
-        // Use Keccak-256, not SHA3-256
-        $hash = Keccak::hash($functionString, 256);
-        return substr($hash, 0, 8);
+        $privateKey = str_replace('0x', '', $privateKey);
+        $secp256k1 = new \Elliptic\EC('secp256k1');
+        $keyPair = $secp256k1->keyFromPrivate($privateKey, 'hex');
+        $publicKey = substr($keyPair->getPublic('hex'), 2); // remove '04' prefix
+        $hash = Keccak::hash(hex2bin($publicKey), 256);
+        return '0x' . substr($hash, -40);
     }
 
-    /**
-     * Encode parameters for contract function call
-     */
-    private function encodeParameters($params)
+    private function getNonce(string $address): int
     {
-        $encoded = '';
-        $dynamicData = '';
-        $offset = count($params) * 32; // Each parameter takes 32 bytes for offset/value
-
-        foreach ($params as $param) {
-            // For strings, we store the offset and append the actual data later
-            $offsetHex = dechex($offset);
-            // Ensure even length
-            if (strlen($offsetHex) % 2 !== 0) {
-                $offsetHex = '0' . $offsetHex;
-            }
-            $encoded .= str_pad($offsetHex, 64, '0', STR_PAD_LEFT);
-
-            // Prepare the dynamic data
-            $paramBytes = strlen($param);
-            $lengthHex = dechex($paramBytes);
-            // Ensure even length
-            if (strlen($lengthHex) % 2 !== 0) {
-                $lengthHex = '0' . $lengthHex;
-            }
-            $dynamicData .= str_pad($lengthHex, 64, '0', STR_PAD_LEFT); // Length
-
-            $paramHex = bin2hex($param);
-            // Calculate padding to nearest 32-byte boundary (64 hex chars = 32 bytes)
-            $hexLength = strlen($paramHex);
-            $paddedLength = ceil($hexLength / 64) * 64;
-            $dynamicData .= str_pad($paramHex, $paddedLength, '0', STR_PAD_RIGHT); // Data
-
-            // Update offset for next parameter (in BYTES, not hex chars)
-            // 32 bytes for length + padded data bytes
-            $offset += 32 + ($paddedLength / 2);
+        $response = $this->rpcCall('eth_getTransactionCount', [$address, 'latest']);
+        if (isset($response['error'])) {
+            throw new Exception('Failed to get nonce: ' . $response['error']['message']);
         }
-
-        return $encoded . $dynamicData;
+        return hexdec($response['result']);
     }
 
-    /**
-     * Encode parameters for registerEntity function call
-     * registerEntity(string shareId, string entityId, string name, uint8 entityType, string ipfsHash)
-     */
-    private function encodeRegisterEntityParameters($shareId, $entityId, $name, $entityType, $ipfsHash)
+    private function getGasPrice(): int
     {
-        // For registerEntity: 3 strings + 1 uint8 + 1 string
-        // Offsets for the 5 parameters (32 bytes each)
-        $encoded = '';
-        $dynamicData = '';
+        try {
+            $response = $this->rpcCall('eth_gasPrice');
+            return isset($response['error']) ? 20000000000 : hexdec($response['result']);
+        } catch (Exception $e) {
+            return 20000000000; // fallback 20 gwei
+        }
+    }
 
-        // Calculate offsets for dynamic types (strings)
-        // Fixed: 5 parameters * 32 bytes = 160 bytes offset start
-        $offset = 160;
-
-        // Param 1: shareId (string) - offset
-        $shareIdOffset = $offset;
-        $encoded .= str_pad(dechex($shareIdOffset), 64, '0', STR_PAD_LEFT);
-
-        // Param 2: entityId (string) - offset
-        $shareIdBytes = strlen($shareId);
-        $shareIdPadded = ceil(strlen(bin2hex($shareId)) / 64) * 64;
-        $entityIdOffset = $shareIdOffset + 32 + ($shareIdPadded / 2);
-        $encoded .= str_pad(dechex($entityIdOffset), 64, '0', STR_PAD_LEFT);
-
-        // Param 3: name (string) - offset
-        $entityIdBytes = strlen($entityId);
-        $entityIdPadded = ceil(strlen(bin2hex($entityId)) / 64) * 64;
-        $nameOffset = $entityIdOffset + 32 + ($entityIdPadded / 2);
-        $encoded .= str_pad(dechex($nameOffset), 64, '0', STR_PAD_LEFT);
-
-        // Param 4: entityType (uint8) - value (not offset)
-        $encoded .= str_pad(dechex($entityType), 64, '0', STR_PAD_LEFT);
-
-        // Param 5: ipfsHash (string) - offset
-        $nameBytes = strlen($name);
-        $namePadded = ceil(strlen(bin2hex($name)) / 64) * 64;
-        $ipfsHashOffset = $nameOffset + 32 + ($namePadded / 2);
-        $encoded .= str_pad(dechex($ipfsHashOffset), 64, '0', STR_PAD_LEFT);
-
-        // Now encode the actual string data
-        // ShareId
-        $dynamicData .= str_pad(dechex($shareIdBytes), 64, '0', STR_PAD_LEFT);
-        $dynamicData .= str_pad(bin2hex($shareId), $shareIdPadded, '0', STR_PAD_RIGHT);
-
-        // EntityId
-        $dynamicData .= str_pad(dechex($entityIdBytes), 64, '0', STR_PAD_LEFT);
-        $dynamicData .= str_pad(bin2hex($entityId), $entityIdPadded, '0', STR_PAD_RIGHT);
-
-        // Name
-        $dynamicData .= str_pad(dechex($nameBytes), 64, '0', STR_PAD_LEFT);
-        $dynamicData .= str_pad(bin2hex($name), $namePadded, '0', STR_PAD_RIGHT);
-
-        // IpfsHash
-        $ipfsHashBytes = strlen($ipfsHash);
-        $ipfsHashPadded = ceil(strlen(bin2hex($ipfsHash)) / 64) * 64;
-        $dynamicData .= str_pad(dechex($ipfsHashBytes), 64, '0', STR_PAD_LEFT);
-        $dynamicData .= str_pad(bin2hex($ipfsHash), $ipfsHashPadded, '0', STR_PAD_RIGHT);
-
-        return $encoded . $dynamicData;
+    private function getChainId(): int
+    {
+        try {
+            $response = $this->rpcCall('eth_chainId');
+            return isset($response['error']) ? 31337 : hexdec($response['result']);
+        } catch (Exception $e) {
+            return 31337; // Hardhat default
+        }
     }
 }
