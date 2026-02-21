@@ -49,7 +49,7 @@ class GstVerificationService
         // Check cache first (cache for 24 hours)
         $cacheKey = 'gst_verification_' . $gstin;
         $cached = Cache::get($cacheKey);
-        
+
         if ($cached !== null) {
             Log::info('GST verification result from cache', ['gstin' => $gstin, 'valid' => $cached['valid']]);
             return $cached;
@@ -58,19 +58,19 @@ class GstVerificationService
         // Call GST verification API
         try {
             $response = $this->callGstApi($gstin);
-            
+
             if ($response['valid']) {
                 // Cache successful verification for 24 hours
                 Cache::put($cacheKey, $response, now()->addHours(24));
             }
-            
+
             return $response;
         } catch (\Exception $e) {
             Log::error('GST API verification failed', [
                 'gstin' => $gstin,
                 'error' => $e->getMessage()
             ]);
-            
+
             // Fallback to format validation if API fails
             return [
                 'valid' => true, // Allow registration if API is down
@@ -90,8 +90,13 @@ class GstVerificationService
             $headers['Authorization'] = 'Bearer ' . $this->apiKey;
         }
 
-        $response = Http::timeout(10)
-            ->withHeaders($headers)
+        $request = Http::timeout(10);
+
+        if (app()->environment('local')) {
+            $request = $request->withoutVerifying();
+        }
+
+        $response = $request->withHeaders($headers)
             ->get($this->apiUrl, ['gst' => $gstin]);
 
         if (!$response->successful()) {
