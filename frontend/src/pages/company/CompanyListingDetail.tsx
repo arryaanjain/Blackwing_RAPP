@@ -7,7 +7,7 @@ import { ROUTES } from '../../config/routes';
 import type { Listing } from '../../types/listings';
 
 const CompanyListingDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { listingId } = useParams<{ listingId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -15,10 +15,10 @@ const CompanyListingDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      loadListing(parseInt(id));
+    if (listingId) {
+      loadListing(parseInt(listingId));
     }
-  }, [id]);
+  }, [listingId]);
 
   const loadListing = async (listingId: number) => {
     try {
@@ -43,8 +43,8 @@ const CompanyListingDetail: React.FC = () => {
     }
   };
 
-  const isOwner = user?.current_profile_type === 'company' && 
-                  listing?.company.id === user.current_profile_id;
+  const isOwner = user?.current_profile_type === 'company' &&
+    listing?.company.id === user.current_profile_id;
 
   if (loading) {
     return (
@@ -106,11 +106,10 @@ const CompanyListingDetail: React.FC = () => {
               <h1 className="text-3xl font-bold text-white">{listing.title}</h1>
               <span className="text-2xl">{listing.visibility === 'public' ? '🌐' : '🔒'}</span>
               <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(listing.status)}`}>
-                <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
-                  listing.status === 'active' ? 'bg-green-500' : 
-                  listing.status === 'draft' ? 'bg-yellow-500' : 
-                  listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
-                }`}></span>
+                <span className={`inline-block h-2 w-2 rounded-full mr-2 ${listing.status === 'active' ? 'bg-green-500' :
+                  listing.status === 'draft' ? 'bg-yellow-500' :
+                    listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
+                  }`}></span>
                 {listing.status.toUpperCase()}
               </span>
             </div>
@@ -118,16 +117,16 @@ const CompanyListingDetail: React.FC = () => {
               Listing #{listing.listing_number}
             </p>
           </div>
-          
+
           <div className="flex gap-3">
             <button
-              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':id', listing.id.toString()))}
+              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':listingId', listing.id.toString()))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
             >
               Edit Listing
             </button>
             <button
-              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES.replace(':id', listing.id.toString()))}
+              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES.replace(':listingId', listing.id.toString()))}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium"
             >
               View Quotes ({listing.quotes?.length || 0})
@@ -178,12 +177,12 @@ const CompanyListingDetail: React.FC = () => {
                   <span className="text-sm font-medium text-blue-300">Company</span>
                   <p className="text-white">{listing.company.name}</p>
                 </div>
-                
+
                 <div>
                   <span className="text-sm font-medium text-blue-300">Category</span>
                   <p className="text-white">{listing.category}</p>
                 </div>
-                
+
                 {listing.base_price && (
                   <div>
                     <span className="text-sm font-medium text-blue-300">Base Price</span>
@@ -192,19 +191,19 @@ const CompanyListingDetail: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 <div>
                   <span className="text-sm font-medium text-blue-300">Visibility</span>
                   <p className="text-white capitalize">{listing.visibility}</p>
                 </div>
-                
+
                 <div>
                   <span className="text-sm font-medium text-blue-300">Created</span>
                   <p className="text-white">
                     {new Date(listing.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                
+
                 {listing.opens_at && (
                   <div>
                     <span className="text-sm font-medium text-blue-300">Opens</span>
@@ -213,7 +212,7 @@ const CompanyListingDetail: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 {listing.closes_at && (
                   <div>
                     <span className="text-sm font-medium text-blue-300">Closes</span>

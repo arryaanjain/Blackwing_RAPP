@@ -1,129 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-
-// Define bid type
-interface Bid {
-  id: number;
-  blockchain_id: string;
-  vendor_name: string;
-  vendor_blockchain_id: string;
-  price: number;
-  description: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  created_at: string;
-}
-
-// Define listing type
-interface Listing {
-  id: number;
-  blockchain_id: string;
-  title: string;
-  description: string;
-  quantity: number;
-  max_price: number;
-  is_private: boolean;
-  deadline: string;
-  status: 'active' | 'closed' | 'cancelled';
-  created_at: string;
-  company_id: number;
-}
+import { useToast } from '../../hooks/useToast';
+import listingService from '../../services/listingService';
+import { ROUTES } from '../../config/routes';
+import type { Listing, Quote } from '../../types/listings';
 
 const CompanyBidViewer: React.FC = () => {
   const { listingId } = useParams<{ listingId: string }>();
   const [listing, setListing] = useState<Listing | null>(null);
-  const [bids, setBids] = useState<Bid[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<number | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchListingAndBids = async () => {
+      if (!listingId) return;
+
       setLoading(true);
+      setError(null);
       try {
-        // In a real app, these would be API calls to your backend
-        // Mock data for demonstration
-        
-        // Mock fetch listing
-        const mockListing: Listing = {
-          id: parseInt(listingId!),
-          blockchain_id: `LIST-${listingId}`,
-          title: "Industrial Supplies Procurement",
-          description: "Looking for bulk industrial cleaning supplies with eco-friendly certification.",
-          quantity: 500,
-          max_price: 25000,
-          is_private: false,
-          deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'active',
-          created_at: new Date().toISOString(),
-          company_id: 1
-        };
-        
-        // Mock fetch bids
-        const mockBids: Bid[] = [
-          {
-            id: 1,
-            blockchain_id: 'BID-001',
-            vendor_name: 'Eco Supplies Co.',
-            vendor_blockchain_id: 'VEND-001',
-            price: 21500,
-            description: 'High-quality eco-friendly cleaning supplies with quick delivery.',
-            status: 'pending',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            blockchain_id: 'BID-002',
-            vendor_name: 'Green Clean Ltd.',
-            vendor_blockchain_id: 'VEND-002',
-            price: 19800,
-            description: 'Certified eco-friendly supplies with 3-year warranty.',
-            status: 'pending',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 3,
-            blockchain_id: 'BID-003',
-            vendor_name: 'Sustainable Solutions',
-            vendor_blockchain_id: 'VEND-003',
-            price: 23400,
-            description: 'Premium biodegradable cleaning products with training included.',
-            status: 'pending',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 4,
-            blockchain_id: 'BID-004',
-            vendor_name: 'Clean & Green',
-            vendor_blockchain_id: 'VEND-004',
-            price: 18750,
-            description: 'Affordable eco-friendly solutions with bulk discount.',
-            status: 'pending',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 5,
-            blockchain_id: 'BID-005',
-            vendor_name: 'EcoClean Vendors',
-            vendor_blockchain_id: 'VEND-005',
-            price: 24100,
-            description: 'High-concentration products requiring less quantity.',
-            status: 'pending',
-            created_at: new Date().toISOString()
-          }
-        ];
-        
-        setListing(mockListing);
-        
-        // Sort bids by price (ascending)
-        const sortedBids = [...mockBids].sort((a, b) => a.price - b.price);
-        
-        // Limit to top 10 bids
-        setBids(sortedBids.slice(0, 10));
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching listing and bids:', err);
-        setError('Failed to load listing details and bids. Please try again later.');
+        console.log(`Fetching listing and bids for ID: ${listingId}`);
+        const listingPromise = listingService.getListing(parseInt(listingId));
+        const quotesPromise = listingService.getQuotesForListing(parseInt(listingId));
+
+        const [listingRes, quotesRes] = await Promise.all([listingPromise, quotesPromise]);
+
+        console.log('Listing received:', listingRes.data);
+        console.log('Quotes received:', quotesRes.data);
+
+        if (!listingRes.data) {
+          throw new Error('Listing data is empty');
+        }
+
+        setListing(listingRes.data);
+
+        // Sort quotes by price (ascending) initially
+        const quotesData = Array.isArray(quotesRes.data) ? quotesRes.data : [];
+        const sortedQuotes = [...quotesData].sort((a, b) => (Number(a.quoted_price) || 0) - (Number(b.quoted_price) || 0));
+        setQuotes(sortedQuotes);
+      } catch (err: any) {
+        console.error('Error in fetchListingAndBids:', err);
+        const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to load listing details and bids.';
+        setError(errorMessage);
+        showToast({
+          title: "Execution Error",
+          description: errorMessage,
+          status: "error"
+        });
+      } finally {
         setLoading(false);
       }
     };
@@ -131,37 +58,84 @@ const CompanyBidViewer: React.FC = () => {
     fetchListingAndBids();
   }, [listingId]);
 
-  const handleAcceptBid = async (bidId: number) => {
-    // In a real app, this would be an API call to accept a bid
+  const handleAcceptQuote = async (quoteId: number) => {
     try {
-      // Mock API call
-      console.log(`Accepting bid with ID: ${bidId}`);
-      
-      // Update the bid status locally
-      setBids(bids.map(bid => 
-        bid.id === bidId 
-          ? { ...bid, status: 'accepted' as const } 
-          : { ...bid, status: 'rejected' as const }
+      setUpdating(quoteId);
+      await listingService.reviewQuote(quoteId, {
+        status: 'accepted',
+        review_notes: 'Bid accepted by company.'
+      });
+
+      showToast({
+        title: "Success",
+        description: "Quote accepted successfully.",
+        status: "success"
+      });
+
+      // Update local state
+      setQuotes((prev: Quote[]) => prev.map((q: Quote) =>
+        q.id === quoteId ? { ...q, status: 'accepted' } : q
       ));
-      
-      // Also update the listing status
+
       if (listing) {
-        setListing({
-          ...listing,
-          status: 'closed' as const
-        });
+        setListing({ ...listing, status: 'closed' });
       }
-    } catch (error) {
-      console.error('Error accepting bid:', error);
+    } catch (err: any) {
+      console.error('Error accepting bid:', err);
+      showToast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to accept quote.",
+        status: "error"
+      });
+    } finally {
+      setUpdating(null);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleRejectQuote = async (quoteId: number) => {
+    if (!confirm('Are you sure you want to reject this quote?')) return;
+
+    try {
+      setUpdating(quoteId);
+      await listingService.reviewQuote(quoteId, {
+        status: 'rejected',
+        review_notes: 'Bid rejected by company.'
+      });
+
+      showToast({
+        title: "Quote Rejected",
+        description: "The quote has been marked as rejected.",
+        status: "info"
+      });
+
+      setQuotes((prev: Quote[]) => prev.map((q: Quote) =>
+        q.id === quoteId ? { ...q, status: 'rejected' } : q
+      ));
+    } catch (err: any) {
+      console.error('Error rejecting bid:', err);
+      showToast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to reject quote.",
+        status: "error"
+      });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -188,7 +162,7 @@ const CompanyBidViewer: React.FC = () => {
       <DashboardLayout>
         <div className="bg-red-900/20 backdrop-blur-sm border border-red-800/40 rounded-lg p-6 text-center">
           <p className="text-red-300 mb-4">{error}</p>
-          <Link to="/company/listings" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
             Back to Listings
           </Link>
         </div>
@@ -201,7 +175,7 @@ const CompanyBidViewer: React.FC = () => {
       <DashboardLayout>
         <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6 text-center">
           <p className="text-blue-300 mb-4">Listing not found</p>
-          <Link to="/company/listings" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
             Back to Listings
           </Link>
         </div>
@@ -219,103 +193,113 @@ const CompanyBidViewer: React.FC = () => {
               <h1 className="text-2xl font-bold text-white mb-2">{listing.title}</h1>
               <p className="text-blue-200 mb-4">{listing.description}</p>
             </div>
-            <div className={`px-3 py-1 rounded-full text-sm flex items-center ${
-              listing.status === 'active' 
-                ? 'bg-green-900/50 text-green-300' 
-                : listing.status === 'closed'
+            <div className={`px-3 py-1 rounded-full text-sm flex items-center ${listing.status === 'active'
+              ? 'bg-green-900/50 text-green-300'
+              : listing.status === 'closed'
                 ? 'bg-gray-900/50 text-gray-300'
                 : 'bg-red-900/50 text-red-300'
-            }`}>
-              <span className={`h-2 w-2 rounded-full mr-2 ${
-                listing.status === 'active' ? 'bg-green-500' : 
+              }`}>
+              <span className={`h-2 w-2 rounded-full mr-2 ${listing.status === 'active' ? 'bg-green-500' :
                 listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
-              }`}></span>
+                }`}></span>
               <span className="capitalize">{listing.status}</span>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
             <div>
-              <p className="text-blue-300 text-sm">Quantity</p>
-              <p className="text-white font-medium">{listing.quantity}</p>
+              <p className="text-blue-300 text-sm">Listing #</p>
+              <p className="text-white font-medium">{listing.listing_number}</p>
             </div>
             <div>
-              <p className="text-blue-300 text-sm">Max Price</p>
-              <p className="text-white font-medium">{formatCurrency(listing.max_price)}</p>
+              <p className="text-blue-300 text-sm">Category</p>
+              <p className="text-white font-medium">{listing.category}</p>
             </div>
-            <div>
-              <p className="text-blue-300 text-sm">Deadline</p>
-              <p className="text-white font-medium">{formatDate(listing.deadline)}</p>
-            </div>
+            {listing.base_price && (
+              <div>
+                <p className="text-blue-300 text-sm">Base Price</p>
+                <p className="text-white font-medium">{formatCurrency(listing.base_price)}</p>
+              </div>
+            )}
+            {listing.closes_at && (
+              <div>
+                <p className="text-blue-300 text-sm">Deadline</p>
+                <p className="text-white font-medium">{formatDate(listing.closes_at)}</p>
+              </div>
+            )}
             <div>
               <p className="text-blue-300 text-sm">Visibility</p>
-              <p className="text-white font-medium">{listing.is_private ? 'Private' : 'Public'}</p>
+              <p className="text-white font-medium capitalize">{listing.visibility}</p>
             </div>
           </div>
         </div>
-        
+
         {/* Bids Section */}
         <div>
           <h2 className="text-xl font-semibold text-white mb-4">
-            Bids ({bids.length})
-            <span className="text-sm font-normal text-blue-300 ml-2">
-              Showing the top {Math.min(10, bids.length)} bids by price
-            </span>
+            Responses ({quotes.length})
           </h2>
-          
-          {bids.length === 0 ? (
+
+          {quotes.length === 0 ? (
             <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6 text-center">
-              <p className="text-blue-300">No bids have been submitted yet.</p>
+              <p className="text-blue-300">No quotes have been submitted yet.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {bids.map((bid, index) => (
-                <div 
-                  key={bid.id}
-                  className={`bg-blue-900/20 backdrop-blur-sm border ${
-                    bid.status === 'accepted' ? 'border-green-500' :
-                    bid.status === 'rejected' ? 'border-red-800/40' : 'border-blue-800/40'
-                  } rounded-lg p-6 hover:bg-blue-800/30 transition-colors`}
+              {quotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  className={`bg-blue-900/20 backdrop-blur-sm border ${quote.status === 'accepted' ? 'border-green-500' :
+                    quote.status === 'rejected' ? 'border-red-800/40' : 'border-blue-800/40'
+                    } rounded-lg p-6 hover:bg-blue-800/30 transition-colors`}
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between">
                     <div>
-                      <div className="flex items-center">
-                        <span className="bg-blue-700 text-white text-xs px-2 py-1 rounded-full mr-2">
-                          #{index + 1}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-blue-700 text-white text-xs px-2 py-1 rounded-full">
+                          #{quote.quote_number}
                         </span>
-                        <h3 className="text-lg font-medium text-white">{bid.vendor_name}</h3>
-                        <span className="text-blue-300 text-sm ml-2">({bid.vendor_blockchain_id})</span>
+                        <h3 className="text-lg font-medium text-white">{quote.vendor?.name || 'Unknown Vendor'}</h3>
                       </div>
-                      <p className="text-blue-300 mt-1">{bid.description}</p>
-                      <p className="text-blue-400 text-sm mt-2">
-                        Submitted on {formatDate(bid.created_at)}
-                      </p>
+                      <p className="text-blue-300 line-clamp-2 mb-2">{quote.proposal_details}</p>
+                      <div className="flex gap-4 text-sm text-blue-400">
+                        <span>Delivery: {quote.delivery_days} days</span>
+                        <span>Submitted: {formatDate(quote.submitted_at)}</span>
+                      </div>
                     </div>
-                    
+
                     <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                      <div className="text-2xl font-bold text-white">{formatCurrency(bid.price)}</div>
-                      <div className={`mt-2 px-3 py-1 rounded-full text-sm flex items-center ${
-                        bid.status === 'accepted' ? 'bg-green-900/50 text-green-300' :
-                        bid.status === 'rejected' ? 'bg-red-900/50 text-red-300' :
-                        'bg-yellow-900/50 text-yellow-300'
-                      }`}>
-                        <span className={`h-2 w-2 rounded-full mr-2 ${
-                          bid.status === 'accepted' ? 'bg-green-500' :
-                          bid.status === 'rejected' ? 'bg-red-500' :
-                          'bg-yellow-500'
-                        }`}></span>
-                        <span className="capitalize">{bid.status}</span>
+                      <div className="text-2xl font-bold text-green-300">{formatCurrency(quote.quoted_price)}</div>
+                      <div className={`mt-2 px-3 py-1 rounded-full text-sm flex items-center ${quote.status === 'accepted' ? 'bg-green-900/50 text-green-300' :
+                        quote.status === 'rejected' ? 'bg-red-900/50 text-red-300' :
+                          quote.status === 'withdrawn' ? 'bg-gray-900/50 text-gray-300' :
+                            'bg-blue-900/50 text-blue-300'
+                        }`}>
+                        <span className={`h-2 w-2 rounded-full mr-2 ${quote.status === 'accepted' ? 'bg-green-500' :
+                          quote.status === 'rejected' ? 'bg-red-500' :
+                            quote.status === 'withdrawn' ? 'bg-gray-500' :
+                              'bg-blue-500'
+                          }`}></span>
+                        <span className="capitalize">{quote.status?.replace('_', ' ') || quote.status}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  {listing.status === 'active' && bid.status === 'pending' && (
-                    <div className="mt-4 flex justify-end">
-                      <button 
-                        onClick={() => handleAcceptBid(bid.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+
+                  {listing.status === 'active' && quote.status === 'submitted' && (
+                    <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-blue-800/30">
+                      <button
+                        onClick={() => handleRejectQuote(quote.id)}
+                        disabled={updating !== null}
+                        className="bg-red-900/40 hover:bg-red-800/60 text-red-200 border border-red-800/50 px-4 py-2 rounded text-sm transition-colors"
                       >
-                        Accept Bid
+                        Reject Quote
+                      </button>
+                      <button
+                        onClick={() => handleAcceptQuote(quote.id)}
+                        disabled={updating !== null}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        {updating === quote.id ? 'Processing...' : 'Accept & Award Contract'}
                       </button>
                     </div>
                   )}
@@ -324,16 +308,23 @@ const CompanyBidViewer: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         <div className="flex justify-between mt-6">
-          <Link to="/company/listings" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors font-medium">
             Back to Listings
           </Link>
-          
+
           {listing.status === 'active' && (
-            <button 
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-              // onClick={handleCancelListing}
+            <button
+              className="bg-red-900/40 hover:bg-red-800/40 text-red-200 border border-red-800/50 px-4 py-2 rounded transition-all"
+              onClick={() => {
+                if (confirm('Are you sure you want to cancel this listing? This will withdraw all current quotes.')) {
+                  listingService.deleteListing(listing.id).then(() => {
+                    showToast({ title: "Listing Cancelled", description: "The listing has been successfully cancelled.", status: "info" });
+                    setListing({ ...listing, status: 'cancelled' });
+                  });
+                }
+              }}
             >
               Cancel Listing
             </button>
