@@ -132,6 +132,9 @@ Route::prefix('listings')->middleware('auth:sanctum')->group(function () {
     
     // Quote-related routes within listings context
     Route::get('/{listing}/quotes', [QuoteController::class, 'getByListing']);
+
+    // Auction for a specific listing
+    Route::get('/{listing}/auction', [AuctionController::class, 'getForListing']);
 });
 
 Route::prefix('quotes')->middleware('auth:sanctum')->group(function () {
@@ -153,6 +156,9 @@ Route::prefix('wallet')->middleware('auth:sanctum')->group(function () {
 
 // Auction Routes
 Route::prefix('auctions')->middleware('auth:sanctum')->group(function () {
+    // Single auction detail (buyer or enrolled vendor)
+    Route::get('/{id}', [AuctionController::class, 'show']);
+
     // Buyer routes
     Route::post('/', [AuctionController::class, 'create']);
     Route::post('/{id}/start', [AuctionController::class, 'start']);

@@ -20,39 +20,121 @@ class AuctionController extends Controller
 {
     public function __construct(private readonly AuctionRankingService $ranking) {}
 
+    // ── GET /api/auctions/{id} ─────────────────────────────────────────────
+
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $auction = Auction::with('listing')->findOrFail($id);
+
+        // Only the buyer or a registered participant may view
+        $user = $request->user();
+        $isParticipant = AuctionParticipant::where('auction_id', $id)
+            ->where('vendor_id', $user->id)
+            ->exists();
+
+        if ($auction->buyer_id !== $user->id && !$isParticipant) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        return response()->json(['auction' => $auction]);
+    }
+
+    // ── GET /api/listings/{listingId}/auction ──────────────────────────────
+
+    public function getForListing(Request $request, int $listingId): JsonResponse
+    {
+        $auction = Auction::where('listing_id', $listingId)
+            ->whereIn('status', ['scheduled', 'running', 'completed'])
+            ->latest()
+            ->first();
+
+        return response()->json(['auction' => $auction]);
+    }
+
     // ── POST /api/auctions ──────────────────────────────────────────────────
 
     public function create(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'listing_id'                  => 'required|exists:listings,id',
-            'start_time'                  => 'required|date|after:now',
-            'end_time'                    => 'required|date|after:start_time',
-            'minimum_decrement_type'      => ['required', Rule::in(['percent', 'fixed'])],
-            'minimum_decrement_value'     => 'required|numeric|min:0',
-            'extension_window_seconds'    => 'sometimes|integer|min:0',
-            'extension_duration_seconds'  => 'sometimes|integer|min:0',
-        ]);
-
         // Only company users can create auctions
         if (!$request->user()->isCompany()) {
             return response()->json(['message' => 'Only company accounts can create auctions.'], 403);
         }
 
-        $auction = DB::transaction(function () use ($data, $request) {
-            $auction = Auction::create(array_merge($data, ['buyer_id' => $request->user()->id]));
+        $data = $request->validate([
+            'listing_id'                 => 'required|exists:listings,id',
+            'duration_minutes'           => 'required|integer|min:5|max:180',
+            'minimum_decrement_type'     => ['sometimes', Rule::in(['percent', 'fixed'])],
+            'minimum_decrement_value'    => 'sometimes|numeric|min:0',
+            'extension_window_seconds'   => 'sometimes|integer|min:0',
+            'extension_duration_seconds' => 'sometimes|integer|min:0',
+        ]);
+
+        // Ensure there are at least 2 qualifying vendor quotes
+        $eligibleVendorIds = Quote::where('listing_id', $data['listing_id'])
+            ->whereNotIn('status', ['rejected', 'withdrawn'])
+            ->pluck('vendor_user_id')
+            ->unique()
+            ->values();
+
+        if ($eligibleVendorIds->count() < 2) {
+            return response()->json([
+                'message' => 'At least 2 vendor quotations are required to start a reverse auction.',
+            ], 422);
+        }
+
+        // Prevent duplicate active auctions for the same listing
+        $existing = Auction::where('listing_id', $data['listing_id'])
+            ->whereIn('status', ['scheduled', 'running'])
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'An active auction already exists for this listing.',
+                'auction' => $existing,
+            ], 409);
+        }
+
+        $now      = now();
+        $endTime  = $now->copy()->addMinutes((int) $data['duration_minutes']);
+
+        $auction = DB::transaction(function () use ($data, $request, $now, $endTime, $eligibleVendorIds) {
+            $auction = Auction::create([
+                'listing_id'                 => $data['listing_id'],
+                'buyer_id'                   => $request->user()->id,
+                'start_time'                 => $now,
+                'end_time'                   => $endTime,
+                'status'                     => 'running',
+                'minimum_decrement_type'     => $data['minimum_decrement_type']    ?? 'fixed',
+                'minimum_decrement_value'    => $data['minimum_decrement_value']   ?? 0,
+                'extension_window_seconds'   => $data['extension_window_seconds']  ?? 60,
+                'extension_duration_seconds' => $data['extension_duration_seconds'] ?? 60,
+            ]);
+
+            // Auto-enroll every vendor who submitted a qualifying quote
+            foreach ($eligibleVendorIds as $vendorId) {
+                AuctionParticipant::create([
+                    'auction_id'   => $auction->id,
+                    'vendor_id'    => $vendorId,
+                    'initial_price' => null,
+                ]);
+            }
 
             AuctionAuditLog::log($auction->id, 'auction_created', [
-                'buyer_id'   => $auction->buyer_id,
-                'listing_id' => $auction->listing_id,
-                'start_time' => $auction->start_time->toIso8601String(),
-                'end_time'   => $auction->end_time->toIso8601String(),
+                'buyer_id'          => $auction->buyer_id,
+                'listing_id'        => $auction->listing_id,
+                'start_time'        => $auction->start_time->toIso8601String(),
+                'end_time'          => $auction->end_time->toIso8601String(),
+                'enrolled_vendors'  => $eligibleVendorIds->toArray(),
             ]);
 
             return $auction;
         });
 
-        return response()->json(['auction' => $auction], 201);
+        // Schedule the auto-end job and fire AuctionStarted
+        EndAuction::dispatch($auction)->delay($endTime);
+        event(new AuctionStarted($auction));
+
+        return response()->json(['auction' => $auction->load('participants')], 201);
     }
 
     // ── POST /api/auctions/{id}/start ───────────────────────────────────────

@@ -27,8 +27,8 @@ class Auction extends Model
         'status'                     => 'scheduled',
         'minimum_decrement_type'     => 'fixed',
         'minimum_decrement_value'    => 0,
-        'extension_window_seconds'   => 300,
-        'extension_duration_seconds' => 300,
+        'extension_window_seconds'   => 60,
+        'extension_duration_seconds' => 60,
     ];
 
     protected $casts = [
