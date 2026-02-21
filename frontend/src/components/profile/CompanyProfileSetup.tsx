@@ -4,12 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../config/routes';
 import authService from '../../services/authService';
 
-interface CompanyProfileSetupProps {}
+interface CompanyProfileSetupProps { }
 
 const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
   const navigate = useNavigate();
   const { createCompanyProfile, updateProfile, currentProfile, checkCompanyProfile, switchToProfileType } = useAuth();
-  
+
   // All useState hooks must be declared first, before any conditional logic
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,18 +68,6 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
   // Derived state - must be after all hooks
   const isEditing = currentProfile?.type === 'company' && !currentProfile.is_complete;
   const isSubmitDisabled = loading || gstVerifying || !!gstError || !formData.gst_number || !gstVerified;
-
-  const toBase36 = (c: string) => {
-    const code = c.charCodeAt(0);
-    if (code >= 48 && code <= 57) return code - 48;
-    if (code >= 65 && code <= 90) return code - 55;
-    return -1;
-  };
-
-  const fromBase36 = (n: number) => {
-    if (n >= 0 && n <= 9) return String.fromCharCode(48 + n);
-    return String.fromCharCode(55 + (n - 10));
-  };
 
   const isValidGSTIN = (gstin: string) => {
     const value = gstin.trim().toUpperCase();
@@ -180,9 +168,9 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
       }
 
       // Navigate to home page with success message AND logout instruction
-      navigate('/', { 
+      navigate('/', {
         replace: true,
-        state: { 
+        state: {
           message: isEditing ? 'Profile updated successfully! Please login again.' : 'Company profile created successfully! Please login again to access your dashboard.',
           type: 'success',
           shouldLogout: true  // Flag to trigger logout on landing page
@@ -273,12 +261,11 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
                   type="text"
                   required
                   maxLength={15}
-                  className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:border-transparent backdrop-blur-sm transition-all duration-200 ${
-                    gstVerifying ? 'border-yellow-400 focus:ring-yellow-400' :
-                    gstVerified ? 'border-green-400 focus:ring-green-400' :
-                    gstError ? 'border-red-400 focus:ring-red-400' :
-                    'border-white/20 focus:ring-blue-400'
-                  }`}
+                  className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:border-transparent backdrop-blur-sm transition-all duration-200 ${gstVerifying ? 'border-yellow-400 focus:ring-yellow-400' :
+                      gstVerified ? 'border-green-400 focus:ring-green-400' :
+                        gstError ? 'border-red-400 focus:ring-red-400' :
+                          'border-white/20 focus:ring-blue-400'
+                    }`}
                   placeholder="Enter 15-character GSTIN"
                   value={formData.gst_number}
                   onChange={handleInputChange}
