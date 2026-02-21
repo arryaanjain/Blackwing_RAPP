@@ -42,7 +42,7 @@ const HeroParticles: React.FC = () => {
                         originY: y,
                         vx: 0,
                         vy: 0,
-                        size: Math.random() * 1.5 + 0.5
+                        size: Math.random() * 0.6 + 0.8
                     });
                 }
             }
@@ -75,11 +75,17 @@ const HeroParticles: React.FC = () => {
                 p.x += p.vx;
                 p.y += p.vy;
 
-                // Draw
-                ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + force * 0.2})`;
+                // Draw with enhanced visibility and subtle glow
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.35 + force * 0.15})`;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
+
+                // Reset shadow to avoid affecting other draws if any
+                ctx.shadowBlur = 0;
             });
 
             animationFrameId.current = requestAnimationFrame(animate);
