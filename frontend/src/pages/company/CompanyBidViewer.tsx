@@ -103,7 +103,7 @@ const CompanyBidViewer: React.FC = () => {
           {
             id: 5,
             blockchain_id: 'BID-005',
-            vendor_name: 'EcoClean Suppliers',
+            vendor_name: 'EcoClean Vendors',
             vendor_blockchain_id: 'VEND-005',
             price: 24100,
             description: 'High-concentration products requiring less quantity.',
