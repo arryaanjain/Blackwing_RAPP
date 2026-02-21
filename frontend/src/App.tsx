@@ -31,6 +31,9 @@ import CompanyDashboard from './pages/company/CompanyDashboard';
 import CompleteCompanyProfile from './components/profile/CompanyProfileSetup';
 import CompanyListings from './pages/company/CompanyListingsManager';
 import CreateListing from './pages/company/CompanyCreateListing';
+import CompanyListingDetail from './pages/company/CompanyListingDetail';
+import CompanyEditListing from './pages/company/CompanyEditListing';
+import CompanyBidViewer from './pages/company/CompanyBidViewer';
 import CompanyVendors from './pages/company/ManageVendors';
 import CompanyProfile from './pages/company/CompanyProfile';
 
@@ -38,7 +41,12 @@ import VendorDashboard from './pages/vendor/VendorDashboard';
 import CompleteVendorProfile from './components/profile/VendorProfileSetup';
 import VendorListings from './pages/vendor/VendorListingsBrowser';
 import SearchListings from './pages/vendor/VendorListingsBrowser';
+import VendorListingDetail from './pages/vendor/VendorListingDetail';
 import VendorProfile from './pages/vendor/VendorProfile';
+import ManageCompanies from './pages/vendor/ManageCompanies';
+import VendorQuotesManager from './pages/vendor/VendorQuotesManager';
+import VendorQuoteDetail from './pages/vendor/VendorQuoteDetail';
+import VendorQuoteForm from './pages/vendor/VendorQuoteForm';
 import Wallet from './pages/Wallet';
 
 import AuthCallback from './components/AuthCallback';
@@ -113,6 +121,21 @@ const App: React.FC = () => {
                   <CreateListing />
                 </ProtectedRoute>
               } />
+              <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyListingDetail />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyEditListing />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyBidViewer />
+                </ProtectedRoute>
+              } />
               <Route path={ROUTES.PROTECTED.COMPANY.VENDORS} element={
                 <ProtectedRoute profileType="company">
                   <CompanyVendors />
@@ -145,9 +168,44 @@ const App: React.FC = () => {
                   <SearchListings />
                 </ProtectedRoute>
               } />
+              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorListings />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorListingDetail />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteForm mode="create" />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteForm mode="edit" />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuotesManager />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteDetail />
+                </ProtectedRoute>
+              } />
               <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
                 <ProtectedRoute profileType="vendor">
                   <VendorProfile />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.COMPANIES} element={
+                <ProtectedRoute profileType="vendor">
+                  <ManageCompanies />
                 </ProtectedRoute>
               } />
 
