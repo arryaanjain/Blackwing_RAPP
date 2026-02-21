@@ -203,8 +203,8 @@ class QuoteController extends Controller
         $user = Auth::user();
         $listing = Listing::findOrFail($listingId);
 
-        if ($user->current_profile_type !== 'company' || 
-            $listing->company_id !== $user->companyProfile->id) {
+        if ($user->current_profile_type !== 'company' ||
+            $listing->company_id !== $user->current_profile_id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
