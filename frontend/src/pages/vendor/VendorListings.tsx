@@ -30,7 +30,7 @@ const VendorListings: React.FC = () => {
 
     fetchListings();
   }, []);
-  
+
   useEffect(() => {
     let result = [...listings];
 
@@ -80,7 +80,7 @@ const VendorListings: React.FC = () => {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <h1 className="text-2xl font-bold text-white">Available Listings</h1>
-          
+
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative">
               <input
@@ -94,7 +94,7 @@ const VendorListings: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            
+
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -104,7 +104,7 @@ const VendorListings: React.FC = () => {
               <option value="active">Active Only</option>
               <option value="closed">Closed Only</option>
             </select>
-            
+
             <select
               value={filterBidStatus}
               onChange={(e) => setFilterBidStatus(e.target.value)}
@@ -146,13 +146,12 @@ const VendorListings: React.FC = () => {
               return (
                 <div
                   key={listing.id}
-                  className={`bg-blue-800/20 backdrop-blur-sm border ${
-                    listing.status === 'closed'
+                  className={`bg-blue-800/20 backdrop-blur-sm border ${listing.status === 'closed'
                       ? 'border-blue-700/20'
                       : bidSubmitted
                         ? 'border-green-700/40'
                         : 'border-blue-700/40'
-                  } rounded-lg p-6 hover:bg-blue-800/30 transition-colors`}
+                    } rounded-lg p-6 hover:bg-blue-800/30 transition-colors`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
@@ -207,12 +206,11 @@ const VendorListings: React.FC = () => {
                     <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-center justify-center">
                       {listing.status === 'active' && !isExpired(listing.closes_at) ? (
                         <Link
-                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
-                          className={`${
-                            bidSubmitted
+                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
+                          className={`${bidSubmitted
                               ? 'bg-teal-700 hover:bg-teal-600'
                               : 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800'
-                          } text-white px-6 py-3 rounded-lg shadow-md shadow-blue-950/20 transition duration-150 flex items-center`}
+                            } text-white px-6 py-3 rounded-lg shadow-md shadow-blue-950/20 transition duration-150 flex items-center`}
                         >
                           {bidSubmitted ? (
                             <>
@@ -232,7 +230,7 @@ const VendorListings: React.FC = () => {
                         </Link>
                       ) : (
                         <Link
-                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                           className="bg-blue-800 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition duration-150"
                         >
                           View Details

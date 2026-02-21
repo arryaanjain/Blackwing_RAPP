@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
+import { ROUTES } from '../../config/routes';
 
 // Mock data for demo purposes - replace with actual contract calls
 const MOCK_LISTINGS = [
@@ -70,12 +71,12 @@ interface BidFormData {
 }
 
 const VendorBidding: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { listingId } = useParams<{ listingId: string }>();
   const navigate = useNavigate();
   const { currentProfile } = useAuth();
   const vendorProfile = currentProfile?.type === 'vendor' ? currentProfile : null;
   const { showToast } = useToast();
-  
+
   const [listing, setListing] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<BidFormData>({
@@ -85,19 +86,19 @@ const VendorBidding: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   useEffect(() => {
     // Fetch listing details - replace with contract call in real app
     const fetchListingDetails = async () => {
       try {
         setIsLoading(true);
-        
+
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         // Find the listing from mock data
-        const foundListing = MOCK_LISTINGS.find(item => item.id === Number(id));
-        
+        const foundListing = MOCK_LISTINGS.find(item => item.id === Number(listingId));
+
         if (foundListing) {
           setListing(foundListing);
         } else {
@@ -106,7 +107,7 @@ const VendorBidding: React.FC = () => {
             description: "Listing not found",
             status: "error"
           });
-          navigate('/dashboard/vendor/listings');
+          navigate(ROUTES.PROTECTED.VENDOR.LISTINGS);
         }
       } catch (error) {
         console.error("Error fetching listing:", error);
@@ -119,18 +120,18 @@ const VendorBidding: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchListingDetails();
-  }, [id, navigate, showToast]);
-  
+  }, [listingId, navigate, showToast]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({
@@ -139,10 +140,10 @@ const VendorBidding: React.FC = () => {
       }));
     }
   };
-  
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.price) {
       newErrors.price = "Please enter your bid amount";
     } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
@@ -150,41 +151,41 @@ const VendorBidding: React.FC = () => {
     } else if (listing && Number(formData.price) > listing.maxPrice) {
       newErrors.price = `Bid cannot exceed the maximum price of ${listing.maxPrice}`;
     }
-    
+
     if (!formData.timeline) {
       newErrors.timeline = "Please enter your proposed timeline";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmitBid = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // In real app, this would call the smart contract
       console.log("Submitting bid:", {
-        listingId: id,
+        listingId: listingId,
         vendorId: vendorProfile?.id || '',
         price: formData.price,
         timeline: formData.timeline,
         notes: formData.notes
       });
-      
+
       showToast({
         title: "Success",
         description: "Your bid has been submitted successfully",
         status: "success"
       });
-      
+
       // Update UI - in a real app this would be handled by event from contract
       if (listing) {
         setListing({
@@ -205,7 +206,7 @@ const VendorBidding: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -214,7 +215,7 @@ const VendorBidding: React.FC = () => {
       day: 'numeric'
     });
   };
-  
+
   const updateBid = () => {
     // This would update the bid in a real application
     // For now just allow editing again
@@ -224,12 +225,12 @@ const VendorBidding: React.FC = () => {
         timeline: listing.yourProposedTimeline || '',
         notes: listing.yourNotes || ''
       });
-      
+
       setListing({
         ...listing,
         bidSubmitted: false
       });
-      
+
       showToast({
         title: "Edit Mode",
         description: "You can now update your bid",
@@ -237,7 +238,7 @@ const VendorBidding: React.FC = () => {
       });
     }
   };
-  
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -247,15 +248,15 @@ const VendorBidding: React.FC = () => {
       </DashboardLayout>
     );
   }
-  
+
   if (!listing) {
     return (
       <DashboardLayout>
         <div className="bg-red-900/30 backdrop-blur-sm border border-red-800/40 rounded-lg p-6">
           <h2 className="text-xl font-bold text-white mb-2">Listing Not Found</h2>
           <p className="text-red-300">The listing you're looking for does not exist or has been removed.</p>
-          <button 
-            onClick={() => navigate('/dashboard/vendor/listings')} 
+          <button
+            onClick={() => navigate(ROUTES.PROTECTED.VENDOR.LISTINGS)}
             className="mt-4 bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           >
             Back to Listings
@@ -264,9 +265,9 @@ const VendorBidding: React.FC = () => {
       </DashboardLayout>
     );
   }
-  
+
   const isExpired = new Date(listing.deadline) < new Date();
-  
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -284,7 +285,7 @@ const VendorBidding: React.FC = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-blue-900/30 p-3 rounded-md">
               <p className="text-sm text-blue-300">Budget</p>
@@ -300,17 +301,17 @@ const VendorBidding: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Listing Details */}
         <div className="bg-blue-950/60 backdrop-blur-sm rounded-xl p-6 border border-blue-800/40 shadow-lg shadow-blue-950/20">
           <h2 className="text-xl font-semibold text-white mb-4">Listing Details</h2>
-          
+
           <div className="space-y-4">
             <div>
               <h3 className="text-blue-300 text-sm mb-2">Description</h3>
               <p className="text-white">{listing.detailedDescription || listing.description}</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-blue-300 text-sm mb-2">Category</h3>
@@ -321,13 +322,13 @@ const VendorBidding: React.FC = () => {
                 <p className="text-white">{listing.deliveryLocation || 'Not specified'}</p>
               </div>
             </div>
-            
+
             {listing.attachments && listing.attachments.length > 0 && (
               <div>
                 <h3 className="text-blue-300 text-sm mb-2">Attachments</h3>
                 <div className="flex flex-wrap gap-2">
                   {listing.attachments.map((attachment: string, index: number) => (
-                    <div 
+                    <div
                       key={index}
                       className="bg-blue-900/50 px-3 py-2 rounded-md flex items-center text-sm text-white"
                     >
@@ -342,7 +343,7 @@ const VendorBidding: React.FC = () => {
             )}
           </div>
         </div>
-        
+
         {/* Bid Form or Bid Details */}
         <div className="bg-blue-950/60 backdrop-blur-sm rounded-xl p-6 border border-blue-800/40 shadow-lg shadow-blue-950/20">
           {!isExpired && !listing.bidSubmitted ? (
@@ -360,13 +361,12 @@ const VendorBidding: React.FC = () => {
                     value={formData.price}
                     onChange={handleChange}
                     placeholder="Enter your bid amount"
-                    className={`w-full bg-blue-900/50 border ${
-                      errors.price ? 'border-red-400' : 'border-blue-700'
-                    } rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full bg-blue-900/50 border ${errors.price ? 'border-red-400' : 'border-blue-700'
+                      } rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   />
                   {errors.price && <p className="mt-1 text-sm text-red-400">{errors.price}</p>}
                 </div>
-                
+
                 <div>
                   <label htmlFor="timeline" className="block text-blue-300 mb-2">
                     Proposed Timeline <span className="text-red-400">*</span>
@@ -378,13 +378,12 @@ const VendorBidding: React.FC = () => {
                     value={formData.timeline}
                     onChange={handleChange}
                     placeholder="e.g., 2 weeks delivery"
-                    className={`w-full bg-blue-900/50 border ${
-                      errors.timeline ? 'border-red-400' : 'border-blue-700'
-                    } rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full bg-blue-900/50 border ${errors.timeline ? 'border-red-400' : 'border-blue-700'
+                      } rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   />
                   {errors.timeline && <p className="mt-1 text-sm text-red-400">{errors.timeline}</p>}
                 </div>
-                
+
                 <div>
                   <label htmlFor="notes" className="block text-blue-300 mb-2">
                     Additional Notes
@@ -399,10 +398,10 @@ const VendorBidding: React.FC = () => {
                     className="w-full bg-blue-900/50 border border-blue-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                
+
                 <div className="flex justify-end mt-6">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isSubmitting}
                     className="bg-green-700 hover:bg-green-600 text-white py-2 px-6 rounded-md shadow-md shadow-green-900/50 disabled:opacity-70 flex items-center"
                   >
@@ -435,7 +434,7 @@ const VendorBidding: React.FC = () => {
                   </button>
                 )}
               </div>
-              
+
               {listing.bidSubmitted ? (
                 <div className="bg-blue-900/30 rounded-lg p-5 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,14 +447,14 @@ const VendorBidding: React.FC = () => {
                       <p className="text-white">{listing.yourProposedTimeline}</p>
                     </div>
                   </div>
-                  
+
                   {listing.yourNotes && (
                     <div>
                       <h3 className="text-blue-300 text-sm mb-1">Your Notes</h3>
                       <p className="text-white">{listing.yourNotes}</p>
                     </div>
                   )}
-                  
+
                   <div>
                     <h3 className="text-blue-300 text-sm mb-1">Bid Status</h3>
                     <div className="flex items-center">

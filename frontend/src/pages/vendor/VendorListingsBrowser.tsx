@@ -25,7 +25,7 @@ const VendorListingsBrowser: React.FC = () => {
       setError(null);
       const response = await listingService.getListings(filters, currentPage);
       const data: PaginatedResponse<Listing> = response.data;
-      
+
       setListings(data.data);
       setTotalPages(data.last_page);
     } catch (err: any) {
@@ -155,8 +155,8 @@ const VendorListingsBrowser: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-xl font-semibold text-white">
-                      <Link 
-                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                      <Link
+                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                         className="hover:text-blue-300 transition-colors"
                       >
                         {listing.title}
@@ -166,10 +166,9 @@ const VendorListingsBrowser: React.FC = () => {
                       {getVisibilityIcon(listing.visibility)}
                     </span>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(listing.status)}`}>
-                      <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
-                        listing.status === 'active' ? 'bg-green-500' : 
-                        listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
-                      }`}></span>
+                      <span className={`inline-block h-2 w-2 rounded-full mr-2 ${listing.status === 'active' ? 'bg-green-500' :
+                          listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
+                        }`}></span>
                       {listing.status.toUpperCase()}
                     </span>
                   </div>
@@ -182,7 +181,7 @@ const VendorListingsBrowser: React.FC = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <p className="text-sm text-blue-400 mb-1">
                     Created {new Date(listing.created_at).toLocaleDateString()}
@@ -206,12 +205,12 @@ const VendorListingsBrowser: React.FC = () => {
 
               <div className="flex gap-3 pt-4 border-t border-blue-800/40">
                 <Link
-                  to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                  to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                   className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                 >
                   View Details
                 </Link>
-                
+
                 {canQuote(listing) && (
                   <Link
                     to={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE.replace(':listingId', listing.id.toString())}
@@ -253,24 +252,23 @@ const VendorListingsBrowser: React.FC = () => {
             >
               Previous
             </button>
-            
+
             {[...Array(totalPages)].map((_, i) => {
               const page = i + 1;
               return (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 border rounded-md ${
-                    currentPage === page
+                  className={`px-3 py-2 border rounded-md ${currentPage === page
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'bg-blue-800/30 border-blue-700/50 hover:bg-blue-700/30 text-white'
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>
               );
             })}
-            
+
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
