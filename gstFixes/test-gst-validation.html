@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Validation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        input.valid {
+            border-color: #4CAF50;
+            background: #f1f8f4;
+        }
+        input.invalid {
+            border-color: #f44336;
+            background: #fef1f0;
+        }
+        .result {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .result.valid {
+            background: #4CAF50;
+            color: white;
+        }
+        .result.invalid {
+            background: #f44336;
+            color: white;
+        }
+        .test-numbers {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        .test-numbers h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .test-numbers button {
+            margin: 5px;
+            padding: 8px 15px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-numbers button:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 GST Validation Test</h1>
+        <p>This tests the EXACT same validation logic used in your React app</p>
+        
+        <input type="text" id="gstInput" placeholder="Enter GST Number" maxlength="15">
+        <div id="result"></div>
+
+        <div class="test-numbers">
+            <h3>Test with these valid GST numbers:</h3>
+            <button onclick="testGST('07AAGFF2194N1Z1')">07AAGFF2194N1Z1</button>
+            <button onclick="testGST('27AAACT2727Q1ZV')">27AAACT2727Q1ZV</button>
+            <button onclick="testGST('27AAACR5055K1ZX')">27AAACR5055K1ZX</button>
+            <button onclick="testGST('29AAACI1681G1ZV')">29AAACI1681G1ZV</button>
+        </div>
+    </div>
+
+    <script>
+        // EXACT same validation function from CompanyProfileSetup.tsx
+        function isValidGSTIN(gstin) {
+            const value = gstin.trim().toUpperCase();
+            // Basic format validation: 15 characters matching GST pattern
+            const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+            const isValid = regex.test(value);
+            console.log('🔍 GST Format Validation:', { gstin: value, isValid, length: value.length });
+            return isValid;
+        }
+
+        const input = document.getElementById('gstInput');
+        const result = document.getElementById('result');
+
+        input.addEventListener('input', function(e) {
+            const value = e.target.value.toUpperCase();
+            e.target.value = value;
+
+            if (!value) {
+                input.className = '';
+                result.innerHTML = '';
+                return;
+            }
+
+            const valid = isValidGSTIN(value);
+            
+            if (valid) {
+                input.className = 'valid';
+                result.className = 'result valid';
+                result.innerHTML = '✅ Valid GSTIN format - Ready for API verification';
+            } else {
+                input.className = 'invalid';
+                result.className = 'result invalid';
+                result.innerHTML = '❌ Invalid GSTIN format';
+            }
+        });
+
+        function testGST(gstNumber) {
+            input.value = gstNumber;
+            input.dispatchEvent(new Event('input'));
+        }
+    </script>
+</body>
+</html>
+
