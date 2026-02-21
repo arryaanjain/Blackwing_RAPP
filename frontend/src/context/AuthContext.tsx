@@ -216,7 +216,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Never retry the refresh endpoint itself — that would cause an infinite loop
+        const isRefreshRequest = originalRequest?.url?.includes(API_CONFIG.ENDPOINTS.REFRESH);
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
           originalRequest._retry = true;
 
           const refreshSuccess = await refreshTokens();
@@ -284,12 +287,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(userData);
           axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           
-          // Optionally verify token validity
+          // Verify token validity — the interceptor handles refresh automatically on 401
+          // Do NOT manually call refreshTokens() here; doing so would cause a double-rotation
+          // (interceptor rotates the token, then this catch block tries the stale token again)
           try {
             await axios.get(API_CONFIG.ENDPOINTS.ME);
-          } catch (error) {
-            // Token might be expired, try to refresh
-            await refreshTokens();
+          } catch (error: any) {
+            // Interceptor already attempted refresh on 401.
+            // If it succeeded the request was retried and we never reach here.
+            // If it failed (both access + refresh token invalid), clear and fall through.
+            if (error?.response?.status === 401) {
+              clearTokens();
+            }
           }
         } catch (error) {
           console.error('Failed to parse stored user data:', error);
