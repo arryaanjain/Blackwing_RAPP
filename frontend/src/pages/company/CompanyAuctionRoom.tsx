@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { useAuth } from '../../context/AuthContext';
 import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { LeaderboardData, LeaderboardEntry } from '../../types/auction';
@@ -18,7 +17,6 @@ function formatCountdown(seconds: number): string {
 
 const CompanyAuctionRoom: React.FC = () => {
   const { id } = useParams<{ id: string }>();  // listing ID
-  const { user } = useAuth();
   const navigate = useNavigate();
   const listingId = parseInt(id!);
 
@@ -234,4 +232,3 @@ const CompanyAuctionRoom: React.FC = () => {
 };
 
 export default CompanyAuctionRoom;
-
