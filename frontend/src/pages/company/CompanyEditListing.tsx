@@ -7,15 +7,15 @@ import { ROUTES } from '../../config/routes';
 import type { Listing, CreateListingData, ListingFormData } from '../../types/listings';
 
 const CompanyEditListing: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { listingId } = useParams<{ listingId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState<ListingFormData>({
     title: '',
     description: '',
@@ -24,13 +24,12 @@ const CompanyEditListing: React.FC = () => {
     visibility: 'public',
     requirements: [],
     specifications: [],
-    opens_at: '',
     closes_at: '',
     blockchain_enabled: false,
     accessible_vendor_ids: [],
     errors: {}
   });
-  
+
   const [requirementInput, setRequirementInput] = useState('');
   const [specificationInput, setSpecificationInput] = useState('');
 
@@ -56,26 +55,26 @@ const CompanyEditListing: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (id) {
+    if (listingId) {
       loadListing();
     }
-  }, [id]);
+  }, [listingId]);
 
   const loadListing = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await listingService.getListing(parseInt(id!));
+      const response = await listingService.getListing(parseInt(listingId!));
       const listingData = response.data;
-      
+
       // Check if user owns this listing
       if (listingData.company_id !== user?.current_profile_id) {
         setError('You do not have permission to edit this listing');
         return;
       }
-      
+
       setListing(listingData);
-      
+
       // Populate form with existing data
       setFormData({
         title: listingData.title,
@@ -85,13 +84,12 @@ const CompanyEditListing: React.FC = () => {
         visibility: listingData.visibility,
         requirements: listingData.requirements || [],
         specifications: listingData.specifications || [],
-        opens_at: listingData.opens_at ? new Date(listingData.opens_at).toISOString().slice(0, 16) : '',
         closes_at: listingData.closes_at ? new Date(listingData.closes_at).toISOString().slice(0, 16) : '',
         blockchain_enabled: listingData.blockchain_enabled,
         accessible_vendor_ids: [],
         errors: {}
       });
-      
+
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load listing');
     } finally {
@@ -160,17 +158,13 @@ const CompanyEditListing: React.FC = () => {
       errors.base_price = ['Base price cannot be negative'];
     }
 
-    if (formData.opens_at && formData.closes_at && new Date(formData.opens_at) >= new Date(formData.closes_at)) {
-      errors.closes_at = ['Close date must be after open date'];
-    }
-
     setFormData(prev => ({ ...prev, errors }));
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !listing) {
       return;
     }
@@ -187,14 +181,13 @@ const CompanyEditListing: React.FC = () => {
         visibility: formData.visibility,
         requirements: formData.requirements,
         specifications: formData.specifications,
-        opens_at: formData.opens_at ? new Date(formData.opens_at).toISOString() : undefined,
         closes_at: formData.closes_at ? new Date(formData.closes_at).toISOString() : undefined,
         blockchain_enabled: formData.blockchain_enabled,
         accessible_vendor_ids: formData.accessible_vendor_ids
       };
 
       await listingService.updateListing(listing.id, updateData);
-      
+
       // Add delay to allow database operation to complete
       setTimeout(() => {
         navigate(`/company/listings/${listing.id}`);
@@ -271,7 +264,7 @@ const CompanyEditListing: React.FC = () => {
           {/* Basic Information */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
@@ -366,20 +359,8 @@ const CompanyEditListing: React.FC = () => {
           {/* Timeline */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Timeline</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-2">
-                  Opens At (Optional)
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.opens_at}
-                  onChange={(e) => handleInputChange('opens_at', e.target.value)}
-                  className="w-full p-3 bg-blue-800/30 border border-blue-700/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
 
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
                   Closes At (Optional)
@@ -400,7 +381,7 @@ const CompanyEditListing: React.FC = () => {
           {/* Requirements */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Requirements</h2>
-            
+
             <div className="space-y-4">
               <div className="flex gap-2">
                 <input
@@ -419,7 +400,7 @@ const CompanyEditListing: React.FC = () => {
                   Add Requirement
                 </button>
               </div>
-              
+
               {(formData.requirements || []).length > 0 && (
                 <div className="space-y-2">
                   {(formData.requirements || []).map((requirement, index) => (
@@ -442,7 +423,7 @@ const CompanyEditListing: React.FC = () => {
           {/* Specifications */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Specifications</h2>
-            
+
             <div className="space-y-4">
               <div className="flex gap-2">
                 <input
@@ -461,7 +442,7 @@ const CompanyEditListing: React.FC = () => {
                   Add Specification
                 </button>
               </div>
-              
+
               {(formData.specifications || []).length > 0 && (
                 <div className="space-y-2">
                   {(formData.specifications || []).map((specification, index) => (
@@ -484,7 +465,7 @@ const CompanyEditListing: React.FC = () => {
           {/* Blockchain */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Blockchain Options</h2>
-            
+
             <div className="flex items-start gap-3">
               <input
                 type="checkbox"

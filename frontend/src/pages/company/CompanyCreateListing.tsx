@@ -9,7 +9,7 @@ import type { CreateListingData, ListingFormData } from '../../types/listings';
 const CompanyCreateListing: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState<ListingFormData>({
     title: '',
     description: '',
@@ -18,13 +18,12 @@ const CompanyCreateListing: React.FC = () => {
     visibility: 'public',
     requirements: [],
     specifications: [],
-    opens_at: '',
     closes_at: '',
     blockchain_enabled: false,
     accessible_vendor_ids: [],
     errors: {}
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [requirementInput, setRequirementInput] = useState('');
   const [specificationInput, setSpecificationInput] = useState('');
@@ -67,16 +66,16 @@ const CompanyCreateListing: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    
+
     setFormData(prev => {
       const newErrors = { ...prev.errors };
       delete newErrors[name];
-      
+
       return {
         ...prev,
-        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked 
-                : type === 'number' ? (value ? parseFloat(value) : undefined)
-                : value,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked
+          : type === 'number' ? (value ? parseFloat(value) : undefined)
+            : value,
         errors: newErrors
       };
     });
@@ -122,7 +121,7 @@ const CompanyCreateListing: React.FC = () => {
       const newVendors = currentVendors.includes(vendorId)
         ? currentVendors.filter(id => id !== vendorId)
         : [...currentVendors, vendorId];
-      
+
       return {
         ...prev,
         accessible_vendor_ids: newVendors
@@ -145,15 +144,6 @@ const CompanyCreateListing: React.FC = () => {
       errors.category = ['Category is required'];
     }
 
-    if (formData.closes_at && formData.opens_at && 
-        new Date(formData.closes_at) <= new Date(formData.opens_at)) {
-      errors.closes_at = ['Close date must be after open date'];
-    }
-
-    if (formData.opens_at && new Date(formData.opens_at) <= new Date()) {
-      errors.opens_at = ['Open date must be in the future'];
-    }
-
     if (formData.visibility === 'private' && (!formData.accessible_vendor_ids || formData.accessible_vendor_ids.length === 0)) {
       errors.accessible_vendor_ids = ['Please select at least one vendor for private listings'];
     }
@@ -164,7 +154,7 @@ const CompanyCreateListing: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -180,14 +170,13 @@ const CompanyCreateListing: React.FC = () => {
         visibility: formData.visibility,
         requirements: formData.requirements?.length ? formData.requirements : undefined,
         specifications: formData.specifications?.length ? formData.specifications : undefined,
-        opens_at: formData.opens_at || undefined,
         closes_at: formData.closes_at || undefined,
         blockchain_enabled: formData.blockchain_enabled,
         accessible_vendor_ids: formData.accessible_vendor_ids?.length ? formData.accessible_vendor_ids : undefined
       };
 
       const response = await listingService.createListing(submitData);
-      
+
       // Add delay to allow database operation to complete
       setTimeout(() => {
         // Navigate to the created listing
@@ -195,13 +184,13 @@ const CompanyCreateListing: React.FC = () => {
       }, 500);
     } catch (error: any) {
       if (error.response?.data?.errors) {
-        setFormData(prev => ({ 
-          ...prev, 
-          errors: error.response.data.errors 
+        setFormData(prev => ({
+          ...prev,
+          errors: error.response.data.errors
         }));
       } else {
-        setFormData(prev => ({ 
-          ...prev, 
+        setFormData(prev => ({
+          ...prev,
           errors: { general: [error.response?.data?.message || 'Failed to create listing'] }
         }));
       }
@@ -247,7 +236,7 @@ const CompanyCreateListing: React.FC = () => {
           {/* Basic Information */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-blue-200 mb-2">
@@ -258,9 +247,8 @@ const CompanyCreateListing: React.FC = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formData.errors?.title ? 'border-red-400' : 'border-blue-700/50'
-                  }`}
+                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.errors?.title ? 'border-red-400' : 'border-blue-700/50'
+                    }`}
                   placeholder="Enter listing title..."
                 />
                 {formData.errors?.title && (
@@ -276,9 +264,8 @@ const CompanyCreateListing: React.FC = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formData.errors?.category ? 'border-red-400' : 'border-blue-700/50'
-                  }`}
+                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.errors?.category ? 'border-red-400' : 'border-blue-700/50'
+                    }`}
                 >
                   <option value="">Select a category</option>
                   {categories.map(cat => (
@@ -386,9 +373,8 @@ const CompanyCreateListing: React.FC = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={6}
-                className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  formData.errors?.description ? 'border-red-400' : 'border-blue-700/50'
-                }`}
+                className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.errors?.description ? 'border-red-400' : 'border-blue-700/50'
+                  }`}
                 placeholder="Provide a detailed description of what you need..."
               />
               {formData.errors?.description && (
@@ -400,7 +386,7 @@ const CompanyCreateListing: React.FC = () => {
           {/* Requirements Section */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Requirements</h2>
-            
+
             <div className="space-y-4">
               <div className="flex gap-3">
                 <input
@@ -419,7 +405,7 @@ const CompanyCreateListing: React.FC = () => {
                   Add
                 </button>
               </div>
-              
+
               {formData.requirements && formData.requirements.length > 0 && (
                 <ul className="space-y-2">
                   {formData.requirements.map((req, index) => (
@@ -442,7 +428,7 @@ const CompanyCreateListing: React.FC = () => {
           {/* Specifications Section */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Specifications</h2>
-            
+
             <div className="space-y-4">
               <div className="flex gap-3">
                 <input
@@ -461,7 +447,7 @@ const CompanyCreateListing: React.FC = () => {
                   Add
                 </button>
               </div>
-              
+
               {formData.specifications && formData.specifications.length > 0 && (
                 <ul className="space-y-2">
                   {formData.specifications.map((spec, index) => (
@@ -484,26 +470,8 @@ const CompanyCreateListing: React.FC = () => {
           {/* Timeline Section */}
           <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Timeline</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-2">
-                  Opens At (Optional - Leave empty for immediate availability)
-                </label>
-                <input
-                  type="datetime-local"
-                  name="opens_at"
-                  value={formData.opens_at}
-                  onChange={handleInputChange}
-                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formData.errors?.opens_at ? 'border-red-400' : 'border-blue-700/50'
-                  }`}
-                />
-                {formData.errors?.opens_at && (
-                  <p className="mt-1 text-sm text-red-300">{formData.errors.opens_at.join(', ')}</p>
-                )}
-              </div>
 
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
                   Closes At (Optional - Leave empty for no expiration)
@@ -513,9 +481,8 @@ const CompanyCreateListing: React.FC = () => {
                   name="closes_at"
                   value={formData.closes_at}
                   onChange={handleInputChange}
-                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    formData.errors?.closes_at ? 'border-red-400' : 'border-blue-700/50'
-                  }`}
+                  className={`w-full p-3 bg-blue-800/30 border rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.errors?.closes_at ? 'border-red-400' : 'border-blue-700/50'
+                    }`}
                 />
                 {formData.errors?.closes_at && (
                   <p className="mt-1 text-sm text-red-300">{formData.errors.closes_at.join(', ')}</p>

@@ -98,7 +98,7 @@ const CompanyDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-indigo-700 to-indigo-800 rounded-lg shadow-lg p-6 border border-indigo-600">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-indigo-600 bg-opacity-30">
@@ -112,7 +112,7 @@ const CompanyDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-purple-700 to-purple-800 rounded-lg shadow-lg p-6 border border-purple-600">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-purple-600 bg-opacity-30">
@@ -147,7 +147,7 @@ const CompanyDashboard: React.FC = () => {
               <span className="text-white font-medium">Manage Listings</span>
             </div>
           </Link>
-          
+
           <Link to={ROUTES.PROTECTED.COMPANY.VENDORS} className="flex items-center justify-center p-6 bg-gradient-to-r from-purple-600 to-pink-700 rounded-lg shadow-md hover:from-purple-700 hover:to-pink-800 transition duration-200">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,7 +213,7 @@ const CompanyDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-4 flex justify-end">
-                    <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':id', listing.id.toString())} className="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                    <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())} className="text-blue-400 hover:text-blue-300 text-sm font-medium">
                       View Details →
                     </Link>
                   </div>
