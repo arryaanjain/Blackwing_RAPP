@@ -1,36 +1,70 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { motion, useInView, useSpring, useTransform } from 'framer-motion';
+import Container from './ui/Container';
+import Section from './ui/Section';
+import GlassCard from './ui/GlassCard';
 
-interface StatCardProps {
+interface StatProps {
   value: string;
   label: string;
+  suffix?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ value, label }) => {
+const Stat: React.FC<StatProps> = ({ value, label, suffix = '' }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref as any, { once: true, margin: "-100px" });
+
+  // Numeric extraction for animation
+  const numericValue = parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
+
+  const springValue = useSpring(0, {
+    damping: 30,
+    stiffness: 100,
+    mass: 1,
+  });
+
+  const displayValue = useTransform(springValue, (current) => {
+    if (numericValue % 1 === 0) return Math.floor(current).toString();
+    return current.toFixed(1);
+  });
+
+  useEffect(() => {
+    if (isInView) {
+      springValue.set(numericValue);
+    }
+  }, [isInView, numericValue, springValue]);
+
   return (
-    <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6 text-center">
-      <div className="text-3xl font-bold text-white mb-2">{value}</div>
-      <div className="text-sm text-blue-200">{label}</div>
-    </div>
+    <GlassCard className="text-center group border-indigo-500/5 hover:border-indigo-500/30 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      <motion.div
+        ref={ref}
+        {...({ className: "text-5xl md:text-6xl font-black tracking-tighter text-gradient-brand mb-3 relative z-10" } as any)}
+      >
+        <motion.span>{displayValue as any}</motion.span>
+        {value.includes('%') ? '%' : value.includes('M') ? 'M' : suffix}
+      </motion.div>
+
+      <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] relative z-10">
+        {label}
+      </div>
+    </GlassCard>
   );
 };
 
 const StatsSection: React.FC = () => {
   return (
-    <div className="bg-gradient-to-br from-blue-900 to-indigo-900 py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white">Driving Real Results</h2>
-          <p className="mt-4 text-xl text-blue-200">See the impact of our blockchain-powered procurement platform</p>
+    <Section className="relative py-32">
+      <Container>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <Stat value="30%" label="Procurement Savings" />
+          <Stat value="65%" label="Automation Gain" />
+          <Stat value="100%" label="Immutable Audit" />
+          <Stat value="4.2M" label="Nodes Secured" />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <StatCard value="30%" label="Average Cost Reduction" />
-          <StatCard value="65%" label="Faster Process Times" />
-          <StatCard value="100%" label="Transparent Transactions" />
-          <StatCard value="4.2M" label="Smart Contracts Executed" />
-        </div>
-      </div>
-    </div>
+      </Container>
+    </Section>
   );
 };
 

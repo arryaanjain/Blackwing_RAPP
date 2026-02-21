@@ -13,19 +13,6 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Remove profile-specific columns that will now be in companies/vendors tables
-            // Drop indexes that reference columns we are going to drop (SQLite requires this)
-            if (Schema::hasColumn('users', 'user_type') && Schema::hasColumn('users', 'status')) {
-                $table->dropIndex('users_user_type_status_index');
-            }
-            if (Schema::hasColumn('users', 'company_id')) {
-                // Drop unique and non-unique indexes on company_id if present
-                try { $table->dropUnique('users_company_id_unique'); } catch (\Throwable $e) {}
-                try { $table->dropIndex('users_company_id_index'); } catch (\Throwable $e) {}
-            }
-            if (Schema::hasColumn('users', 'associated_company_id')) {
-                $table->dropIndex('users_associated_company_id_index');
-            }
-            
             $table->dropColumn([
                 'user_type',
                 'status',

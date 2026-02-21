@@ -107,63 +107,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Store tokens securely and clean up any legacy data
   const storeTokens = (accessToken: string, refreshToken: string, userData: User) => {
-    console.log('💾 Storing tokens and user data...');
-
     // Clean up any legacy auth keys first
     cleanupLegacyAuthData();
-
+    
     // Ensure user has a current_profile set if they have profiles but no current_profile
     if (userData.available_profiles && userData.available_profiles.length > 0 && !userData.current_profile) {
-      console.log('🔍 User has profiles but no current_profile, setting default...');
-
       // Check localStorage for intended profile type first
       const intendedType = localStorage.getItem('current_profile_type');
       let defaultProfile = null;
-
+      
       if (intendedType) {
         // Use the intended profile type if available
         defaultProfile = userData.available_profiles.find((p: Profile) => p.type === intendedType);
         localStorage.removeItem('current_profile_type'); // Clean up
-        console.log(`📌 Found intended profile type: ${intendedType}`, defaultProfile ? '✅' : '❌');
       }
-
+      
       // Fallback to first complete profile
       if (!defaultProfile) {
         defaultProfile = userData.available_profiles.find((p: Profile) => p.is_complete);
-        if (defaultProfile) {
-          console.log('📌 Using first complete profile as default');
-        }
       }
-
+      
       // Fallback to first profile
       if (!defaultProfile) {
         defaultProfile = userData.available_profiles[0];
-        console.log('📌 Using first available profile as default');
       }
-
+      
       if (defaultProfile) {
         userData.current_profile = defaultProfile;
-        console.log('✅ Set default current_profile:', defaultProfile.type, defaultProfile.name);
+        console.log('Setting default current_profile:', defaultProfile);
       }
-    } else if (userData.current_profile) {
-      console.log('✅ User already has current_profile:', userData.current_profile.type, userData.current_profile.name);
-    } else {
-      console.log('ℹ️ User has no profiles yet - will need to create one');
     }
-
+    
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
-
-    console.log('✅ Tokens and user data stored successfully');
-    console.log('👤 User state updated:', {
-      id: userData.id,
-      email: userData.email,
-      current_profile_type: userData.current_profile_type,
-      has_current_profile: !!userData.current_profile
-    });
-
+    
     // Set default authorization header
     axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
   };
@@ -582,35 +561,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Handle OAuth callback with encoded tokens
   const handleOAuthCallback = async (encodedTokens: string) => {
     try {
-      console.log('🔐 Decoding OAuth tokens...');
       const decoded = JSON.parse(atob(encodedTokens));
-      console.log('✅ Tokens decoded successfully');
-
       const { access_token, refresh_token, user: userData } = decoded;
-
-      if (!access_token || !refresh_token || !userData) {
-        console.error('❌ Missing required token data:', {
-          hasAccessToken: !!access_token,
-          hasRefreshToken: !!refresh_token,
-          hasUserData: !!userData
-        });
+      
+      if (access_token && refresh_token && userData) {
+        storeTokens(access_token, refresh_token, userData);
+      } else {
         throw new Error('Invalid token data received from OAuth callback');
       }
-
-      console.log('✅ All required token data present');
-      console.log('👤 User data:', {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        current_profile_type: userData.current_profile_type,
-        available_profiles: userData.available_profiles?.length || 0
-      });
-
-      storeTokens(access_token, refresh_token, userData);
-      console.log('✅ Tokens stored successfully');
-
     } catch (error) {
-      console.error('❌ Failed to process OAuth callback:', error);
+      console.error('Failed to process OAuth callback:', error);
       throw new Error('OAuth callback processing failed');
     }
   };

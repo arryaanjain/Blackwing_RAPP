@@ -11,8 +11,6 @@ use App\Models\Company;
 use App\Models\Vendor;
 use App\Models\User;
 use App\Services\BlockchainService;
-use App\Services\GstVerificationService;
-use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -129,50 +127,13 @@ class ProfileController extends Controller
     }
 
     /**
-     * Verify GST number (API endpoint for frontend real-time validation)
-     */
-    public function verifyGst(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'gst_number' => 'required|string|size:15',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $gstNumber = strtoupper($request->gst_number);
-
-        // Verify GST number
-        $gstService = new GstVerificationService();
-        $gstVerification = $gstService->verifyGstin($gstNumber);
-
-        if (!$gstVerification['valid']) {
-            return response()->json([
-                'valid' => false,
-                'message' => $gstVerification['error'] ?? 'Invalid or inactive GSTIN',
-                'data' => null,
-            ], 200); // Return 200 with valid:false instead of 422
-        }
-
-        return response()->json([
-            'valid' => true,
-            'message' => 'GST number verified successfully',
-            'data' => $gstVerification['data'],
-        ]);
-    }
-
-    /**
      * Create a new company profile
      */
     public function createCompanyProfile(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'company_name' => 'required|string|max:255',
-            'gst_number' => 'required|string|size:15',
+            'gst_number' => 'nullable|string|max:255',
             'business_type' => 'required|string|max:255',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
@@ -188,35 +149,10 @@ class ProfileController extends Controller
         }
 
         $user = $request->user();
-        $data = $validator->validated();
-        $data['gst_number'] = strtoupper($data['gst_number']);
-
-        // Verify GST number with real API
-        $gstService = new GstVerificationService();
-        $gstVerification = $gstService->verifyGstin($data['gst_number']);
-
-        if (!$gstVerification['valid']) {
-            Log::warning('GST verification failed', [
-                'gstin' => $data['gst_number'],
-                'error' => $gstVerification['error']
-            ]);
-
-            return response()->json([
-                'message' => 'GST verification failed',
-                'errors' => ['gst_number' => [$gstVerification['error'] ?? 'Invalid or inactive GSTIN']],
-            ], 422);
-        }
-
-        // Log successful verification
-        Log::info('GST verified successfully', [
-            'gstin' => $data['gst_number'],
-            'legal_name' => $gstVerification['data']['legal_name'] ?? null,
-            'verified_via' => $gstVerification['data']['verified_via'] ?? 'unknown'
-        ]);
         
         // Check if user already has a company with the same name
         $existingCompany = $user->companies()
-            ->where('company_name', $data['company_name'])
+            ->where('company_name', $request->company_name)
             ->first();
             
         if ($existingCompany) {
@@ -228,7 +164,7 @@ class ProfileController extends Controller
         DB::beginTransaction();
         
         try {
-            $company = $user->companies()->create($data);
+            $company = $user->companies()->create($validator->validated());
             
             // Register on blockchain
             $blockchainService = new BlockchainService();
@@ -432,7 +368,7 @@ class ProfileController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'company_name' => 'sometimes|required|string|max:255',
-            'gst_number' => 'sometimes|required|string|size:15',
+            'gst_number' => 'nullable|string|max:255',
             'business_type' => 'sometimes|required|string|max:255',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
@@ -456,75 +392,12 @@ class ProfileController extends Controller
             ], 404);
         }
         
-        $data = $validator->validated();
-        if (array_key_exists('gst_number', $data)) {
-            $data['gst_number'] = strtoupper($data['gst_number']);
-
-            // Verify GST number with real API
-            $gstService = new GstVerificationService();
-            $gstVerification = $gstService->verifyGstin($data['gst_number']);
-
-            if (!$gstVerification['valid']) {
-                Log::warning('GST verification failed during update', [
-                    'gstin' => $data['gst_number'],
-                    'error' => $gstVerification['error']
-                ]);
-
-                return response()->json([
-                    'message' => 'GST verification failed',
-                    'errors' => ['gst_number' => [$gstVerification['error'] ?? 'Invalid or inactive GSTIN']],
-                ], 422);
-            }
-
-            // Log successful verification
-            Log::info('GST verified successfully during update', [
-                'gstin' => $data['gst_number'],
-                'legal_name' => $gstVerification['data']['legal_name'] ?? null,
-                'verified_via' => $gstVerification['data']['verified_via'] ?? 'unknown'
-            ]);
-        }
-        $company->update($data);
+        $company->update($validator->validated());
         
         return response()->json([
             'message' => 'Company profile updated successfully',
             'company' => $company->fresh()->getApiData(),
         ]);
-    }
-
-    private function isValidGstin(string $gstin): bool
-    {
-        $value = strtoupper(trim($gstin));
-        if (!preg_match('/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/', $value)) {
-            return false;
-        }
-        $factor = [1,2,3,4,5,6,7,8,9,10,1,2,3,4];
-        $sum = 0;
-        for ($i = 0; $i < 14; $i++) {
-            $ch = $value[$i];
-            $val = $this->toBase36($ch);
-            if ($val < 0) {
-                return false;
-            }
-            $prod = $val * $factor[$i];
-            $sum += intdiv($prod, 36) + ($prod % 36);
-        }
-        $checkCode = (36 - ($sum % 36)) % 36;
-        $checkChar = $this->fromBase36($checkCode);
-        return $value[14] === $checkChar;
-    }
-
-    private function toBase36(string $c): int
-    {
-        $code = ord($c);
-        if ($code >= 48 && $code <= 57) return $code - 48;
-        if ($code >= 65 && $code <= 90) return $code - 55;
-        return -1;
-    }
-
-    private function fromBase36(int $n): string
-    {
-        if ($n >= 0 && $n <= 9) return chr(48 + $n);
-        return chr(55 + ($n - 10));
     }
 
     /**
