@@ -6,45 +6,35 @@ import { ROUTES } from '../config/routes';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requireProfile?: 'company' | 'vendor';
+  profileType?: 'company' | 'vendor'; // Changed from requireProfile for consistency with App.tsx
   requireCompleteProfile?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
   requireAuth = true,
-  requireProfile,
-  requireCompleteProfile = false 
+  profileType,
+  requireCompleteProfile = false
 }) => {
   const { isAuthenticated, currentProfile, loading, needsProfileSetup } = useAuth();
   const location = useLocation();
 
-  // Debug logging
-  console.log('ProtectedRoute check:', {
-    path: location.pathname,
-    requireProfile,
-    requireCompleteProfile,
-    isAuthenticated,
-    currentProfile,
-    loading,
-    needsProfileSetup
-  });
-
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#05070a]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Initializing...</p>
         </div>
       </div>
     );
   }
 
   // If route requires authentication but user is not authenticated
+  // Redirect to ONBOARDING instead of LOGIN
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to={ROUTES.PUBLIC.LOGIN} state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.PUBLIC.ONBOARDING} state={{ from: location }} replace />;
   }
 
   // If user needs to set up profiles, but allow access to complete-profile routes
@@ -53,7 +43,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If route requires specific profile type (but allow complete-profile routes)
-  if (requireProfile && (!currentProfile || currentProfile.type !== requireProfile) && !location.pathname.includes('complete-profile')) {
+  if (profileType && (!currentProfile || currentProfile.type !== profileType) && !location.pathname.includes('complete-profile')) {
     // Redirect to profile selection/creation
     return <Navigate to="/auth/callback" replace />;
   }

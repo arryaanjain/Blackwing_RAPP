@@ -171,7 +171,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
       navigate('/', {
         replace: true,
         state: {
-          message: isEditing ? 'Profile updated successfully! Please login again.' : 'Company profile created successfully! Please login again to access your dashboard.',
+          message: isEditing ? 'Profile updated successfully!' : 'Company profile created successfully! Initializing your console...',
           type: 'success',
           shouldLogout: true  // Flag to trigger logout on landing page
         }
@@ -202,7 +202,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
               </svg>
             </div>
             <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">
-              {isEditing ? 'Profile <span className="text-indigo-500">Sync</span>' : 'Enterprise <span className="text-indigo-500">Genesis</span>'}
+              {isEditing ? 'Profile <span className="text-indigo-500">Sync</span>' : 'Company <span className="text-indigo-500">Genesis</span>'}
             </h2>
             <div className="h-1 w-12 bg-indigo-500 mx-auto rounded-full opacity-50 mb-6"></div>
             <p className="text-gray-400 font-medium">
@@ -215,7 +215,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
               {/* Company Name */}
               <div className="space-y-2">
                 <label htmlFor="company_name" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                  Enterprise Name
+                  Company Name
                 </label>
                 <input
                   id="company_name"
@@ -323,7 +323,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
                   name="description"
                   rows={3}
                   className="w-full px-6 py-4 bg-white/[0.03] border border-white/10 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium resize-none"
-                  placeholder="Enterprise mission statement..."
+                  placeholder="Company mission statement..."
                   value={formData.description}
                   onChange={handleInputChange}
                 />
