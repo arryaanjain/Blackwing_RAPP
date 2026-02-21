@@ -61,6 +61,11 @@ class User extends Authenticatable
         return $this->hasMany(RefreshToken::class);
     }
 
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
     /**
      * Get all companies owned by this user
      */
@@ -351,6 +356,15 @@ class User extends Authenticatable
             ];
 
             $user = static::create($userData);
+
+            // Create wallet with welcome points for new Google OAuth users
+            $wallet = \App\Models\Wallet::create(['user_id' => $user->id, 'balance' => 0]);
+            $wallet->credit(
+                config('points.new_user'),
+                'Welcome bonus points',
+                'registration',
+                (string) $user->id
+            );
         }
 
         return $user;
@@ -419,6 +433,7 @@ class User extends Authenticatable
             'created_at' => $this->created_at,
             'current_profile_type' => $this->current_profile_type,
             'current_profile_id' => $this->current_profile_id,
+            'wallet_balance' => $this->wallet?->balance ?? 0,
         ];
 
         // Use getAvailableProfiles which includes proper type field

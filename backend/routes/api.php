@@ -10,6 +10,7 @@ use App\Http\Controllers\VendorCompanyConnectionController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\WalletController;
 
 /*
 |--------------------------------------------------------------------------
@@ -138,6 +139,14 @@ Route::prefix('quotes')->middleware('auth:sanctum')->group(function () {
     Route::put('/{quote}', [QuoteController::class, 'update']);
     Route::patch('/{quote}/withdraw', [QuoteController::class, 'withdraw']);
     Route::patch('/{quote}/review', [QuoteController::class, 'review']);
+});
+
+// Wallet routes
+Route::prefix('wallet')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [WalletController::class, 'balance']);
+    Route::get('/transactions', [WalletController::class, 'transactions']);
+    Route::post('/order', [WalletController::class, 'createOrder']);
+    Route::post('/verify', [WalletController::class, 'verifyPayment']);
 });
 
 // Legacy routes for backward compatibility (if needed)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Models\Company;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,17 @@ class ListingController extends Controller
             return response()->json(['error' => 'No company profile selected'], 403);
         }
 
+        // Check wallet balance before creating listing
+        $cost = config('points.cost_listing');
+        $wallet = $user->wallet;
+        if (!$wallet || $wallet->balance < $cost) {
+            return response()->json([
+                'error' => 'Insufficient points',
+                'message' => "You need {$cost} point(s) to create a listing. Please buy more points.",
+                'wallet_balance' => $wallet?->balance ?? 0,
+            ], 402);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -78,6 +90,9 @@ class ListingController extends Controller
             'created_by' => $user->id,
             'status' => $validated['status'] ?? 'active'  // Default to active if not specified
         ]);
+
+        // Deduct points for listing creation
+        $wallet->deduct($cost, 'Created listing: ' . $listing->title, 'listing', (string) $listing->id);
 
         // Grant access to specific vendors for private listings
         if ($validated['visibility'] === 'private' && !empty($validated['accessible_vendor_ids'])) {

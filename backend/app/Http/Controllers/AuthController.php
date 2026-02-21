@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\RefreshToken;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
@@ -45,6 +47,15 @@ class AuthController extends Controller
         }
 
         $user = User::create($userData);
+
+        // Create wallet and credit welcome points
+        $wallet = Wallet::create(['user_id' => $user->id, 'balance' => 0]);
+        $wallet->credit(
+            config('points.new_user'),
+            'Welcome bonus points',
+            'registration',
+            (string) $user->id
+        );
 
         return $this->generateTokenResponse($user, $request->device_name);
     }
