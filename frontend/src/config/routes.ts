@@ -53,6 +53,7 @@ export const ROUTES = {
       LISTINGS_DETAIL: '/company/listings/:id',
       LISTINGS_EDIT: '/company/listings/:id/edit',
       LISTINGS_QUOTES: '/company/listings/:id/quotes',
+      AUCTION_ROOM: '/company/listings/:id/auction',
     },
 
     // Vendor specific routes
@@ -74,6 +75,7 @@ export const ROUTES = {
       QUOTES_DETAIL: '/vendor/quotes/:quoteId',
       QUOTES_CREATE: '/vendor/listings/:listingId/quote',
       QUOTES_EDIT: '/vendor/quotes/:quoteId/edit',
+      AUCTION_ROOM: '/vendor/auctions/:auctionId',
     },
   },
 };

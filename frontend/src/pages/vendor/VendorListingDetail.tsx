@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
+import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { Listing } from '../../types/listings';
+import type { Auction } from '../../types/auction';
 
 const VendorListingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasExistingQuote, setHasExistingQuote] = useState(false);
+  const [auction, setAuction] = useState<Auction | null>(null);
 
   useEffect(() => {
     if (id) {
       loadListing();
+      loadAuction(parseInt(id));
     }
   }, [id]);
 
@@ -29,14 +34,26 @@ const VendorListingDetail: React.FC = () => {
       setListing(listingData);
 
       // Check if vendor has already submitted a quote
+      // Use Number() to avoid type mismatch between string/number IDs
       if (listingData.quotes && user?.id) {
-        const existingQuote = listingData.quotes.find(quote => quote.vendor_user_id === user.id);
+        const existingQuote = listingData.quotes.find(
+          quote => Number(quote.vendor_user_id) === Number(user.id)
+        );
         setHasExistingQuote(!!existingQuote);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load listing');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAuction = async (listingId: number) => {
+    try {
+      const res = await auctionService.getAuctionForListing(listingId);
+      setAuction(res.data.auction);
+    } catch {
+      // No auction yet — that's fine
     }
   };
 
@@ -194,6 +211,28 @@ const VendorListingDetail: React.FC = () => {
               >
                 Access Bid Monitor
               </Link>
+            </div>
+          )}
+
+          {/* Auction Room CTA — show when a running OR completed auction exists and vendor has a quote */}
+          {(auction?.status === 'running' || auction?.status === 'completed') && hasExistingQuote && (
+            <div className={`border backdrop-blur-md rounded-[32px] p-10 flex flex-col md:flex-row justify-between items-center gap-8 ${auction.status === 'completed' ? 'bg-gray-700/20 border-gray-500/30' : 'bg-yellow-500/10 border-yellow-500/30'}`}>
+              <div className="relative z-10">
+                <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-4 ${auction.status === 'completed' ? 'text-gray-300' : 'text-yellow-400'}`}>
+                  {auction.status === 'completed' ? '🏁 Reverse Auction Ended' : '⚡ Reverse Auction In Progress'}
+                </h3>
+                <p className="text-gray-300 font-medium max-w-xl leading-relaxed">
+                  {auction.status === 'completed'
+                    ? 'The auction has ended. View the auction room to see your final rank and results.'
+                    : 'This listing is now in a live reverse auction. Enter the auction room to place competitive bids and see your rank.'}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate(ROUTES.PROTECTED.VENDOR.AUCTION_ROOM.replace(':auctionId', String(auction.id)))}
+                className={`relative z-10 px-12 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all whitespace-nowrap ${auction.status === 'completed' ? 'bg-gray-500 hover:bg-gray-400 text-white' : 'bg-yellow-500 hover:bg-yellow-400 text-black'}`}
+              >
+                {auction.status === 'completed' ? '🏁 View Results' : '⚡ Enter Auction Room'}
+              </button>
             </div>
           )}
 
