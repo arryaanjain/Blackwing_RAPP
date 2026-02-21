@@ -3,49 +3,16 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../config/routes';
-
-// Mock data for demo purposes - replace with actual contract calls
-const MOCK_LISTINGS = [
-  {
-    id: 1,
-    title: 'Industrial Supplies Procurement',
-    description: 'Looking for bulk industrial cleaning supplies with eco-friendly certification.',
-    quantity: 500,
-    maxPrice: 25000,
-    isPublic: true,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    bids: 3,
-    status: 'active'
-  },
-  {
-    id: 2,
-    title: 'Office Furniture',
-    description: 'Need ergonomic office chairs for our new headquarters.',
-    quantity: 50,
-    maxPrice: 15000,
-    isPublic: false,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    bids: 5,
-    status: 'active'
-  },
-  {
-    id: 3,
-    title: 'IT Hardware',
-    description: 'Seeking laptops and monitors for remote team.',
-    quantity: 25,
-    maxPrice: 50000,
-    isPublic: true,
-    deadline: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    bids: 8,
-    status: 'closed'
-  }
-];
+import listingService from '../../services/listingService';
+import connectionService from '../../services/connectionService';
+import type { Listing } from '../../types/listings';
 
 const CompanyDashboard: React.FC = () => {
   const { currentProfile } = useAuth();
   const companyProfile = currentProfile?.type === 'company' ? currentProfile : null;
-  const [activeListings, setActiveListings] = useState<any[]>([]);
+  const [activeListings, setActiveListings] = useState<Listing[]>([]);
   const [pendingVendorRequests, setPendingVendorRequests] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalListings: 0,
     activeBids: 0,
@@ -53,27 +20,51 @@ const CompanyDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    // In a real app, you'd fetch this data from the blockchain
-    // For now, we're using mock data
     const fetchDashboardData = async () => {
       try {
-        // Mock data loading
-        setActiveListings(MOCK_LISTINGS.filter(listing => listing.status === 'active'));
-        setPendingVendorRequests(2);
+        setLoading(true);
+
+        // Fetch all data in parallel
+        const [allListingsRes, activeListingsRes, connectionsRes, requestsRes] = await Promise.all([
+          listingService.getListings({}, 1),                    // All listings — for total count
+          listingService.getListings({ status: 'active' }, 1), // Active listings — for display
+          connectionService.getConnections(),                   // Connected vendors count
+          connectionService.getCompanyRequests()                // Pending vendor requests
+        ]);
+
+        const allListings = allListingsRes.data;
+        const activeListingsData = activeListingsRes.data;
+
+        setActiveListings(activeListingsData.data);
+
+        // Count all quotes across active listings (active bids)
+        const totalActiveBids = activeListingsData.data.reduce(
+          (sum, listing) => sum + (listing.quotes?.length || 0), 0
+        );
+
+        // Count pending connection requests
+        const pendingCount = (requestsRes as any).requests?.filter(
+          (req: any) => req.status === 'pending'
+        ).length || 0;
+
+        setPendingVendorRequests(pendingCount);
         setStats({
-          totalListings: MOCK_LISTINGS.length,
-          activeBids: MOCK_LISTINGS.reduce((sum, listing) => sum + listing.bids, 0),
-          totalVendors: 8
+          totalListings: allListings.total,
+          activeBids: totalActiveBids,
+          totalVendors: (connectionsRes as any).connections?.length || 0
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchDashboardData();
   }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No deadline';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -175,7 +166,11 @@ const CompanyDashboard: React.FC = () => {
         {/* Active Listings */}
         <div>
           <h2 className="text-xl font-semibold text-white mb-4">Active Listings</h2>
-          {activeListings.length === 0 ? (
+          {loading ? (
+            <div className="bg-blue-800/20 backdrop-blur-sm border border-blue-700/40 rounded-lg p-8 text-center">
+              <p className="text-blue-300">Loading listings...</p>
+            </div>
+          ) : activeListings.length === 0 ? (
             <div className="bg-blue-800/20 backdrop-blur-sm border border-blue-700/40 rounded-lg p-8 text-center">
               <p className="text-blue-300">You don't have any active listings yet.</p>
               <Link to={ROUTES.PROTECTED.COMPANY.LISTINGS_CREATE} className="mt-4 inline-block bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded">
@@ -184,9 +179,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {activeListings.map((listing: any) => (
-                <div 
-                  key={listing.id} 
+              {activeListings.map((listing: Listing) => (
+                <div
+                  key={listing.id}
                   className="bg-blue-800/20 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-800/30 transition-colors"
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -194,24 +189,26 @@ const CompanyDashboard: React.FC = () => {
                       <h3 className="text-lg font-medium text-white">{listing.title}</h3>
                       <p className="text-blue-300 mt-1 truncate max-w-lg">{listing.description}</p>
                       <div className="mt-2 flex items-center space-x-4">
+                        {listing.base_price && (
+                          <span className="text-blue-200 text-sm">
+                            Max Price: <span className="font-medium">${listing.base_price.toLocaleString()}</span>
+                          </span>
+                        )}
                         <span className="text-blue-200 text-sm">
-                          Quantity: <span className="font-medium">{listing.quantity}</span>
+                          Visibility: <span className="font-medium capitalize">{listing.visibility}</span>
                         </span>
                         <span className="text-blue-200 text-sm">
-                          Max Price: <span className="font-medium">${listing.maxPrice}</span>
-                        </span>
-                        <span className="text-blue-200 text-sm">
-                          Visibility: <span className="font-medium">{listing.isPublic ? 'Public' : 'Private'}</span>
+                          Category: <span className="font-medium">{listing.category}</span>
                         </span>
                       </div>
                     </div>
                     <div className="mt-4 md:mt-0 flex flex-col md:items-end">
                       <div className="bg-blue-900/50 px-3 py-1 rounded-full text-blue-200 text-sm flex items-center">
                         <span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
-                        <span>Bids: {listing.bids}</span>
+                        <span>Quotes: {listing.quotes?.length || 0}</span>
                       </div>
                       <span className="text-blue-300 text-sm mt-2">
-                        Ends: {formatDate(listing.deadline)}
+                        Ends: {formatDate(listing.closes_at)}
                       </span>
                     </div>
                   </div>
