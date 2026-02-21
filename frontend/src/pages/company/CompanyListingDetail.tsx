@@ -9,7 +9,7 @@ import type { Listing, Quote } from '../../types/listings';
 import type { Auction } from '../../types/auction';
 
 const CompanyListingDetail: React.FC = () => {
-  const { listingId } = useParams<{ listingId: string }>();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -35,7 +35,7 @@ const CompanyListingDetail: React.FC = () => {
       loadQuotes(parseInt(id));
       loadAuction(parseInt(id));
     }
-  }, [listingId]);
+  }, [id]);
 
   const loadListing = async (listingId: number) => {
     try {
@@ -54,10 +54,10 @@ const CompanyListingDetail: React.FC = () => {
     }
   };
 
-  const loadQuotes = async (listingId: number) => {
+  const loadQuotes = async (id: number) => {
     try {
       setQuotesLoading(true);
-      const response = await listingService.getQuotesForListing(listingId);
+      const response = await listingService.getQuotesForListing(id);
       setQuotes(response.data);
     } catch (err: any) {
       // Log the error so it's visible; keep existing quotes from loadListing()
@@ -67,9 +67,9 @@ const CompanyListingDetail: React.FC = () => {
     }
   };
 
-  const loadAuction = async (listingId: number) => {
+  const loadAuction = async (id: number) => {
     try {
-      const res = await auctionService.getAuctionForListing(listingId);
+      const res = await auctionService.getAuctionForListing(id);
       setAuction(res.data.auction);
     } catch {
       // No auction yet — that's fine
@@ -206,7 +206,7 @@ const CompanyListingDetail: React.FC = () => {
               Listing #{listing.listing_number}
             </p>
           </div>
-          
+
           <div className="flex gap-3 flex-wrap justify-end">
             <button
               onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':listingId', listing.id.toString()))}
@@ -250,13 +250,12 @@ const CompanyListingDetail: React.FC = () => {
 
         {/* Auction Status Banner */}
         {auction && (
-          <div className={`rounded-lg px-5 py-4 flex items-center justify-between ${
-            auction.status === 'running'
-              ? 'bg-yellow-900/30 border border-yellow-600'
-              : auction.status === 'completed'
+          <div className={`rounded-lg px-5 py-4 flex items-center justify-between ${auction.status === 'running'
+            ? 'bg-yellow-900/30 border border-yellow-600'
+            : auction.status === 'completed'
               ? 'bg-gray-800/50 border border-gray-600'
               : 'bg-blue-900/30 border border-blue-700'
-          }`}>
+            }`}>
             <div className="flex items-center gap-3">
               <span className="text-2xl">{auction.status === 'running' ? '🔨' : auction.status === 'completed' ? '✅' : '🕐'}</span>
               <div>

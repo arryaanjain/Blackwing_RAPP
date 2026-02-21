@@ -415,7 +415,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                 <Link
                   to={mode === 'edit'
                     ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                    : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
+                    : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(listing.id))}
                   className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
                 >
                   Abort Protocol
@@ -429,23 +429,6 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
                 </button>
               </div>
             </div>
-          {/* Submit Button */}
-          <div className="flex justify-end gap-3">
-            <Link
-              to={mode === 'edit'
-                ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
-                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(listing.id))}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium"
-            >
-              {saving ? 'Saving...' : (mode === 'create' ? 'Submit Quote' : 'Update Quote')}
-            </button>
           </div>
         </form>
       </div>

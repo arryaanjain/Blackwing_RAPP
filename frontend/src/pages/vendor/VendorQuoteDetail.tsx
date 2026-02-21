@@ -167,7 +167,6 @@ const VendorQuoteDetail: React.FC = () => {
           <div className="flex flex-wrap gap-4 px-6 py-4 bg-white/2 border border-white/5 rounded-[32px] backdrop-blur-sm">
             <Link
               to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
-              to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Modify Protocol

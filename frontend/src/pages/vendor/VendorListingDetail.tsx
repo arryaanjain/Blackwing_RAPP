@@ -21,7 +21,7 @@ const VendorListingDetail: React.FC = () => {
   useEffect(() => {
     if (listingId) {
       loadListing();
-      loadAuction(parseInt(id));
+      loadAuction(parseInt(listingId));
     }
   }, [listingId]);
 
