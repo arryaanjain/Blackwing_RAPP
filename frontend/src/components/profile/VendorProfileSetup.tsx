@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../config/routes';
+import BasePage from '../BasePage';
 
 interface VendorProfileSetupProps { }
 
@@ -118,35 +119,24 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#05070a] relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
-      {/* Immersive Background System */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-mesh opacity-30"></div>
-        <div className="absolute inset-0 noise-overlay opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#05070a] via-[#020617]/90 to-[#05070a]"></div>
-      </div>
-
-      <div className="max-w-xl w-full space-y-8 relative z-10">
-        <div className="glass-premium rounded-[40px] p-10 border-white/5 shadow-2xl bg-[#05070a]/40 animate-in fade-in zoom-in duration-700">
+    <BasePage
+      title={<>Service <span className="text-emerald-500">Onboarding</span></>}
+      subtitle={isEditing ? 'Synchronize your professional metadata with the protocol.' : 'Register your service node as a verified protocol vendor.'}
+    >
+      <div className="max-w-xl mx-auto">
+        <div className="glass-premium rounded-[40px] p-10 border-white/5 shadow-2xl bg-[#05070a]/40">
           <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 group hover:rotate-12 transition-transform duration-500">
-              <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 group hover:rotate-12 transition-transform duration-500 text-black">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">
-              {isEditing ? 'Vendor Terminal' : 'Service Onboarding'}
-            </h2>
-            <div className="h-1 w-12 bg-emerald-500 mx-auto rounded-full opacity-50 mb-6"></div>
-            <p className="text-gray-400 font-medium">
-              {isEditing ? 'Synchronize your professional metadata with the protocol.' : 'Register your service node as a verified protocol vendor.'}
-            </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-8">
               {/* Vendor Name */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="vendor_name" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Vendor / Business Identity
                 </label>
@@ -163,7 +153,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
               </div>
 
               {/* Specialization */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="specialization" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Capability Matrix
                 </label>
@@ -199,7 +189,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
               </div>
 
               {/* GST Number */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="gst_number" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   GST / Tax Identity (Optional)
                 </label>
@@ -215,7 +205,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label htmlFor="location" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Base Location</label>
                   <input
                     id="location" name="location" type="text" required
@@ -223,7 +213,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
                     placeholder="Ex. London, UK" value={formData.location} onChange={handleInputChange}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label htmlFor="contact_phone" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Secure Hotline</label>
                   <input
                     id="contact_phone" name="contact_phone" type="tel" required
@@ -233,7 +223,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="website" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Professional Portfolio
                 </label>
@@ -248,7 +238,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="description" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Service Description
                 </label>
@@ -299,7 +289,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
           </form>
         </div>
       </div>
-    </div>
+    </BasePage>
   );
 };
 

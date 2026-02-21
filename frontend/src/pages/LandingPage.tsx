@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
 import StatsSection from '../components/StatsSection';
@@ -40,8 +38,6 @@ const LandingPage: React.FC = () => {
       <div className="bg-mesh" />
       <div className="noise-overlay" />
       <CursorGlow />
-
-      <Header />
 
       {/* Success Message */}
       {successMessage && (
@@ -91,8 +87,6 @@ const LandingPage: React.FC = () => {
           onSecondaryClick={handleContactSales}
         />
       </main>
-
-      <Footer />
     </div>
   );
 };
