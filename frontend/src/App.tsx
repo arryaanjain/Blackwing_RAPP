@@ -39,6 +39,7 @@ import CompleteVendorProfile from './components/profile/VendorProfileSetup';
 import VendorListings from './pages/vendor/VendorListingsBrowser';
 import SearchListings from './pages/vendor/VendorListingsBrowser';
 import VendorProfile from './pages/vendor/VendorProfile';
+import Wallet from './pages/Wallet';
 
 import AuthCallback from './components/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -147,6 +148,13 @@ const App: React.FC = () => {
               <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
                 <ProtectedRoute profileType="vendor">
                   <VendorProfile />
+                </ProtectedRoute>
+              } />
+
+              {/* Wallet — shared for company and vendor */}
+              <Route path={ROUTES.PROTECTED.WALLET} element={
+                <ProtectedRoute>
+                  <Wallet />
                 </ProtectedRoute>
               } />
             </Routes>

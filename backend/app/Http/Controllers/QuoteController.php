@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Quote;
 use App\Models\Listing;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,17 @@ class QuoteController extends Controller
 
         if ($user->current_profile_type !== 'vendor') {
             return response()->json(['error' => 'Only vendors can create quotes'], 403);
+        }
+
+        // Check wallet balance before submitting quote
+        $cost = config('points.cost_quote');
+        $wallet = $user->wallet;
+        if (!$wallet || $wallet->balance < $cost) {
+            return response()->json([
+                'error' => 'Insufficient points',
+                'message' => "You need {$cost} point(s) to submit a quote. Please buy more points.",
+                'wallet_balance' => $wallet?->balance ?? 0,
+            ], 402);
         }
 
         $validated = $request->validate([
@@ -91,6 +103,9 @@ class QuoteController extends Controller
             'status' => 'submitted',
             'submitted_at' => now()
         ]);
+
+        // Deduct points for quote submission
+        $wallet->deduct($cost, 'Submitted quote for listing #' . $validated['listing_id'], 'quote', (string) $quote->id);
 
         return response()->json($quote->load(['listing', 'vendor']), 201);
     }
