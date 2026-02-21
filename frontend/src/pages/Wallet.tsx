@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import walletService, { WalletBalance, WalletTransaction } from '../services/walletService';
+import walletService from '../services/walletService';
+import type { WalletBalance, WalletTransaction } from '../services/walletService';
 
 declare global {
   interface Window {
@@ -109,86 +110,110 @@ const Wallet: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-10">
         <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Wallet</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your RAPP points</p>
+          <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Terminal <span className="text-indigo-500">Wallet</span></h1>
+          <p className="text-gray-500 text-xs font-black uppercase tracking-widest mt-2 ml-1">Manage and recharge RAPP point balances</p>
         </div>
 
-        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">{error}</div>}
-        {successMsg && <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-xl text-sm">{successMsg}</div>}
+        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest animate-in slide-in-from-left-4 duration-500">{error}</div>}
+        {successMsg && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest animate-in slide-in-from-left-4 duration-500">{successMsg}</div>}
 
         {/* Balance Card */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-2">Current Balance</p>
-            <p className="text-5xl font-black text-white">{loading ? '…' : walletData?.balance ?? 0} <span className="text-xl text-gray-500">pts</span></p>
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden group shadow-premium">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-transparent" />
+          <div className="relative z-10 text-center md:text-left mb-8 md:mb-0">
+            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-4">Node Point Balance</p>
+            <p className="text-7xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform duration-500">{loading ? '…' : walletData?.balance ?? 0} <span className="text-xl text-gray-500 uppercase tracking-widest ml-1">pts</span></p>
           </div>
           {walletData && (
-            <div className="text-right space-y-1 text-xs text-gray-500">
-              <p>Listing costs <span className="text-white font-bold">{walletData.point_costs.listing} pt</span></p>
-              <p>Quote costs <span className="text-white font-bold">{walletData.point_costs.quote} pt</span></p>
-              <p>Bid costs <span className="text-white font-bold">{walletData.point_costs.bid} pt</span></p>
+            <div className="relative z-10 grid grid-cols-1 gap-4 p-6 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-8">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Listing Protocol</span>
+                <span className="text-sm font-black text-white tracking-wider">{walletData.point_costs.listing} pt</span>
+              </div>
+              <div className="flex items-center justify-between gap-8">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Quote Submission</span>
+                <span className="text-sm font-black text-white tracking-wider">{walletData.point_costs.quote} pt</span>
+              </div>
+              <div className="flex items-center justify-between gap-8">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bid Placement</span>
+                <span className="text-sm font-black text-white tracking-wider">{walletData.point_costs.bid} pt</span>
+              </div>
             </div>
           )}
         </div>
 
         {/* Buy Points */}
         <div>
-          <h2 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Buy Points</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mb-6 px-2">Recharge Protocols</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {PACKAGES.map((pkg) => (
               <button
                 key={pkg.points}
                 onClick={() => handleBuyPoints(pkg)}
                 disabled={buying}
-                className="bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-indigo-500/40 rounded-2xl p-6 text-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 rounded-3xl p-8 text-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] shadow-glass"
               >
-                <p className="text-2xl font-black text-white">{pkg.points}</p>
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-3">points</p>
-                <p className="text-indigo-400 font-bold text-sm">₹{pkg.price}</p>
+                <div className="bg-indigo-500/10 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:bg-indigo-500 group-hover:text-black transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97 12 12l-1 8 8.91-10.97H12l1-8z" /></svg>
+                </div>
+                <p className="text-4xl font-black text-white tracking-tighter mb-1">{pkg.points}</p>
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4">Units</p>
+                <div className="bg-white/5 py-2 rounded-xl border border-white/5">
+                  <p className="text-indigo-400 font-black text-sm">₹{pkg.price}</p>
+                </div>
               </button>
             ))}
           </div>
           {!walletData?.point_costs && !loading && (
-            <p className="text-xs text-yellow-500/70 mt-2">Note: Razorpay keys are not configured. Contact admin to enable purchases.</p>
+            <p className="text-[10px] font-black text-yellow-500/50 uppercase tracking-widest text-center mt-8">Secure payment gateway connection pending administrative verification.</p>
           )}
         </div>
 
         {/* Transaction History */}
         <div>
-          <h2 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Transaction History {totalTx > 0 && <span className="text-gray-600">({totalTx})</span>}</h2>
+          <div className="flex items-center justify-between mb-6 px-2">
+            <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">Transaction Archive {totalTx > 0 && <span className="text-gray-600">[{totalTx}]</span>}</h2>
+          </div>
+
           {loading ? (
-            <p className="text-gray-600 text-sm">Loading…</p>
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-20 text-center animate-pulse">
+              <p className="text-gray-600 font-black uppercase text-[10px] tracking-[0.2em]">Retrieving Ledger Records...</p>
+            </div>
           ) : transactions.length === 0 ? (
-            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 text-center text-gray-600 text-sm">No transactions yet.</div>
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-20 text-center text-gray-500 font-medium">No ledger entries detected on current block.</div>
           ) : (
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl overflow-hidden shadow-glass">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Date</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</th>
-                    <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Amount</th>
+                  <tr className="border-b border-white/10">
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Entry Date</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Transaction Descriptor</th>
+                    <th className="px-8 py-5 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit Delta</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {transactions.map((tx) => (
-                    <tr key={tx.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                      <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">{new Date(tx.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-gray-300">{tx.description}</td>
-                      <td className={`px-6 py-4 text-right font-bold ${tx.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
-                        {tx.type === 'credit' ? '+' : '-'}{tx.amount} pts
+                    <tr key={tx.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-8 py-5 text-gray-500 text-xs font-medium uppercase tracking-wider">{new Date(tx.created_at).toLocaleDateString()}</td>
+                      <td className="px-8 py-5 text-gray-300 font-medium">{tx.description}</td>
+                      <td className={`px-8 py-5 text-right font-black tracking-tighter text-lg ${tx.type === 'credit' ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {tx.type === 'credit' ? '+' : '-'}{tx.amount} <span className="text-[10px] font-black uppercase tracking-widest opacity-50">pts</span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {lastPage > 1 && (
-                <div className="flex justify-center gap-3 p-4 border-t border-white/5">
-                  <button onClick={() => fetchData(page - 1)} disabled={page <= 1} className="text-xs text-gray-500 hover:text-white disabled:opacity-30">← Prev</button>
-                  <span className="text-xs text-gray-600">{page} / {lastPage}</span>
-                  <button onClick={() => fetchData(page + 1)} disabled={page >= lastPage} className="text-xs text-gray-500 hover:text-white disabled:opacity-30">Next →</button>
+                <div className="flex justify-center items-center gap-6 p-6 border-t border-white/5 bg-white/[0.01]">
+                  <button onClick={() => fetchData(page - 1)} disabled={page <= 1} className="p-2 text-gray-500 hover:text-white disabled:opacity-20 transition-colors">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{page} / {lastPage}</span>
+                  <button onClick={() => fetchData(page + 1)} disabled={page >= lastPage} className="p-2 text-gray-500 hover:text-white disabled:opacity-20 transition-colors">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  </button>
                 </div>
               )}
             </div>

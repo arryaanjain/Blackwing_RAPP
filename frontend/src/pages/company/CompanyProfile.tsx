@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
+import BlockchainExplorerLink from '../../components/ui/BlockchainExplorerLink';
 
 const CompanyProfile: React.FC = () => {
   const { currentProfile } = useAuth();
@@ -207,7 +208,10 @@ const CompanyProfile: React.FC = () => {
                 </div>
 
                 <div className="group">
-                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Protocol Identity</h3>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Protocol Identity</h3>
+                    <BlockchainExplorerLink txHash={companyProfile?.blockchain_tx_hash || "0xd7ac9424c8ad3c32751e3c1ee1c416c93429b13e1b492cc8dc349af05b9bb20a"} />
+                  </div>
                   <p className="text-xl font-black text-white uppercase tracking-tighter opacity-60">{companyProfile?.id || 'Not available'}</p>
                 </div>
               </div>
@@ -219,7 +223,10 @@ const CompanyProfile: React.FC = () => {
                 </div>
 
                 <div className="group">
-                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Sovereign Wallet</h3>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Sovereign Wallet</h3>
+                    <BlockchainExplorerLink txHash={companyProfile?.blockchain_tx_hash || "0xd7ac9424c8ad3c32751e3c1ee1c416c93429b13e1b492cc8dc349af05b9bb20a"} />
+                  </div>
                   <p className="text-white font-mono text-sm break-all bg-white/5 py-3 px-6 rounded-2xl border border-white/10 select-all">
                     {companyProfile?.blockchain_tx_hash || 'Not connected'}
                   </p>
