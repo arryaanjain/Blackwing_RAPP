@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('listings', function (Blueprint $table) {
-            // Drop foreign keys and indices first
+            // Drop foreign keys and indices first (SQLite requires this before dropping columns)
             $table->dropForeign(['company_user_id']);
+            $table->dropUnique(['blockchain_id']);         // listings_blockchain_id_unique (added via ->unique())
             $table->dropIndex(['company_user_id', 'status']);
             $table->dropIndex(['visibility', 'status', 'deadline']);
             $table->dropIndex(['category', 'status']);

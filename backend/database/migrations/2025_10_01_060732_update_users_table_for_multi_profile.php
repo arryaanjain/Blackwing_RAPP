@@ -11,6 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop indexes BEFORE dropping columns — required for SQLite compatibility.
+        // MySQL handles this automatically, but SQLite does not.
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropIndex(['user_type', 'status']);   // users_user_type_status_index
+            $table->dropUnique(['company_id']);            // users_company_id_unique  (added via ->unique())
+            $table->dropIndex(['company_id']);             // users_company_id_index   (added via ->index())
+            $table->dropIndex(['associated_company_id']); // users_associated_company_id_index
+        });
+
         Schema::table('users', function (Blueprint $table) {
             // Remove profile-specific columns that will now be in companies/vendors tables
             $table->dropColumn([
@@ -28,7 +37,7 @@ return new class extends Migration
                 'contact_phone',
                 'website'
             ]);
-            
+
             // Add fields for multi-profile support
             $table->string('current_profile_type')->nullable(); // 'company' or 'vendor'
             $table->unsignedBigInteger('current_profile_id')->nullable(); // ID of current active profile
