@@ -21,6 +21,7 @@ class VendorCompanyConnectionRequest extends Model
         'review_notes',
         'vendor_profile_data',
         'expires_at',
+        'blockchain_tx_hash',
     ];
 
     protected $casts = [

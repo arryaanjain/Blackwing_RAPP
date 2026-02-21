@@ -23,6 +23,7 @@ class VendorCompanyConnection extends Model
         'revoked_by',
         'revoked_at',
         'revocation_reason',
+        'blockchain_tx_hash',
     ];
 
     protected $casts = [

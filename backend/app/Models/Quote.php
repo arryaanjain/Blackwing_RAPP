@@ -22,7 +22,8 @@ class Quote extends Model
         'expires_at',
         'reviewed_by',
         'reviewed_at',
-        'review_notes'
+        'review_notes',
+        'blockchain_tx_hash'
     ];
 
     protected $casts = [
