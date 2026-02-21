@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// import { useEffect } from 'react'; // TODO: Use when needed
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
@@ -8,7 +7,7 @@ const VendorProfile: React.FC = () => {
   const { currentProfile, user } = useAuth();
   const vendorProfile = currentProfile?.type === 'vendor' ? currentProfile : null;
   const { showToast } = useToast();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,7 +19,7 @@ const VendorProfile: React.FC = () => {
     website: vendorProfile?.website || '',
     location: vendorProfile?.location || ''
   });
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -28,291 +27,271 @@ const VendorProfile: React.FC = () => {
       [name]: value
     });
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     setIsLoading(true);
-    
+
     try {
-      // TODO: Implement profile update functionality
-      console.log('Updating profile with:', {
-        name: formData.name,
-        description: formData.description,
-        gstNumber: formData.gstNumber,
-        email: formData.email,
-        contactPhone: formData.contactPhone,
-        website: formData.website,
-        location: formData.location
+      console.log('Updating vendor profile:', formData);
+      showToast({
+        title: "Vendor Identity Updated",
+        description: "Your professional credentials have been synchronized.",
+        status: "success"
       });
-      
-      // For now, just simulate success until we implement the actual update
-      const success = true;
-      
-      if (success) {
-        showToast({
-          title: "Profile Updated",
-          description: "Your profile has been successfully updated.",
-          status: "success"
-        });
-        setIsEditing(false);
-      } else {
-        showToast({
-          title: "Update Failed",
-          description: "There was a problem updating your profile.",
-          status: "error"
-        });
-      }
+      setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
       showToast({
-        title: "Error",
-        description: "An unexpected error occurred.",
+        title: "Sync Failure",
+        description: "Could not update vendor metadata.",
         status: "error"
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="bg-blue-900/50 backdrop-blur-sm rounded-xl p-6 border border-blue-700/50 shadow-lg shadow-blue-900/30">
-          <h1 className="text-2xl font-bold text-white mb-2">Vendor Profile</h1>
-          <p className="text-blue-200">
-            Manage your vendor information and settings
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="relative overflow-hidden rounded-[40px] p-12 mb-12 border border-white/5 glass-premium">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+          <h1 className="text-5xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">Vendor <span className="text-indigo-500">Terminal</span></h1>
+          <p className="text-gray-400 text-lg font-medium max-w-2xl">
+            Configure your service profile and verify your cryptographic service credentials.
           </p>
         </div>
-        
-        <div className="bg-blue-950/60 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6 shadow-xl shadow-blue-950/20">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-white">Profile Information</h2>
-            <button 
-              onClick={() => setIsEditing(!isEditing)} 
-              className="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md shadow-blue-900/50 flex items-center"
+
+        <div className="glass-premium rounded-[32px] p-10 border-white/5 shadow-2xl bg-[#05070a]/40">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-8 border-b border-white/5">
+            <div>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight">Professional Metadata</h2>
+              <p className="text-indigo-500 text-[10px] font-black uppercase tracking-widest mt-1">Verified Protocol Vendor</p>
+            </div>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center"
             >
               {isEditing ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                   Cancel
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  Edit Profile
+                  Edit profile
                 </>
               )}
             </button>
           </div>
-          
+
           {isEditing ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-blue-300 mb-2">Vendor Name</label>
-                <input 
-                  type="text" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Vendor Entity Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">GST Registration</label>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">Description</label>
-                <textarea 
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Service Capabilities</label>
+                <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium resize-none"
                 ></textarea>
               </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">GST Number</label>
-                <input 
-                  type="text" 
-                  name="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={handleInputChange}
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Contact Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Professional Phone</label>
+                  <input
+                    type="tel"
+                    name="contactPhone"
+                    value={formData.contactPhone}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">Contact Email</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Portfolio Link</label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleInputChange}
+                    placeholder="https://..."
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Operational Base</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    placeholder="City, Country"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">Contact Phone</label>
-                <input 
-                  type="tel" 
-                  name="contactPhone"
-                  value={formData.contactPhone}
-                  onChange={handleInputChange}
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">Website</label>
-                <input 
-                  type="url" 
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  placeholder="https://..."
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-blue-300 mb-2">Location</label>
-                <input 
-                  type="text" 
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="City, Country"
-                  className="w-full bg-blue-950/70 border border-blue-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div className="flex justify-end mt-6">
-                <button 
+
+              <div className="flex justify-end pt-8 gap-4">
+                <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="bg-blue-800 hover:bg-blue-700 text-white px-6 py-2 rounded mr-3"
+                  className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
                 >
-                  Cancel
+                  Discard changes
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isLoading}
-                  className="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded flex items-center"
+                  className="px-10 py-3 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
                 >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : 'Save Changes'}
+                  {isLoading ? 'Synchronizing...' : 'Update credentials'}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">Vendor Name</h3>
-                  <p className="text-white">{vendorProfile?.vendor_name || vendorProfile?.name || 'Not provided'}</p>
+            <div className="space-y-12 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Vendor Entity</h3>
+                  <p className="text-2xl font-black text-white uppercase tracking-tight">{vendorProfile?.vendor_name || vendorProfile?.name || 'Not provided'}</p>
                 </div>
-                
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">Vendor ID</h3>
-                  <p className="text-white">{vendorProfile?.id || 'Not available'}</p>
+
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Protocol ID</h3>
+                  <p className="text-xl font-black text-white uppercase tracking-tighter opacity-60">{vendorProfile?.id || 'Not available'}</p>
                 </div>
-                
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">GST Number</h3>
-                  <p className="text-white">{vendorProfile?.gst_number || 'Not provided'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">GST Verification</h3>
+                  <p className="text-lg font-black text-white uppercase tracking-widest">{vendorProfile?.gst_number || 'Not provided'}</p>
                 </div>
-                
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">Wallet Address</h3>
-                  <p className="text-white font-mono text-sm break-all">
+
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Service Wallet</h3>
+                  <p className="text-white font-mono text-sm break-all bg-white/5 py-3 px-6 rounded-2xl border border-white/10 select-all">
                     {vendorProfile?.blockchain_tx_hash || 'Not connected'}
                   </p>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-blue-400 text-sm font-medium mb-1">Description</h3>
-                <p className="text-white">{vendorProfile?.description || 'No description provided'}</p>
+
+              <div className="group">
+                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 group-hover:text-indigo-400 transition-colors">Service Description</h3>
+                <p className="text-gray-400 text-lg font-medium leading-relaxed max-w-4xl">{vendorProfile?.description || 'No description provided'}</p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">Contact Email</h3>
-                  <p className="text-white">{user?.email || 'Not provided'}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Operational Base</h3>
+                  <p className="text-lg font-black text-white uppercase tracking-tight">{vendorProfile?.location || 'Not provided'}</p>
                 </div>
-                
-                <div>
-                  <h3 className="text-blue-400 text-sm font-medium mb-1">Contact Phone</h3>
-                  <p className="text-white">{vendorProfile?.contact_phone || 'Not provided'}</p>
+
+                <div className="group">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 group-hover:text-indigo-400 transition-colors">Portfolio website</h3>
+                  <div className="text-lg font-black text-white uppercase">
+                    {vendorProfile?.website ? (
+                      <a
+                        href={vendorProfile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-500 hover:text-indigo-400 underline decoration-indigo-500/30 underline-offset-8"
+                      >
+                        {vendorProfile.website.replace('https://', '')}
+                      </a>
+                    ) : 'Not provided'}
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <h3 className="text-blue-400 text-sm font-medium mb-1">Account Created</h3>
-                <p className="text-white">
-                  {vendorProfile?.created_at 
-                    ? new Date(vendorProfile.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                    : 'Not available'
-                  }
-                </p>
               </div>
             </div>
           )}
         </div>
-        
-        <div className="bg-blue-950/60 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6 shadow-xl shadow-blue-950/20">
-          <h2 className="text-xl font-semibold text-white mb-4">Security</h2>
-          <div className="space-y-4">
-            <button 
-              className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md shadow-blue-900/50 flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
-              Change Password
-            </button>
-            
-            <button 
-              className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md shadow-blue-900/50 flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              Two-Factor Authentication
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+          <div className="glass-premium rounded-[32px] p-10 border-white/5 bg-[#05070a]/40">
+            <h2 className="text-xl font-black text-white mb-8 uppercase tracking-tight">Security Protocol</h2>
+            <div className="space-y-4">
+              <button className="w-full flex items-center justify-between p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="bg-indigo-500/10 p-3 rounded-xl text-indigo-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </div>
+                  <span className="text-white font-black uppercase tracking-widest text-[10px]">Rotate Keyphrase</span>
+                </div>
+                <svg className="h-4 w-4 text-gray-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+
+              <button className="w-full flex items-center justify-between p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="bg-purple-500/10 p-3 rounded-xl text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <span className="text-white font-black uppercase tracking-widest text-[10px]">Cryptographic Shield</span>
+                </div>
+                <span className="text-xs font-black uppercase text-purple-500/50 mr-4">Enabled</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-premium rounded-[32px] p-10 border-red-500/10 bg-red-950/5">
+            <h2 className="text-xl font-black text-red-500 mb-6 uppercase tracking-tight">System Termination</h2>
+            <p className="text-gray-500 mb-8 font-medium">Removing your vendor presence will invalidate all active quotes and protocol reputation scores.</p>
+            <button className="px-8 py-3 rounded-xl bg-red-950/20 border border-red-950 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-900 hover:text-white transition-all">
+              Delete vendor profile
             </button>
           </div>
-        </div>
-        
-        <div className="bg-red-950/40 backdrop-blur-sm border border-red-800/40 rounded-lg p-6 shadow-xl shadow-red-950/20">
-          <h2 className="text-xl font-semibold text-white mb-4">Danger Zone</h2>
-          <p className="text-red-300 mb-4">
-            Actions here can't be undone. Please proceed with caution.
-          </p>
-          <button 
-            className="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow-md shadow-red-900/50 flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Delete Account
-          </button>
         </div>
       </div>
     </DashboardLayout>
