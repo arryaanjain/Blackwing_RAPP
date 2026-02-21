@@ -50,156 +50,194 @@ const VendorDashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-12">
         {/* Welcome Section */}
-        <div className="bg-blue-900/50 backdrop-blur-sm rounded-xl p-6 border border-blue-700/50 shadow-lg shadow-blue-900/30">
-          <h1 className="text-2xl font-bold text-white mb-2">Welcome, {vendorProfile?.vendor_name || vendorProfile?.name}</h1>
-          <p className="text-blue-200">
-            View available listings and manage your company connections.
-          </p>
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-10 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div>
+              <h1 className="text-3xl font-black text-white mb-3">Welcome, <span className="text-emerald-500">{vendorProfile?.vendor_name || vendorProfile?.name}</span></h1>
+              <p className="text-gray-400 font-medium">
+                Synchronizing available listings and managing professional connections.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm shadow-premium">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Node Status</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]" />
+                  <span className="text-white text-xs font-black uppercase tracking-[0.2em]">Active Protocol</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-blue-800 to-blue-950 rounded-lg shadow-xl p-6 border border-blue-700 shadow-blue-900/30">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-700 bg-opacity-40">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 shadow-premium relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent" />
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <div className="ml-5">
-                <p className="text-blue-200 text-sm font-medium uppercase">Available Listings</p>
-                <p className="text-white text-2xl font-semibold">{stats.totalListings}</p>
+              <div>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Available Listings</p>
+                <p className="text-white text-3xl font-black">{stats.totalListings}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-indigo-800 to-indigo-950 rounded-lg shadow-xl p-6 border border-indigo-700 shadow-indigo-900/30">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-indigo-700 bg-opacity-40">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 shadow-premium relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <div className="ml-5">
-                <p className="text-blue-200 text-sm font-medium uppercase">Your Active Bids</p>
-                <p className="text-white text-2xl font-semibold">{stats.activeBids}</p>
+              <div>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Your Active Bids</p>
+                <p className="text-white text-3xl font-black">{stats.activeBids}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-800 to-purple-950 rounded-lg shadow-xl p-6 border border-purple-700 shadow-purple-900/30">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-700 bg-opacity-40">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 shadow-premium relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <div className="ml-5">
-                <p className="text-blue-200 text-sm font-medium uppercase">Connected Companies</p>
-                <p className="text-white text-2xl font-semibold">{stats.totalCompanies}</p>
+              <div>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Connections</p>
+                <p className="text-white text-3xl font-black">{stats.totalCompanies}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Actions Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to={ROUTES.PROTECTED.VENDOR.LISTINGS} className="flex items-center justify-center p-6 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-lg shadow-xl hover:from-blue-800 hover:to-indigo-900 transition duration-200 shadow-blue-900/30">
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <span className="text-white font-medium">Browse Listings</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link to={ROUTES.PROTECTED.VENDOR.LISTINGS} className="group relative overflow-hidden bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 rounded-[32px] shadow-glow-indigo transition-all hover:scale-[1.02] active:scale-95">
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10 flex items-center gap-5">
+              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <span className="text-white font-black uppercase tracking-[0.25em] text-sm">Browse Protocol</span>
             </div>
           </Link>
 
-          <Link to={ROUTES.PROTECTED.VENDOR.QUOTES} className="flex items-center justify-center p-6 bg-gradient-to-r from-green-700 to-emerald-800 rounded-lg shadow-xl hover:from-green-800 hover:to-emerald-900 transition duration-200 shadow-green-900/30">
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-white font-medium">My Quotes</span>
+          <Link to={ROUTES.PROTECTED.VENDOR.QUOTES} className="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700 p-8 rounded-[32px] shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10 flex items-center gap-5">
+              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <span className="text-white font-black uppercase tracking-[0.25em] text-sm">Active Bids</span>
             </div>
           </Link>
 
-          <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="flex items-center justify-center p-6 bg-gradient-to-r from-purple-700 to-pink-800 rounded-lg shadow-xl hover:from-purple-800 hover:to-pink-900 transition duration-200 shadow-purple-900/30">
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span className="text-white font-medium">Manage Companies</span>
+          <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-700 p-8 rounded-[32px] shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:scale-[1.02] active:scale-95">
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10 flex items-center gap-5">
+              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <span className="text-white font-black uppercase tracking-[0.25em] text-sm">Network Mgmt</span>
             </div>
           </Link>
         </div>
 
-        {/* Available Listings */}
-        <div>
-          <h2 className="text-xl font-semibold text-white mb-4">Available Listings</h2>
+        {/* Global Protocol Nodes */}
+        <div className="space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] px-2 border-l-2 border-indigo-500 ml-[-2px]">Local Protocol Mesh</h2>
+            <Link to={ROUTES.PROTECTED.VENDOR.LISTINGS} className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">See Full Network →</Link>
+          </div>
+
           {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="flex items-center justify-center h-64 bg-white/5 border border-white/10 rounded-[32px] backdrop-blur-md shadow-premium">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
           ) : availableListings.length === 0 ? (
-            <div className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-8 text-center shadow-lg shadow-blue-950/20">
-              <p className="text-blue-300">No available listings at the moment.</p>
-              <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="mt-4 inline-block bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md">
-                Connect with More Companies
-              </Link>
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-16 text-center shadow-premium relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
+              <div className="relative z-10">
+                <p className="text-gray-500 font-bold mb-8 uppercase tracking-[0.1em]">No secure protocol signals detected in the immediate sector.</p>
+                <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="inline-block bg-white/10 hover:bg-white/20 text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all border border-white/10">
+                  Expand Signal Range
+                </Link>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-6">
               {availableListings.map((listing) => {
                 const bidSubmitted = listing.quotes?.some((q: { vendor_user_id: number }) => q.vendor_user_id === user?.id) ?? false;
                 return (
                   <div
                     key={listing.id}
-                    className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
+                    className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 hover:bg-white/[0.08] transition-all shadow-premium group relative overflow-hidden"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <h3 className="text-lg font-medium text-white">{listing.title}</h3>
-                        <p className="text-blue-300 text-sm mt-1">
-                          From <span className="font-medium">{listing.company?.name}</span>
-                          {listing.company?.share_id && <span> ({listing.company.share_id})</span>}
-                        </p>
-                        <p className="text-blue-300 mt-1 truncate max-w-lg">{listing.description}</p>
-                        <div className="mt-2 flex items-center space-x-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+                      <div className="space-y-5">
+                        <div className="flex items-center gap-4">
+                          <span className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-[10px] font-black text-indigo-400 uppercase tracking-widest">{listing.category}</span>
+                          {listing.visibility === 'private' && <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-[10px] font-black text-red-400 uppercase tracking-widest">Restricted</span>}
+                        </div>
+                        <h3 className="text-2xl font-black text-white group-hover:text-indigo-400 transition-colors leading-tight">{listing.title}</h3>
+                        <div className="flex flex-wrap items-center gap-8">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white shadow-inner">
+                              {listing.company?.name?.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-white text-xs font-black uppercase tracking-widest mb-1">{listing.company?.name}</p>
+                              <p className="text-gray-500 text-[10px] font-bold font-mono">NODE_HASH: {listing.company?.share_id}</p>
+                            </div>
+                          </div>
                           {listing.base_price != null && (
-                            <span className="text-blue-200 text-sm">
-                              Base Price: <span className="font-medium">${listing.base_price.toLocaleString()}</span>
-                            </span>
+                            <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
+                              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-3">Valuation</span>
+                              <span className="text-emerald-500 font-black text-lg">${listing.base_price.toLocaleString()}</span>
+                            </div>
                           )}
-                          <span className="text-blue-200 text-sm capitalize">
-                            Visibility: <span className="font-medium">{listing.visibility}</span>
-                          </span>
                         </div>
                       </div>
-                      <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                        <div className={`px-3 py-1 rounded-full text-sm flex items-center ${bidSubmitted
-                            ? 'bg-green-900/50 text-green-300'
-                            : 'bg-yellow-900/50 text-yellow-300'
+                      <div className="flex flex-col md:items-end gap-5">
+                        <div className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-4 border backdrop-blur-md ${bidSubmitted
+                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                           }`}>
-                          <span className={`h-2 w-2 rounded-full mr-2 ${bidSubmitted ? 'bg-green-500' : 'bg-yellow-500'
-                            }`}></span>
-                          <span>{bidSubmitted ? 'Quote Submitted' : 'Not Quoted Yet'}</span>
+                          <div className={`h-2.5 w-2.5 rounded-full ${bidSubmitted ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)]' : 'bg-yellow-500 shadow-[0_0_12px_rgba(245,158,11,0.7)]'
+                            }`} />
+                          {bidSubmitted ? 'Protocol Injection Active' : 'Uplink Pending'}
                         </div>
-                        {listing.closes_at && (
-                          <span className="text-blue-300 text-sm mt-2">
-                            Closes: {formatDate(listing.closes_at)}
-                          </span>
-                        )}
+                        <Link
+                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                          className={`w-full md:w-auto px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all text-center flex items-center justify-center gap-4 group/btn ${bidSubmitted
+                            ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
+                            : 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-glow-indigo hover:scale-105 hover:shadow-glow-primary'
+                            }`}
+                        >
+                          {bidSubmitted ? 'Analyze Uplink' : 'Initialize Transmit'}
+                          <svg className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                        </Link>
                       </div>
                     </div>
                     <div className="mt-4 flex justify-end">
@@ -235,36 +273,47 @@ const VendorDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Connected Companies */}
-        <div>
-          <h2 className="text-xl font-semibold text-white mb-4">Connected Companies</h2>
+        {/* Peer Connections */}
+        <div className="space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] px-2 border-l-2 border-emerald-500 ml-[-2px]">Verified Peer Nodes</h2>
+            <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Audit Mesh →</Link>
+          </div>
+
           {associatedCompanies.length === 0 ? (
-            <div className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-8 text-center shadow-lg shadow-blue-950/20">
-              <p className="text-blue-300">You're not connected to any companies yet.</p>
-              <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="mt-4 inline-block bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md">
-                Add Company Connection
-              </Link>
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-16 text-center shadow-premium relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+              <div className="relative z-10">
+                <p className="text-gray-500 font-bold mb-8 uppercase tracking-[0.1em]">No verified peer signatures detected.</p>
+                <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="inline-block bg-white/10 hover:bg-white/20 text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all border border-white/10">
+                  Search Protocol
+                </Link>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {associatedCompanies.slice(0, 3).map((connection) => {
                 const companyName = connection.company?.company_profile?.company_name || (connection.company as any)?.name || connection.company_share_id;
                 return (
                   <div
                     key={connection.id}
-                    className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
+                    className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 hover:bg-white/[0.08] transition-all shadow-premium group relative overflow-hidden"
                   >
-                    <div className="flex items-center mb-3">
-                      <div className="bg-blue-800/70 rounded-full h-10 w-10 flex items-center justify-center shadow-inner">
-                        <span className="text-white font-bold">{companyName?.charAt(0)?.toUpperCase()}</span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-5 mb-8">
+                        <div className="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-xl font-black text-white group-hover:scale-110 transition-all shadow-inner">
+                          {companyName?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-black text-sm tracking-tight mb-1">{companyName}</h3>
+                          <p className="text-emerald-500 text-[10px] font-black font-mono tracking-widest">{connection.company_share_id}</p>
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <h3 className="text-white font-medium">{companyName}</h3>
-                        <p className="text-blue-300 text-sm">{connection.company_share_id}</p>
+                      <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest italic">Signal Established</span>
+                        <span className="text-gray-300 text-[10px] font-bold font-mono">{new Date(connection.connected_at).toLocaleDateString()}</span>
                       </div>
-                    </div>
-                    <div className="text-blue-200 text-sm">
-                      Connected: <span className="font-medium">{new Date(connection.connected_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 );
@@ -272,9 +321,12 @@ const VendorDashboard: React.FC = () => {
               {associatedCompanies.length > 3 && (
                 <Link
                   to={ROUTES.PROTECTED.VENDOR.COMPANIES}
-                  className="bg-blue-950/40 backdrop-blur-sm border border-blue-700/30 border-dashed rounded-lg p-6 flex items-center justify-center hover:bg-blue-900/30 transition-colors shadow-lg shadow-blue-950/20"
+                  className="bg-white/5 border border-white/10 border-dashed backdrop-blur-md rounded-[32px] p-8 flex flex-col items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shadow-premium group"
                 >
-                  <span className="text-blue-300">View All Companies</span>
+                  <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-90 transition-all">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                  </div>
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] group-hover:text-white transition-colors">Expand Mesh View</span>
                 </Link>
               )}
             </div>

@@ -221,220 +221,214 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
             <h1 className="text-3xl font-bold text-white mb-2">
               {mode === 'create' ? 'Submit Quote' : 'Edit Quote'}
             </h1>
-            <p className="text-blue-300">
-              For: <span className="font-medium">{listing.title}</span>
+            <p className="text-gray-400 font-medium">
+              TARGET: <span className="text-white font-bold">{listing.title}</span>
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-900/30 border border-red-800 text-red-300 px-4 py-3 rounded-lg">
-            {error}
+          <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl backdrop-blur-md">
+            <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">{error}</p>
           </div>
         )}
 
-        {/* Listing Summary */}
-        <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Listing Details</h2>
+        {/* Listing Summary Card */}
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-10 shadow-premium relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-50" />
+          <div className="relative z-10">
+            <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mb-10 px-3 border-l-2 border-indigo-500">Source Protocol Data</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-blue-200 mb-1">Company</label>
-              <p className="text-white">{listing.company.name}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-blue-200 mb-1">Category</label>
-              <p className="text-white">{listing.category}</p>
-            </div>
-            {listing.base_price && (
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-1">Base Price</label>
-                <p className="text-white">{formatCurrency(listing.base_price)}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Client Entity</p>
+                <p className="text-white font-black uppercase text-lg">{listing.company.name}</p>
               </div>
-            )}
-            {listing.closes_at && (
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-1">Closes</label>
-                <p className="text-white">{new Date(listing.closes_at).toLocaleDateString()}</p>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Deployment Class</p>
+                <p className="text-white font-black uppercase text-lg">{listing.category}</p>
               </div>
-            )}
-          </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contract Window</p>
+                <p className="text-indigo-400 font-black uppercase text-lg">
+                  {listing.closes_at ? new Date(listing.closes_at).toLocaleDateString() : 'PERSISTENT'}
+                </p>
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-blue-200 mb-2">Description</label>
-            <div className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
-              <p className="text-blue-100">{listing.description}</p>
+            <div className="space-y-3">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Scope parameters</p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+                <p className="text-gray-300 font-medium leading-relaxed">{listing.description}</p>
+              </div>
             </div>
           </div>
-
-          {listing.requirements && listing.requirements.length > 0 && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-blue-200 mb-2">Requirements</label>
-              <ul className="list-disc list-inside space-y-1">
-                {listing.requirements.map((req, index) => (
-                  <li key={index} className="text-blue-100 text-sm">{req}</li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
-        {/* Quote Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Quote Info */}
-          <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Quote Information</h2>
+        {/* Quote Input Form */}
+        <form onSubmit={handleSubmit} className="space-y-12">
+          {/* Main Bid Parameters */}
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-10 shadow-premium relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50" />
+            <div className="relative z-10">
+              <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-10 px-3 border-l-2 border-emerald-500">Bid Logic Configuration</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-2">
-                  Delivery Time (Days) <span className="text-red-400">*</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">
+                    Fulfillment Latency (Days) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.delivery_days}
+                    onChange={(e) => handleInputChange('delivery_days', parseInt(e.target.value) || 0)}
+                    className="w-full px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all font-medium backdrop-blur-sm"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">
+                    Offer Expiration Vector
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.expires_at}
+                    onChange={(e) => handleInputChange('expires_at', e.target.value)}
+                    className="w-full px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all font-medium backdrop-blur-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-10">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">
+                  Technical Proposal Narrative <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.delivery_days}
-                  onChange={(e) => handleInputChange('delivery_days', parseInt(e.target.value) || 0)}
-                  className="w-full p-3 bg-blue-800/30 border border-blue-700/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <textarea
+                  rows={8}
+                  value={formData.proposal_details}
+                  onChange={(e) => handleInputChange('proposal_details', e.target.value)}
+                  placeholder="Detail your operational approach and capability alignment..."
+                  className="w-full px-8 py-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all font-medium backdrop-blur-sm resize-none"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-blue-200 mb-2">
-                  Quote Expires (Optional)
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">
+                  Stipulations & Constraints (Optional)
                 </label>
-                <input
-                  type="datetime-local"
-                  value={formData.expires_at}
-                  onChange={(e) => handleInputChange('expires_at', e.target.value)}
-                  className="w-full p-3 bg-blue-800/30 border border-blue-700/50 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <textarea
+                  rows={4}
+                  value={formData.terms_and_conditions}
+                  onChange={(e) => handleInputChange('terms_and_conditions', e.target.value)}
+                  placeholder="Define specific service level agreements or payment protocols..."
+                  className="w-full px-8 py-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all font-medium backdrop-blur-sm resize-none"
                 />
               </div>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-blue-200 mb-2">
-                Proposal Details <span className="text-red-400">*</span>
-              </label>
-              <textarea
-                rows={6}
-                value={formData.proposal_details}
-                onChange={(e) => handleInputChange('proposal_details', e.target.value)}
-                placeholder="Describe your proposal, approach, and how you'll fulfill the requirements..."
-                className="w-full p-3 bg-blue-800/30 border border-blue-700/50 rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-blue-200 mb-2">
-                Terms & Conditions (Optional)
-              </label>
-              <textarea
-                rows={4}
-                value={formData.terms_and_conditions}
-                onChange={(e) => handleInputChange('terms_and_conditions', e.target.value)}
-                placeholder="Any specific terms, conditions, or payment requirements..."
-                className="w-full p-3 bg-blue-800/30 border border-blue-700/50 rounded-lg text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
           </div>
 
-          {/* Line Items */}
-          <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Line Items</h2>
+          {/* Line Item Matrix */}
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-10 shadow-premium relative overflow-hidden">
+            <div className="flex justify-between items-center mb-10 pb-6 border-b border-white/5">
+              <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] px-3 border-l-2 border-indigo-500">Financial Matrix</h2>
               <button
                 type="button"
                 onClick={addLineItem}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm"
+                className="group px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-3"
               >
-                Add Item
+                <svg className="w-4 h-4 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                Inject Line Item
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {lineItems.map((item, index) => (
-                <div key={item.id} className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-3">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-blue-200 mb-1">Description</label>
+                <div key={item.id} className="bg-white/5 border border-white/10 rounded-3xl p-8 relative group/item hover:bg-white/[0.08] transition-all duration-300">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+                    <div className="lg:col-span-5 space-y-3">
+                      <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Service Component</label>
                       <input
                         type="text"
                         value={item.description}
                         onChange={(e) => handleLineItemChange(index, 'description', e.target.value)}
-                        placeholder="Item description..."
-                        className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Component identifier..."
+                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium backdrop-blur-sm"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-1">Quantity</label>
+                    <div className="lg:col-span-2 space-y-3">
+                      <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Quantity</label>
                       <input
                         type="number"
                         min="1"
-                        step="1"
                         value={item.quantity}
                         onChange={(e) => handleLineItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                        className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium backdrop-blur-sm"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-1">Unit Price</label>
+                    <div className="lg:col-span-2 space-y-3">
+                      <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Unit Valuation</label>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={item.unit_price}
                         onChange={(e) => handleLineItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium backdrop-blur-sm"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-1">Total</label>
-                      <div className="p-2 bg-blue-800/50 border border-blue-700/50 rounded text-white">
+                    <div className="lg:col-span-3 space-y-3">
+                      <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Total Vector</label>
+                      <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-emerald-500 font-black text-xl shadow-inner backdrop-blur-sm">
                         {formatCurrency(item.total_price)}
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-blue-200 mb-1">Specifications (Optional)</label>
-                    <input
-                      type="text"
-                      value={item.specifications || ''}
-                      onChange={(e) => handleLineItemChange(index, 'specifications', e.target.value)}
-                      placeholder="Additional specifications or details..."
-                      className="w-full p-2 bg-blue-800/30 border border-blue-700/50 rounded text-white placeholder-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
                   </div>
 
                   {lineItems.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeLineItem(index)}
-                      className="text-red-300 hover:text-red-100 text-sm font-medium"
+                      className="absolute -top-3 -right-3 w-10 h-10 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-glow-primary"
                     >
-                      Remove Item
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-blue-700/30">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-medium text-blue-200">Total Quote Price:</span>
-                <span className="text-2xl font-bold text-green-300">
+            <div className="mt-12 pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Aggregate Bid Valuation</p>
+                <p className="text-4xl font-black text-emerald-500 tracking-tighter shadow-glow-primary inline-block bg-white/5 px-6 py-2 rounded-2xl">
                   {formatCurrency(formData.quoted_price || 0)}
-                </span>
+                </p>
+              </div>
+
+              <div className="flex gap-6">
+                <Link
+                  to={mode === 'edit'
+                    ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
+                    : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', String(listing.id))}
+                  className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                >
+                  Abort Protocol
+                </Link>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-12 py-5 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-glow-primary hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                  {saving ? 'Transmitting...' : (mode === 'create' ? 'Transmit Protocol Bid' : 'Synchronize Modification')}
+                </button>
               </div>
             </div>
-          </div>
-
           {/* Submit Button */}
           <div className="flex justify-end gap-3">
             <Link

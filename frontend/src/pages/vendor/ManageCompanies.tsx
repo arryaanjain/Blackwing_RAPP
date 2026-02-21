@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaPlus, FaTimes, FaPaperPlane, FaHourglass, FaCheck, FaBan, FaTrashAlt } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaTimes, FaPaperPlane, FaBan, FaTrashAlt } from 'react-icons/fa';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import connectionService from '../../services/connectionService';
-import httpClient from '../../services/httpClient';
 import type { VendorCompanyConnectionRequest, VendorCompanyConnection } from '../../types/connections';
 
 const ManageCompanies: React.FC = () => {
@@ -11,7 +10,7 @@ const ManageCompanies: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<VendorCompanyConnectionRequest[]>([]);
   const [connections, setConnections] = useState<VendorCompanyConnection[]>([]);
-  
+
   // Form state
   const [shareId, setShareId] = useState('');
   const [message, setMessage] = useState('');
@@ -25,45 +24,15 @@ const ManageCompanies: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // DEBUG: Test health endpoints first
-      console.log('🔍 DEBUGGING: Testing health endpoints...');
-      
-      try {
-        const healthResponse = await httpClient.healthCheck();
-        console.log('✅ Health check (no auth):', healthResponse.data);
-      } catch (error) {
-        console.error('❌ Health check failed:', error);
-      }
-
-      try {
-        const authHealthResponse = await httpClient.authHealthCheck();
-        console.log('✅ Auth health check:', authHealthResponse.data);
-      } catch (error) {
-        console.error('❌ Auth health check failed:', error);
-      }
-
-      try {
-        const debugResponse = await httpClient.debugConnection();
-        console.log('🔍 Connection debug check:', debugResponse.data);
-      } catch (error) {
-        console.error('❌ Connection debug failed:', error);
-      }
-
-      // Now try the actual connection service calls
-      console.log('🔍 DEBUGGING: Testing connection service calls...');
-      
       const [requestsResponse, connectionsResponse] = await Promise.all([
         connectionService.getVendorRequests(),
         connectionService.getConnections()
       ]);
-      
-      console.log('✅ Connection requests response:', requestsResponse);
-      console.log('✅ Connections response:', connectionsResponse);
-      
+
       setRequests(requestsResponse.requests || []);
       setConnections(connectionsResponse.connections || []);
     } catch (error) {
-      console.error('❌ Failed to load data:', error);
+      console.error('Failed to synchronize mesh data:', error);
     } finally {
       setLoading(false);
     }
@@ -79,61 +48,30 @@ const ManageCompanies: React.FC = () => {
         company_share_id: shareId.trim(),
         message: message.trim() || undefined
       });
-      
+
       // Reset form and close modal
       setShareId('');
       setMessage('');
       setShowRequestForm(false);
-      
+
       // Reload data to show new request
       await loadData();
     } catch (error: any) {
-      console.error('Failed to send request:', error);
-      alert(error.response?.data?.message || 'Failed to send connection request');
+      console.error('Protocol transmission failure:', error);
+      alert(error.response?.data?.message || 'Failed to initialize connection request');
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleCancelRequest = async (requestId: number) => {
-    if (!confirm('Are you sure you want to cancel this request?')) return;
+    if (!confirm('Are you sure you want to terminate this pending transmission?')) return;
 
     try {
       await connectionService.cancelRequest(requestId);
       await loadData(); // Reload data
     } catch (error: any) {
-      console.error('Failed to cancel request:', error);
-      alert(error.response?.data?.message || 'Failed to cancel request');
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <FaHourglass className="text-yellow-400" />;
-      case 'approved':
-        return <FaCheck className="text-green-400" />;
-      case 'denied':
-        return <FaBan className="text-red-400" />;
-      case 'cancelled':
-        return <FaTimes className="text-gray-400" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-700 text-yellow-100';
-      case 'approved':
-        return 'bg-green-700 text-green-100';
-      case 'denied':
-        return 'bg-red-700 text-red-100';
-      case 'cancelled':
-        return 'bg-gray-700 text-gray-100';
-      default:
-        return 'bg-blue-700 text-blue-100';
+      console.error('Termination failure:', error);
     }
   };
 
@@ -151,179 +89,220 @@ const ManageCompanies: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto bg-blue-900/40 rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Manage Company Connections</h1>
-        
-        {/* Search and Add Button */}
-        <div className="flex items-center mb-6">
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search companies, share IDs..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full py-2 pl-10 pr-4 rounded-lg bg-blue-800 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <FaSearch className="absolute left-3 top-2.5 text-blue-300" />
+      <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 pb-12 border-b border-white/5">
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black text-white tracking-tight uppercase leading-tight">
+              Network <span className="text-emerald-500">Topology</span>
+            </h1>
+            <p className="text-gray-400 font-medium whitespace-nowrap">Manage verified peer nodes and procurement uplinks</p>
           </div>
-          <button 
-            onClick={() => setShowRequestForm(true)}
-            className="ml-4 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium flex items-center gap-2 shadow hover:from-blue-600 hover:to-indigo-700 transition-all"
-          >
-            <FaPlus /> Send Request
-          </button>
+
+          <div className="flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto">
+            <div className="relative w-full md:w-80 group">
+              <input
+                type="text"
+                placeholder="Search Registry..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full py-4 pl-12 pr-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium backdrop-blur-sm"
+              />
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-indigo-500 transition-colors" />
+            </div>
+            <button
+              onClick={() => setShowRequestForm(true)}
+              className="w-full md:w-auto px-10 py-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-glow-indigo hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
+            >
+              <FaPlus className="text-[8px]" /> Initialize Uplink
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto"></div>
-            <p className="text-blue-300 mt-4">Loading...</p>
+          <div className="flex flex-col items-center justify-center py-32 space-y-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 shadow-glow-primary"></div>
+            <p className="text-[10px] font-black text-emerald-500/60 uppercase tracking-[0.4em] animate-pulse">Syncing Mesh Network...</p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {/* Active Connections */}
-            {filteredConnections.length > 0 && (
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4">Active Connections</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-green-800/60">
-                        <th className="px-4 py-3 text-green-200">Company</th>
-                        <th className="px-4 py-3 text-green-200">Share ID</th>
-                        <th className="px-4 py-3 text-green-200">Connected Since</th>
-                        <th className="px-4 py-3 text-green-200">Last Accessed</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredConnections.map(connection => (
-                        <tr key={connection.id} className="border-b border-green-800 hover:bg-green-800/30 transition-all">
-                          <td className="px-4 py-3 text-white">
-                            {connection.company?.company_profile?.company_name || 'Unknown Company'}
-                          </td>
-                          <td className="px-4 py-3 text-green-200 font-mono">{connection.company_share_id}</td>
-                          <td className="px-4 py-3 text-green-200">
-                            {new Date(connection.connected_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3 text-green-200">
-                            {connection.last_accessed_at 
-                              ? new Date(connection.last_accessed_at).toLocaleDateString()
-                              : 'Never'
-                            }
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+          <div className="space-y-16">
+            {/* Active Peers Matrix */}
+            <div className="space-y-8">
+              <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] px-3 border-l-2 border-emerald-500 ml-1">Verified Peer Matrix</h2>
 
-            {/* Connection Requests */}
-            <div>
-              <h2 className="text-xl font-bold text-white mb-4">Connection Requests</h2>
-              {filteredRequests.length === 0 ? (
-                <div className="text-center py-8 text-blue-400">
-                  No connection requests found. Send a request to connect with a company.
+              {filteredConnections.length === 0 ? (
+                <div className="bg-white/2 border border-white/5 rounded-[32px] p-20 text-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/2 to-transparent opacity-50" />
+                  <div className="relative z-10 opacity-30">
+                    <FaBan className="text-5xl mx-auto mb-6 text-gray-500" />
+                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No Active Peer Nodes Detected</p>
+                  </div>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-blue-800/60">
-                        <th className="px-4 py-3 text-blue-200">Company</th>
-                        <th className="px-4 py-3 text-blue-200">Share ID</th>
-                        <th className="px-4 py-3 text-blue-200">Status</th>
-                        <th className="px-4 py-3 text-blue-200">Sent Date</th>
-                        <th className="px-4 py-3 text-blue-200">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRequests.map(request => (
-                        <tr key={request.id} className="border-b border-blue-800 hover:bg-blue-800/30 transition-all">
-                          <td className="px-4 py-3 text-white">
-                            {request.company?.company_profile?.company_name || request.company_share_id}
-                          </td>
-                          <td className="px-4 py-3 text-blue-200 font-mono">{request.company_share_id}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 w-fit ${getStatusColor(request.status)}`}>
-                              {getStatusIcon(request.status)}
-                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-blue-200">
-                            {new Date(request.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            {request.status === 'pending' && (
-                              <button
-                                onClick={() => handleCancelRequest(request.id)}
-                                className="text-red-400 hover:text-red-600 transition-colors"
-                                title="Cancel Request"
-                              >
-                                <FaTrashAlt />
-                              </button>
-                            )}
-                          </td>
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] overflow-hidden shadow-premium relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50" />
+                  <div className="overflow-x-auto relative z-10">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/5">
+                          <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Entity Signal</th>
+                          <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Mesh Identifier</th>
+                          <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Established</th>
+                          <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Last Auth</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-white/2">
+                        {filteredConnections.map(connection => (
+                          <tr key={connection.id} className="group hover:bg-white/[0.03] transition-colors">
+                            <td className="px-8 py-6">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-black text-xs shadow-inner">
+                                  {connection.company?.company_profile?.company_name?.[0] || 'U'}
+                                </div>
+                                <span className="text-white font-bold uppercase text-xs tracking-wider">
+                                  {connection.company?.company_profile?.company_name || 'Restricted Profile'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6 text-gray-400 font-black font-mono text-[10px] uppercase tracking-tighter">
+                              {connection.company_share_id}
+                            </td>
+                            <td className="px-8 py-6 text-gray-500 font-bold text-[10px] uppercase">
+                              {new Date(connection.connected_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-8 py-6">
+                              <span className="text-gray-600 font-bold text-[10px] uppercase">{connection.last_accessed_at ? new Date(connection.last_accessed_at).toLocaleDateString() : 'Initial Sync Only'}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Transmission Log (Requests) */}
+            <div className="space-y-8">
+              <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] px-3 border-l-2 border-indigo-500 ml-1">Outbound Uplink Log</h2>
+
+              {filteredRequests.length === 0 ? (
+                <div className="bg-white/2 border border-white/5 rounded-[32px] p-24 text-center opacity-40">
+                  <FaPaperPlane className="text-4xl mx-auto mb-6 text-gray-600" />
+                  <p className="text-gray-600 font-bold uppercase tracking-widest text-sm">No Uplink Transmissions Active</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredRequests.map(request => (
+                    <div key={request.id} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[32px] p-8 shadow-premium relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-50" />
+                      <div className="relative z-10 space-y-6">
+                        <div className="flex justify-between items-start">
+                          <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 ${request.status === 'pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                            request.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
+                              'bg-red-500/10 border-red-500/20 text-red-500'
+                            }`}>
+                            <div className={`h-1.5 w-1.5 rounded-full ${request.status === 'pending' ? 'bg-amber-500 shadow-glow-amber scale-110' :
+                              request.status === 'approved' ? 'bg-emerald-500 shadow-glow-primary' : 'bg-red-500'
+                              }`} />
+                            {request.status}
+                          </div>
+                          {request.status === 'pending' && (
+                            <button
+                              onClick={() => handleCancelRequest(request.id)}
+                              className="p-2 text-gray-600 hover:text-red-500 transition-colors"
+                              title="Terminate Uplink"
+                            >
+                              <FaTrashAlt className="text-xs" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Target Mesh</p>
+                          <h4 className="text-white font-black uppercase text-sm tracking-widest leading-tight">
+                            {request.company?.company_profile?.company_name || 'PENDING_RESOLVE'}
+                          </h4>
+                          <p className="text-indigo-400 font-mono text-[9px] font-bold tracking-tighter opacity-60">ID://{request.company_share_id}</p>
+                        </div>
+
+                        <div className="pt-6 border-t border-white/5 flex justify-between items-center">
+                          <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Protocol Date</span>
+                          <span className="text-gray-400 font-bold text-[10px]">{new Date(request.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Request Form Modal */}
+        {/* Modal Protocol Uplink */}
         {showRequestForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-blue-900 rounded-xl p-6 w-full max-w-md">
-              <h3 className="text-xl font-bold text-white mb-4">Send Connection Request</h3>
-              <form onSubmit={handleSendRequest}>
-                <div className="mb-4">
-                  <label className="block text-blue-200 mb-2">Company Share ID *</label>
-                  <input
-                    type="text"
-                    value={shareId}
-                    onChange={e => setShareId(e.target.value)}
-                    placeholder="Enter company share ID..."
-                    className="w-full py-2 px-3 rounded-lg bg-blue-800 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl flex items-center justify-center z-[100] p-6 animate-in fade-in duration-300">
+            <div className="bg-slate-900 border border-white/10 rounded-[40px] p-10 w-full max-w-xl shadow-2xl relative overflow-hidden ring-1 ring-white/5">
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+              <button
+                onClick={() => setShowRequestForm(false)}
+                className="absolute top-8 right-8 text-gray-500 hover:text-white transition-colors"
+              >
+                <FaTimes />
+              </button>
+
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tight">Sync New <span className="text-indigo-500">Peer Node</span></h3>
+                  <p className="text-gray-500 font-medium text-sm">Initialize a secure procurement link via shared registry hash.</p>
                 </div>
-                <div className="mb-6">
-                  <label className="block text-blue-200 mb-2">Message (Optional)</label>
-                  <textarea
-                    value={message}
-                    onChange={e => setMessage(e.target.value)}
-                    placeholder="Add a personal message..."
-                    rows={3}
-                    className="w-full py-2 px-3 rounded-lg bg-blue-800 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={formLoading || !shareId.trim()}
-                    className="flex-1 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {formLoading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <FaPaperPlane />
-                    )}
-                    Send Request
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowRequestForm(false)}
-                    className="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+
+                <form onSubmit={handleSendRequest} className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Registry Hash (Share ID) *</label>
+                    <input
+                      type="text"
+                      value={shareId}
+                      onChange={e => setShareId(e.target.value)}
+                      placeholder="ENTER_REGISTRY_HASH"
+                      className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-black font-mono tracking-tighter"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Protocol Message (Optional)</label>
+                    <textarea
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      placeholder="Identify your node or purpose..."
+                      rows={4}
+                      className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-medium leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="submit"
+                      disabled={formLoading || !shareId.trim()}
+                      className="flex-1 py-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-glow-indigo hover:scale-[1.02] disabled:opacity-50 active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      {formLoading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <FaPaperPlane className="text-[8px]" />
+                      )}
+                      Authorize Uplink
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowRequestForm(false)}
+                      className="px-10 py-5 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-white/10 transition-all"
+                    >
+                      Abort
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
