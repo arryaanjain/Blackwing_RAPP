@@ -104,7 +104,7 @@ const VendorProfileSetup: React.FC<VendorProfileSetupProps> = () => {
       navigate('/', {
         replace: true,
         state: {
-          message: isEditing ? 'Profile updated successfully! Please login again.' : 'Vendor profile created successfully! Please login again to access your dashboard.',
+          message: isEditing ? 'Profile updated successfully!' : 'Vendor profile created successfully! Initializing your terminal...',
           type: 'success',
           shouldLogout: true  // Flag to trigger logout on landing page
         }

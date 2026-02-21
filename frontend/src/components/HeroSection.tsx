@@ -37,7 +37,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-              Mainnet Protocol v4.0
+              Testnet Protocol v4.0
             </span>
           </div>
 

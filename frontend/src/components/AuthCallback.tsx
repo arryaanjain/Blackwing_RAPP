@@ -21,21 +21,21 @@ import authService from '../services/authService';
  * - This component decodes tokens and shows profile selection
  */
 
-interface AuthCallbackProps {}
+interface AuthCallbackProps { }
 
 const AuthCallback: React.FC<AuthCallbackProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { 
-    handleOAuthCallback, 
-    user, 
+  const {
+    handleOAuthCallback,
+    user,
     isAuthenticated,
     loading: authLoading,
     checkCompanyProfile,
     checkVendorProfile,
     fetchFreshUserData
   } = useAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProfileSelection, setShowProfileSelection] = useState(false);
@@ -48,22 +48,22 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
     const searchParams = new URLSearchParams(location.search);
     const encodedTokens = searchParams.get('tokens');
     const error = searchParams.get('error');
-    
+
     if (error) {
       throw new Error(decodeURIComponent(error));
     }
-    
+
     return encodedTokens;
   };
 
   // Handle creating a new profile
   const handleCreateProfile = (type: 'company' | 'vendor') => {
     console.log('Creating profile type:', type);
-    
+
     // Set the intended profile type in localStorage
     localStorage.setItem('intended_profile_type', type);
     console.log('Set intended_profile_type in localStorage:', type);
-    
+
     if (type === 'company') {
       console.log('Navigating to:', ROUTES.PROTECTED.COMPANY.COMPLETE_PROFILE);
       navigate(ROUTES.PROTECTED.COMPANY.COMPLETE_PROFILE);
@@ -73,10 +73,10 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
     }
   };
 
-    // Handle continuing with existing profile
+  // Handle continuing with existing profile
   const handleContinueAsProfile = async (type: 'company' | 'vendor') => {
     console.log('Continuing as profile type:', type);
-    
+
     try {
       // First verify the profile exists
       if (type === 'company') {
@@ -92,47 +92,47 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
           return;
         }
       }
-      
+
       // Use the new API to update the database
       console.log('Calling authService.switchProfile to update database...');
       await authService.switchProfile(type);
       console.log('Successfully updated current_profile_type in database');
-      
+
       // Store the intended profile type for consistency
       localStorage.setItem('intended_profile_type', type);
       console.log('Set intended_profile_type in localStorage:', type);
-      
+
       // Trigger AuthContext to reload user data and pick up the new current_profile
       console.log('Calling fetchFreshUserData to update user data...');
       await fetchFreshUserData();
       console.log('fetchFreshUserData completed');
-      
+
       // Wait for the user state to actually update with the new profile type
       const waitForProfileUpdate = async () => {
         let attempts = 0;
         const maxAttempts = 10;
-        
+
         while (attempts < maxAttempts) {
           console.log(`Checking if profile updated... attempt ${attempts + 1}`);
-          
+
           // Give a small delay for state to propagate
           await new Promise(resolve => setTimeout(resolve, 200));
-          
+
           // Check if the user's current_profile_type has been updated
           if (user && user.current_profile_type === type) {
             console.log('Profile type successfully updated in user state:', user.current_profile_type);
             return true;
           }
-          
+
           attempts++;
         }
-        
+
         console.warn('Profile type not updated in user state after max attempts');
         return false;
       };
-      
+
       await waitForProfileUpdate();
-      
+
       // Navigate to dashboard after confirming state is updated
       if (type === 'company') {
         console.log('Navigating to company dashboard...');
@@ -141,7 +141,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
         console.log('Navigating to vendor dashboard...');
         navigate(ROUTES.PROTECTED.VENDOR.DASHBOARD);
       }
-      
+
     } catch (error) {
       console.error('Error in handleContinueAsProfile:', error);
       setError('Failed to continue. Please try again.');
@@ -154,25 +154,25 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
       const checkExistingProfiles = async () => {
         try {
           console.log('Checking existing profiles...');
-          
+
           // Check both profiles to show appropriate buttons
           const [companyResult, vendorResult] = await Promise.all([
             checkCompanyProfile(),
             checkVendorProfile()
           ]);
-          
+
           setHasCompanyProfile(companyResult.has_company_profile);
           setHasVendorProfile(vendorResult.has_vendor_profile);
-          
-          console.log('Profile check results:', { 
-            company: companyResult.has_company_profile, 
-            vendor: vendorResult.has_vendor_profile 
+
+          console.log('Profile check results:', {
+            company: companyResult.has_company_profile,
+            vendor: vendorResult.has_vendor_profile
           });
         } catch (error) {
           console.error('Error checking existing profiles:', error);
         }
       };
-      
+
       checkExistingProfiles();
     }
   }, [showProfileSelection, user, isAuthenticated, authLoading, hasCompanyProfile, hasVendorProfile]);
@@ -222,8 +222,8 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
 
           // This is direct navigation - check auth state
           if (!isAuthenticated) {
-            console.log('❌ Not authenticated, redirecting to login');
-            navigate(ROUTES.PUBLIC.LOGIN);
+            console.log('❌ Not authenticated, redirecting to onboarding');
+            navigate(ROUTES.PUBLIC.ONBOARDING);
             return;
           }
 
@@ -277,7 +277,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
           <h2 className="text-xl font-semibold text-white mb-2">Authentication Failed</h2>
           <p className="text-blue-200 mb-4">{error}</p>
           <button
-            onClick={() => navigate(ROUTES.PUBLIC.LOGIN)}
+            onClick={() => navigate(ROUTES.PUBLIC.ONBOARDING)}
             className="bg-white hover:bg-gray-50 text-gray-900 px-6 py-2 rounded-lg transition-all duration-200"
           >
             Try Again
@@ -296,7 +296,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Choose Your Profile</h2>
             <p className="text-xl text-blue-200">Select how you'd like to continue with RAPP</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {/* Company Profile Card */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl">
@@ -308,7 +308,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Company</h3>
                 <p className="text-blue-200 mb-6">
-                  {hasCompanyProfile 
+                  {hasCompanyProfile
                     ? "Continue with your existing company profile and manage procurement needs."
                     : "Create your company profile to start managing procurement needs and connect with vendors."
                   }
@@ -347,7 +347,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">Vendor</h3>
                 <p className="text-blue-200 mb-6">
-                  {hasVendorProfile 
+                  {hasVendorProfile
                     ? "Continue with your existing vendor profile and access exclusive auctions."
                     : "Create your vendor profile to access exclusive auctions and connect with companies."
                   }
@@ -387,7 +387,7 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
                   </svg>
                 </div>
                 <h4 className="text-lg font-semibold text-white mb-2">Secure</h4>
-                <p className="text-blue-300 text-sm">Your data is protected with enterprise-grade security</p>
+                <p className="text-blue-300 text-sm">Your data is protected with Company-grade security</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">

@@ -27,7 +27,7 @@ const HowItWorksSection: React.FC = () => {
     {
       number: '01',
       title: 'Create Account',
-      description: 'Sign up as a company or vendor. Our automated onboarding validates your business credentials instantly.'
+      description: 'Join the network as a company or vendor. Our automated onboarding validates your business credentials instantly.'
     },
     {
       number: '02',
