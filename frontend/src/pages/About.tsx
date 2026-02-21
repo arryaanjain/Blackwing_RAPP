@@ -3,73 +3,63 @@ import BasePage from '../components/BasePage';
 
 const About: React.FC = () => {
   return (
-    <BasePage 
-      title="About RAPP" 
+    <BasePage
+      title="About RAPP"
       subtitle="Revolutionizing procurement through blockchain innovation"
     >
-      <div className="space-y-16">
+      <div className="space-y-24">
         {/* Mission Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <h2 className="text-3xl font-bold text-white mb-6">Our Mission</h2>
-            <p className="text-blue-200 mb-6 text-lg">
-              At RAPP, we're transforming the procurement landscape by leveraging blockchain technology 
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-8 tracking-tighter uppercase leading-[0.9]">
+              Our <span className="text-indigo-500">Mission</span>
+            </h2>
+            <p className="text-gray-400 mb-8 text-lg font-medium leading-relaxed">
+              At RAPP, we're transforming the procurement landscape by leveraging blockchain technology
               to create transparent, efficient, and secure procurement processes for businesses worldwide.
             </p>
-            <p className="text-blue-200 mb-6">
-              Our platform eliminates traditional procurement pain points including lack of transparency, 
+            <p className="text-gray-400 mb-10 text-lg font-medium leading-relaxed">
+              Our platform eliminates traditional procurement pain points including lack of transparency,
               manual processes, and trust issues between buyers and suppliers.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">500+</div>
-                <div className="text-blue-200 text-sm">Companies</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">2000+</div>
-                <div className="text-blue-200 text-sm">Vendors</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">$50M+</div>
-                <div className="text-blue-200 text-sm">Processed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">99.9%</div>
-                <div className="text-blue-200 text-sm">Uptime</div>
-              </div>
+            <div className="grid grid-cols-2 gap-8">
+              {[
+                { label: "Companies", value: "500+" },
+                { label: "Vendors", value: "2000+" },
+                { label: "Processed", value: "$50M+" },
+                { label: "Uptime", value: "99.9%" }
+              ].map((stat, i) => (
+                <div key={i} className="glass-premium rounded-2xl p-6 text-center border-white/5 bg-white/[0.02]">
+                  <div className="text-3xl font-black text-white tracking-tighter mb-1">{stat.value}</div>
+                  <div className="text-indigo-500 text-[10px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-8">
-            <h3 className="text-xl font-semibold text-white mb-4">Our Vision</h3>
-            <p className="text-blue-100 mb-6">
-              To become the global standard for blockchain-powered procurement, 
-              enabling businesses of all sizes to access fair, transparent, and efficient 
-              procurement processes.
-            </p>
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-1 mr-3 mt-1">
-                  <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-blue-100 text-sm">Democratize access to procurement opportunities</span>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-1 mr-3 mt-1">
-                  <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-blue-100 text-sm">Reduce procurement costs globally</span>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-1 mr-3 mt-1">
-                  <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-blue-100 text-sm">Establish trust through transparency</span>
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[32px] blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+            <div className="relative glass-premium bg-gradient-to-br from-indigo-600 to-purple-800 rounded-[32px] p-12 border-0 shadow-2xl">
+              <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Our Vision</h3>
+              <p className="text-white/80 mb-10 text-lg font-medium leading-relaxed">
+                To become the global standard for blockchain-powered procurement,
+                enabling businesses of all sizes to access fair, transparent, and efficient
+                procurement processes.
+              </p>
+              <div className="space-y-5">
+                {[
+                  "Democratize access to opportunities",
+                  "Reduce procurement costs globally",
+                  "Establish trust through transparency"
+                ].map((text, i) => (
+                  <div key={i} className="flex items-center group/item">
+                    <div className="bg-white/20 rounded-full p-1.5 mr-4 group-hover/item:bg-white group-hover/item:text-indigo-600 transition-all">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-white/90 font-bold uppercase tracking-widest text-[10px]">{text}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -77,83 +67,49 @@ const About: React.FC = () => {
 
         {/* Values Section */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-12">Our Core Values</h2>
+          <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase">Core <span className="text-indigo-500">Values</span></h2>
+          <div className="h-1 w-20 bg-indigo-500 mx-auto rounded-full opacity-50 mb-16"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+            {[
+              { title: "Transparency", desc: "Every transaction is visible and verifiable on the blockchain, ensuring complete transparency in all processes.", icon: "M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
+              { title: "Innovation", desc: "We continuously push the boundaries of what's possible in procurement technology, staying ahead of trends.", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+              { title: "Community", desc: "We believe in building a strong community of buyers and suppliers who support each other's success.", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857" }
+            ].map((v, i) => (
+              <div key={i} className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-white/5 group">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-700 w-16 h-16 rounded-2xl mx-auto mb-8 flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-500">
+                  <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={v.icon} />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-black text-white mb-4 tracking-tight uppercase">{v.title}</h3>
+                <p className="text-gray-500 font-medium leading-relaxed">{v.desc}</p>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Transparency</h3>
-              <p className="text-blue-200">Every transaction is visible and verifiable on the blockchain, ensuring complete transparency in all procurement processes.</p>
-            </div>
-
-            <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Innovation</h3>
-              <p className="text-blue-200">We continuously push the boundaries of what's possible in procurement technology, staying ahead of industry trends.</p>
-            </div>
-
-            <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Community</h3>
-              <p className="text-blue-200">We believe in building a strong community of buyers and suppliers who support each other's success.</p>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Timeline Section */}
-        <div>
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">Our Journey</h2>
-          <div className="space-y-8">
-            <div className="flex items-start">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full p-3 mr-6">
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-              </div>
-              <div className="flex-1 bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-white">Founded</h3>
-                  <span className="text-blue-200 text-sm">2023</span>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase text-center">Our <span className="text-indigo-500">Evolution</span></h2>
+          <div className="h-1 w-20 bg-indigo-500 mx-auto rounded-full opacity-50 mb-20"></div>
+          <div className="space-y-12">
+            {[
+              { year: "2023", title: "Protocol Founded", desc: "RAPP was founded with the vision to revolutionize procurement using decentralized architecture." },
+              { year: "2024", title: "Mainnet Beta Launch", desc: "Launched our MVP with core features including reverse auctions and integrated smart contracts." },
+              { year: "2025", title: "Global Expansion", desc: "Expanded to serve companies and vendors across multiple industrial sectors and global territories." }
+            ].map((entry, i) => (
+              <div key={i} className="flex group items-center">
+                <div className="text-center mr-12 hidden md:block">
+                  <div className="text-2xl font-black text-indigo-500 tracking-tighter">{entry.year}</div>
+                  <div className="h-1 w-8 bg-indigo-500/20 mx-auto mt-2"></div>
                 </div>
-                <p className="text-blue-200">RAPP was founded with the vision to revolutionize procurement using blockchain technology.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full p-3 mr-6">
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-              </div>
-              <div className="flex-1 bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-white">Platform Launch</h3>
-                  <span className="text-blue-200 text-sm">2024</span>
+                <div className="flex-1 glass-premium rounded-3xl p-8 hover-lift border-white/5 relative">
+                  <div className="absolute left-0 top-1/2 -translate-x-1/2 md:-translate-x-[72px] w-4 h-4 rounded-full bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)] group-hover:scale-150 transition-all"></div>
+                  <h3 className="text-xl font-black text-white mb-3 tracking-tight uppercase">{entry.title}</h3>
+                  <p className="text-gray-500 font-medium leading-relaxed">{entry.desc}</p>
                 </div>
-                <p className="text-blue-200">Launched our MVP with core features including reverse auctions and smart contracts.</p>
               </div>
-            </div>
-
-            <div className="flex items-start">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full p-3 mr-6">
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-              </div>
-              <div className="flex-1 bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-white">Global Expansion</h3>
-                  <span className="text-blue-200 text-sm">2025</span>
-                </div>
-                <p className="text-blue-200">Expanded to serve companies and vendors across multiple countries and industries.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
