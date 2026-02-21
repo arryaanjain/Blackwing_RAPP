@@ -50,9 +50,9 @@ export const ROUTES = {
       LISTINGS: '/company/listings',
       CREATE_LISTING: '/company/listings/create',
       LISTINGS_CREATE: '/company/listings/create', // Alias for compatibility
-      LISTINGS_DETAIL: '/company/listings/:id',
-      LISTINGS_EDIT: '/company/listings/:id/edit',
-      LISTINGS_QUOTES: '/company/listings/:id/quotes',
+      LISTINGS_DETAIL: '/company/listings/:listingId',
+      LISTINGS_EDIT: '/company/listings/:listingId/edit',
+      LISTINGS_QUOTES: '/company/listings/:listingId/quotes',
     },
 
     // Vendor specific routes
@@ -69,11 +69,11 @@ export const ROUTES = {
       LISTINGS: '/vendor/listings',
       MY_LISTINGS: '/vendor/my-listings',
       SEARCH_LISTINGS: '/vendor/search-listings',
-      LISTINGS_DETAIL: '/vendor/listings/:id',
+      LISTINGS_DETAIL: '/vendor/listings/:listingId',
       QUOTES: '/vendor/quotes',
       QUOTES_DETAIL: '/vendor/quotes/:quoteId',
-      QUOTES_CREATE: '/vendor/listings/:id/quote',
-      QUOTES_EDIT: '/vendor/quotes/:id/edit',
+      QUOTES_CREATE: '/vendor/listings/:listingId/quote',
+      QUOTES_EDIT: '/vendor/quotes/:quoteId/edit',
     },
   },
 };
