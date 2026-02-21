@@ -3,82 +3,17 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../config/routes';
-
-// Mock data for demo purposes - replace with actual contract calls
-const MOCK_LISTINGS = [
-  {
-    id: 1,
-    companyId: 'COMP-1234',
-    companyName: 'Tech Solutions Inc.',
-    title: 'Industrial Supplies Procurement',
-    description: 'Looking for bulk industrial cleaning supplies with eco-friendly certification.',
-    quantity: 500,
-    maxPrice: 25000,
-    isPublic: true,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'active',
-    bidSubmitted: false
-  },
-  {
-    id: 2,
-    companyId: 'COMP-5678',
-    companyName: 'Global Manufacturing',
-    title: 'Office Furniture',
-    description: 'Need ergonomic office chairs for our new headquarters.',
-    quantity: 50,
-    maxPrice: 15000,
-    isPublic: false,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'active',
-    bidSubmitted: true
-  },
-  {
-    id: 3,
-    companyId: 'COMP-9012',
-    companyName: 'Innovative Corp',
-    title: 'IT Hardware',
-    description: 'Seeking laptops and monitors for remote team.',
-    quantity: 25,
-    maxPrice: 50000,
-    isPublic: true,
-    deadline: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'closed',
-    bidSubmitted: true
-  }
-];
-
-const MOCK_COMPANIES = [
-  {
-    id: 'COMP-1234',
-    name: 'Tech Solutions Inc.',
-    status: 'approved',
-    activeListings: 2
-  },
-  {
-    id: 'COMP-5678',
-    name: 'Global Manufacturing',
-    status: 'approved',
-    activeListings: 1
-  },
-  {
-    id: 'COMP-9012',
-    name: 'Innovative Corp',
-    status: 'approved',
-    activeListings: 0
-  },
-  {
-    id: 'COMP-3456',
-    name: 'Future Industries',
-    status: 'pending',
-    activeListings: 0
-  }
-];
+import listingService from '../../services/listingService';
+import connectionService from '../../services/connectionService';
+import type { Listing } from '../../types/listings';
+import type { VendorCompanyConnection } from '../../types/connections';
 
 const VendorDashboard: React.FC = () => {
-  const { currentProfile } = useAuth();
+  const { user, currentProfile } = useAuth();
   const vendorProfile = currentProfile?.type === 'vendor' ? currentProfile : null;
-  const [availableListings, setAvailableListings] = useState<any[]>([]);
-  const [associatedCompanies, setAssociatedCompanies] = useState<any[]>([]);
+  const [availableListings, setAvailableListings] = useState<Listing[]>([]);
+  const [associatedCompanies, setAssociatedCompanies] = useState<VendorCompanyConnection[]>([]);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalListings: 0,
     activeBids: 0,
@@ -86,23 +21,29 @@ const VendorDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    // In a real app, you'd fetch this data from the blockchain
-    // For now, we're using mock data
     const fetchDashboardData = async () => {
       try {
-        // Mock data loading
-        setAvailableListings(MOCK_LISTINGS.filter(listing => listing.status === 'active'));
-        setAssociatedCompanies(MOCK_COMPANIES.filter(company => company.status === 'approved'));
-        
-        const submittedBids = MOCK_LISTINGS.filter(listing => listing.bidSubmitted).length;
-        
+        setLoading(true);
+        const [listingsRes, quotesRes, connectionsRes] = await Promise.all([
+          listingService.getListings({ status: 'active' }, 1),
+          listingService.getQuotes({ status: 'submitted' }, 1),
+          connectionService.getConnections()
+        ]);
+
+        const listings: Listing[] = listingsRes.data.data;
+        const connections: VendorCompanyConnection[] = connectionsRes.connections || [];
+
+        setAvailableListings(listings);
+        setAssociatedCompanies(connections);
         setStats({
-          totalListings: MOCK_LISTINGS.filter(listing => listing.status === 'active').length,
-          activeBids: submittedBids,
-          totalCompanies: MOCK_COMPANIES.filter(company => company.status === 'approved').length
+          totalListings: listingsRes.data.total,
+          activeBids: quotesRes.data.total,
+          totalCompanies: connections.length
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -206,7 +147,11 @@ const VendorDashboard: React.FC = () => {
         {/* Available Listings */}
         <div>
           <h2 className="text-xl font-semibold text-white mb-4">Available Listings</h2>
-          {availableListings.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : availableListings.length === 0 ? (
             <div className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-8 text-center shadow-lg shadow-blue-950/20">
               <p className="text-blue-300">No available listings at the moment.</p>
               <Link to={ROUTES.PROTECTED.VENDOR.COMPANIES} className="mt-4 inline-block bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md">
@@ -215,75 +160,80 @@ const VendorDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {availableListings.map((listing) => (
-                <div 
-                  key={listing.id} 
-                  className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-white">{listing.title}</h3>
-                      <p className="text-blue-300 text-sm mt-1">
-                        From <span className="font-medium">{listing.companyName}</span> ({listing.companyId})
-                      </p>
-                      <p className="text-blue-300 mt-1 truncate max-w-lg">{listing.description}</p>
-                      <div className="mt-2 flex items-center space-x-4">
-                        <span className="text-blue-200 text-sm">
-                          Quantity: <span className="font-medium">{listing.quantity}</span>
-                        </span>
-                        <span className="text-blue-200 text-sm">
-                          Max Price: <span className="font-medium">${listing.maxPrice}</span>
-                        </span>
-                        <span className="text-blue-200 text-sm">
-                          Visibility: <span className="font-medium">{listing.isPublic ? 'Public' : 'Private'}</span>
-                        </span>
+              {availableListings.map((listing) => {
+                const bidSubmitted = listing.quotes?.some((q: { vendor_user_id: number }) => q.vendor_user_id === user?.id) ?? false;
+                return (
+                  <div
+                    key={listing.id}
+                    className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <h3 className="text-lg font-medium text-white">{listing.title}</h3>
+                        <p className="text-blue-300 text-sm mt-1">
+                          From <span className="font-medium">{listing.company?.name}</span>
+                          {listing.company?.share_id && <span> ({listing.company.share_id})</span>}
+                        </p>
+                        <p className="text-blue-300 mt-1 truncate max-w-lg">{listing.description}</p>
+                        <div className="mt-2 flex items-center space-x-4">
+                          {listing.base_price != null && (
+                            <span className="text-blue-200 text-sm">
+                              Base Price: <span className="font-medium">${listing.base_price.toLocaleString()}</span>
+                            </span>
+                          )}
+                          <span className="text-blue-200 text-sm capitalize">
+                            Visibility: <span className="font-medium">{listing.visibility}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 md:mt-0 flex flex-col md:items-end">
+                        <div className={`px-3 py-1 rounded-full text-sm flex items-center ${
+                          bidSubmitted
+                            ? 'bg-green-900/50 text-green-300'
+                            : 'bg-yellow-900/50 text-yellow-300'
+                        }`}>
+                          <span className={`h-2 w-2 rounded-full mr-2 ${
+                            bidSubmitted ? 'bg-green-500' : 'bg-yellow-500'
+                          }`}></span>
+                          <span>{bidSubmitted ? 'Quote Submitted' : 'Not Quoted Yet'}</span>
+                        </div>
+                        {listing.closes_at && (
+                          <span className="text-blue-300 text-sm mt-2">
+                            Closes: {formatDate(listing.closes_at)}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                      <div className={`px-3 py-1 rounded-full text-sm flex items-center ${
-                        listing.bidSubmitted 
-                          ? 'bg-green-900/50 text-green-300' 
-                          : 'bg-yellow-900/50 text-yellow-300'
-                      }`}>
-                        <span className={`h-2 w-2 rounded-full mr-2 ${
-                          listing.bidSubmitted ? 'bg-green-500' : 'bg-yellow-500'
-                        }`}></span>
-                        <span>{listing.bidSubmitted ? 'Bid Submitted' : 'Not Bid Yet'}</span>
-                      </div>
-                      <span className="text-blue-300 text-sm mt-2">
-                        Ends: {formatDate(listing.deadline)}
-                      </span>
+                    <div className="mt-4 flex justify-end">
+                      <Link
+                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                        className={`${
+                          bidSubmitted
+                            ? 'bg-blue-700 hover:bg-blue-600'
+                            : 'bg-green-700 hover:bg-green-600'
+                        } text-white px-4 py-2 rounded-md shadow-md shadow-blue-950/20 transition-colors flex items-center text-sm font-medium`}
+                      >
+                        {bidSubmitted ? (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View Listing
+                          </>
+                        ) : (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Submit Quote
+                          </>
+                        )}
+                      </Link>
                     </div>
                   </div>
-                  <div className="mt-4 flex justify-end">
-                    <Link 
-                      to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())} 
-                      className={`${
-                        listing.bidSubmitted 
-                          ? 'bg-blue-700 hover:bg-blue-600' 
-                          : 'bg-green-700 hover:bg-green-600'
-                      } text-white px-4 py-2 rounded-md shadow-md shadow-blue-950/20 transition-colors flex items-center text-sm font-medium`}
-                    >
-                      {listing.bidSubmitted ? (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          View Your Bid
-                        </>
-                      ) : (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          Submit Bid
-                        </>
-                      )}
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -300,28 +250,31 @@ const VendorDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {associatedCompanies.slice(0, 3).map((company) => (
-                <div 
-                  key={company.id} 
-                  className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
-                >
-                  <div className="flex items-center mb-3">
-                    <div className="bg-blue-800/70 rounded-full h-10 w-10 flex items-center justify-center shadow-inner">
-                      <span className="text-white font-bold">{company.name.charAt(0)}</span>
+              {associatedCompanies.slice(0, 3).map((connection) => {
+                const companyName = connection.company?.company_profile?.company_name || (connection.company as any)?.name || connection.company_share_id;
+                return (
+                  <div
+                    key={connection.id}
+                    className="bg-blue-950/60 backdrop-blur-sm border border-blue-700/40 rounded-lg p-6 hover:bg-blue-900/40 transition-colors shadow-lg shadow-blue-950/20"
+                  >
+                    <div className="flex items-center mb-3">
+                      <div className="bg-blue-800/70 rounded-full h-10 w-10 flex items-center justify-center shadow-inner">
+                        <span className="text-white font-bold">{companyName?.charAt(0)?.toUpperCase()}</span>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-white font-medium">{companyName}</h3>
+                        <p className="text-blue-300 text-sm">{connection.company_share_id}</p>
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <h3 className="text-white font-medium">{company.name}</h3>
-                      <p className="text-blue-300 text-sm">{company.id}</p>
+                    <div className="text-blue-200 text-sm">
+                      Connected: <span className="font-medium">{new Date(connection.connected_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <div className="text-blue-200 text-sm">
-                    Active Listings: <span className="font-medium">{company.activeListings}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {associatedCompanies.length > 3 && (
-                <Link 
-                  to={ROUTES.PROTECTED.VENDOR.COMPANIES} 
+                <Link
+                  to={ROUTES.PROTECTED.VENDOR.COMPANIES}
                   className="bg-blue-950/40 backdrop-blur-sm border border-blue-700/30 border-dashed rounded-lg p-6 flex items-center justify-center hover:bg-blue-900/30 transition-colors shadow-lg shadow-blue-950/20"
                 >
                   <span className="text-blue-300">View All Companies</span>
