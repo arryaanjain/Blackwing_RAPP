@@ -13,12 +13,10 @@ return new class extends Migration
     {
         Schema::table('listings', function (Blueprint $table) {
             // Drop foreign keys and indices first
-            try { $table->dropForeign(['company_user_id']); } catch (\Throwable $e) {}
-            try { $table->dropIndex(['company_user_id', 'status']); } catch (\Throwable $e) {}
-            try { $table->dropIndex(['visibility', 'status', 'deadline']); } catch (\Throwable $e) {}
-            try { $table->dropIndex(['category', 'status']); } catch (\Throwable $e) {}
-            // Drop unique index on blockchain_id if present
-            try { $table->dropUnique('listings_blockchain_id_unique'); } catch (\Throwable $e) {}
+            $table->dropForeign(['company_user_id']);
+            $table->dropIndex(['company_user_id', 'status']);
+            $table->dropIndex(['visibility', 'status', 'deadline']);
+            $table->dropIndex(['category', 'status']);
         });
         
         Schema::table('listings', function (Blueprint $table) {

@@ -63,13 +63,10 @@ Route::prefix('profiles')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ProfileController::class, 'getAvailableProfiles']);
     Route::get('/current', [ProfileController::class, 'getCurrentProfile']);
     Route::post('/switch', [ProfileController::class, 'switchProfile']);
-
+    
     // Profile existence checks
     Route::get('/check/company', [ProfileController::class, 'checkCompanyProfile']);
     Route::get('/check/vendor', [ProfileController::class, 'checkVendorProfile']);
-
-    // GST Verification endpoint
-    Route::post('/verify-gst', [ProfileController::class, 'verifyGst']);
     
     // Company profile management
     Route::prefix('company')->group(function () {

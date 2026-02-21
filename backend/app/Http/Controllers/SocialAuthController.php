@@ -33,7 +33,7 @@ class SocialAuthController extends Controller
         try {
             // Get the Google user data
             $googleUser = Socialite::driver('google')->stateless()->user();
-            
+
             // Create or update user using the enhanced method with sub_id extraction
             $user = User::createOrUpdateFromGoogle([
                 'id' => $googleUser->id,
@@ -73,9 +73,9 @@ class SocialAuthController extends Controller
             // Encode the response data and redirect to frontend
             $encodedTokens = base64_encode(json_encode($responseData));
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-            
+
             return redirect($frontendUrl . '/auth/callback?tokens=' . $encodedTokens);
-            
+
         } catch (\Exception $e) {
             \Log::error('OAuth callback error: ' . $e->getMessage());
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
@@ -105,7 +105,7 @@ class SocialAuthController extends Controller
             // Verify Google token (you might want to add proper Google token verification here)
             // For now, we'll assume the token is valid and extract user info
             $googleUserInfo = $this->verifyGoogleToken($request->google_token);
-            
+
             if (!$googleUserInfo) {
                 return response()->json([
                     'message' => 'Invalid Google token'
@@ -121,7 +121,7 @@ class SocialAuthController extends Controller
                 ['*'],
                 now()->addMinutes(config('sanctum.access_token_expiration', 15))
             );
-            
+
             $refreshToken = $user->createRefreshToken($request->device_name ?? 'SPA Application');
 
             return response()->json([
@@ -156,13 +156,13 @@ class SocialAuthController extends Controller
         try {
             // This is a simplified version. In production, use:
             // https://developers.google.com/identity/sign-in/web/backend-auth
-            
+
             // For now, we'll decode if it's a JWT token
             if (str_contains($token, '.')) {
                 $parts = explode('.', $token);
                 if (count($parts) === 3) {
                     $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
-                    
+
                     // Basic validation
                     if (isset($payload['sub'], $payload['email'], $payload['name'])) {
                         return [
@@ -173,7 +173,7 @@ class SocialAuthController extends Controller
                     }
                 }
             }
-            
+
             return null;
         } catch (\Exception $e) {
             \Log::error('Google token verification failed', [
@@ -205,7 +205,7 @@ class SocialAuthController extends Controller
     public function unlinkProvider(Request $request, string $provider): JsonResponse
     {
         $user = $request->user();
-        
+
         if ($provider === 'google') {
             // Only allow unlinking if user has a password set
             if (!$user->hasPassword()) {
@@ -213,17 +213,17 @@ class SocialAuthController extends Controller
                     'message' => 'Cannot unlink Google account without setting a password first.'
                 ], 400);
             }
-            
+
             $user->update([
                 'google_id' => null,
                 'google_sub_id' => null,
             ]);
-            
+
             return response()->json([
                 'message' => 'Google account unlinked successfully'
             ]);
         }
-        
+
         return response()->json([
             'message' => 'Invalid provider'
         ], 400);

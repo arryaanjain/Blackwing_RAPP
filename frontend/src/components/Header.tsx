@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Button from './ui/Button';
+import Container from './ui/Container';
 
 interface NavLink {
   name: string;
@@ -11,32 +14,23 @@ const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Function to scroll to join platform section
   const scrollToJoinPlatform = () => {
-    // If we're not on the home page, navigate there first
     if (location.pathname !== '/') {
       navigate('/');
-      // Wait for navigation to complete, then scroll
       setTimeout(() => {
         const element = document.getElementById('join-platform');
         if (element) {
-          element.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 100);
     } else {
-      // If we're already on home page, just scroll
       const element = document.getElementById('join-platform');
       if (element) {
-        element.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
-        });
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };
@@ -69,218 +63,165 @@ const Header: React.FC = () => {
         { name: 'Blog', href: '/blog' },
         { name: 'Guides', href: '/guides' }
       ]
-    },
-    {
-      name: 'Legal',
-      subLinks: [
-        { name: 'Privacy Policy', href: '/privacy' },
-        { name: 'Terms of Service', href: '/terms' },
-        { name: 'Security', href: '/security' },
-        { name: 'Compliance', href: '/compliance' }
-      ]
     }
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [scrolled]);
-
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-blue-900/90 backdrop-blur-md shadow-md'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <span className="text-white text-xl font-bold">RAPP</span>
-            </Link>
-          </div>
-          
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+    <header className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 bg-[#05070a]/60 backdrop-blur-2xl border-b border-white/[0.03]' : 'py-6 bg-transparent'}`}>
+      <Container>
+        <div className="flex justify-between items-center">
+          <Link to="/" className="flex items-center group">
+            <motion.div
+              whileHover={{ rotate: 90 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              {...({ className: "w-9 h-9 bg-white text-black rounded-lg flex items-center justify-center mr-3 shadow-premium" } as any)}
+            >
+              <span className="font-black text-lg">R</span>
+            </motion.div>
+            <span className="text-white text-xl font-bold tracking-tighter uppercase transition-colors">Rapp</span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <div
                 key={link.name}
                 className="relative"
-                onMouseEnter={() => link.subLinks && setActiveDropdown(link.name)}
-                onMouseLeave={() => setActiveDropdown(null)}
+                onMouseEnter={() => {
+                  link.subLinks && setActiveDropdown(link.name);
+                  setHoveredNavItem(link.name);
+                }}
+                onMouseLeave={() => {
+                  setActiveDropdown(null);
+                  setHoveredNavItem(null);
+                }}
               >
                 {link.href ? (
-                  <Link
-                    to={link.href}
-                    className={`text-sm font-medium transition-colors ${
-                      isActive(link.href)
-                        ? 'text-white'
-                        : 'text-blue-200 hover:text-white'
-                    }`}
-                  >
+                  <Link to={link.href} className="px-4 py-2 text-[13px] font-semibold text-gray-400 hover:text-white transition-colors relative group">
                     {link.name}
+                    {isActive(link.href) && (
+                      <motion.div
+                        layoutId="nav-underline"
+                        {...({ className: "absolute bottom-0 left-4 right-4 h-px bg-white/40" } as any)}
+                      />
+                    )}
+                    {hoveredNavItem === link.name && !isActive(link.href) && (
+                      <motion.div
+                        layoutId="nav-hover-bg"
+                        {...({ className: "absolute inset-0 bg-white/[0.03] rounded-lg -z-10" } as any)}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
                   </Link>
                 ) : (
-                  <button
-                    className="text-sm font-medium text-blue-200 hover:text-white transition-colors flex items-center"
-                  >
+                  <button className={`px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-300 flex items-center gap-1.5 relative ${activeDropdown === link.name ? 'text-white' : 'text-gray-400 hover:text-white'}`}>
                     {link.name}
-                    <svg className="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                    {hoveredNavItem === link.name && (
+                      <motion.div
+                        layoutId="nav-hover-bg"
+                        {...({ className: "absolute inset-0 bg-white/[0.03] rounded-lg -z-10" } as any)}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <motion.svg
+                      animate={{ rotate: activeDropdown === link.name ? 180 : 0 }}
+                      {...({ className: "h-3 w-3 opacity-30" } as any)}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
                   </button>
                 )}
-                
-                {/* Dropdown Menu */}
-                {link.subLinks && activeDropdown === link.name && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-blue-900/95 backdrop-blur-md rounded-md shadow-lg py-2 z-50 border border-blue-700/50">
-                    {link.subLinks.map((subLink) => (
-                      <Link
-                        key={subLink.name}
-                        to={subLink.href}
-                        className="block px-4 py-2 text-sm text-blue-200 hover:bg-blue-800/50 hover:text-white transition-colors"
-                      >
-                        {subLink.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+
+                <AnimatePresence>
+                  {link.subLinks && activeDropdown === link.name && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.99 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                      {...({ className: "absolute top-full left-1/2 -translate-x-1/2 mt-1 w-60 glass-premium rounded-xl p-1.5 z-50 shadow-premium" } as any)}
+                    >
+                      {link.subLinks.map((subLink) => (
+                        <Link
+                          key={subLink.name}
+                          to={subLink.href}
+                          className="flex items-center px-3 py-2.5 text-[13px] text-gray-400 hover:text-white hover:bg-white/[0.03] rounded-lg transition-all relative group"
+                        >
+                          <motion.div
+                            initial={{ height: 0 }}
+                            whileHover={{ height: 12 }}
+                            {...({ className: "absolute left-0 w-0.5 bg-white/20 rounded-full" } as any)}
+                          />
+                          {subLink.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </nav>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={scrollToJoinPlatform}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 
-              text-white font-medium shadow-sm hover:from-blue-600 hover:to-indigo-700 
-              transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none 
-              focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-blue-900"
-            >
+
+          <div className="hidden md:flex items-center gap-8">
+            <Link to="/login" className="text-[11px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-[0.15em] relative group">
+              Log in
+              <motion.span
+                layoutId="login-underline"
+                {...({ className: "absolute -bottom-1 left-0 w-0 h-px bg-white/20 transition-all group-hover:w-full" } as any)}
+              />
+            </Link>
+            <Button onClick={scrollToJoinPlatform} variant="primary" size="sm" className="uppercase tracking-widest text-[9px] font-black py-2.5 px-6 rounded-lg bg-white text-black hover:bg-gray-100 shadow-none border-0">
               Get Started
-            </button>
+            </Button>
           </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-blue-200 
-              hover:text-white hover:bg-blue-800 focus:outline-none focus:ring-2 
-              focus:ring-inset focus:ring-white"
-            >
-              <span className="sr-only">
-                {mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              </span>
-              {mobileMenuOpen ? (
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              )}
+
+          <div className="md:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-gray-400 hover:text-white transition-colors">
+              {mobileMenuOpen ? <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> : <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>}
             </button>
           </div>
         </div>
-      </div>
-      
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-blue-900/95 backdrop-blur-md border-t border-blue-800">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navLinks.map((link) => (
-              <div key={link.name}>
-                {link.href ? (
-                  <Link
-                    to={link.href}
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
-                      isActive(link.href)
-                        ? 'text-white bg-blue-800'
-                        : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
-                ) : (
-                  <>
-                    <div className="block px-3 py-2 text-base font-medium text-blue-200">
-                      {link.name}
+      </Container>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            {...({ className: "md:hidden glass border-t border-white/5 overflow-hidden" } as any)}
+          >
+            <div className="p-6 space-y-6">
+              {navLinks.map((link) => (
+                <div key={link.name}>
+                  {link.href ? (
+                    <Link to={link.href} className="text-xl font-bold text-white block" onClick={() => setMobileMenuOpen(false)}>{link.name}</Link>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">{link.name}</div>
+                      {link.subLinks?.map((subLink) => (
+                        <Link key={subLink.name} to={subLink.href} className="block text-gray-400 text-lg font-medium" onClick={() => setMobileMenuOpen(false)}>{subLink.name}</Link>
+                      ))}
                     </div>
-                    {link.subLinks && (
-                      <div className="ml-4 space-y-1">
-                        {link.subLinks.map((subLink) => (
-                          <Link
-                            key={subLink.name}
-                            to={subLink.href}
-                            className="block px-3 py-2 rounded-md text-sm font-medium text-blue-300 hover:bg-blue-800 hover:text-white"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            {subLink.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
+                  )}
+                </div>
+              ))}
+              <div className="pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
+                <Link to="/login" className="flex items-center justify-center py-4 text-white font-bold uppercase text-xs tracking-widest bg-white/5 rounded-2xl" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
+                <Button onClick={() => { scrollToJoinPlatform(); setMobileMenuOpen(false); }} className="w-full uppercase text-xs tracking-widest font-black py-4">Get Started</Button>
               </div>
-            ))}
-            <div className="pt-4 pb-2 border-t border-blue-800">
-              <button
-                onClick={() => {
-                  scrollToJoinPlatform();
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full px-3 py-2 rounded-md text-base font-medium text-white 
-                bg-gradient-to-r from-blue-500 to-indigo-600"
-              >
-                Get Started
-              </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

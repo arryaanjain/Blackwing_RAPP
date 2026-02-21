@@ -41,10 +41,4 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
     ],
 
-    'gst' => [
-        'enabled' => env('GST_VERIFICATION_ENABLED', false),
-        'api_url' => env('GST_API_URL', 'https://sheet.gstincheck.co.in/check'),
-        'api_key' => env('GST_API_KEY'),
-    ],
-
 ];
