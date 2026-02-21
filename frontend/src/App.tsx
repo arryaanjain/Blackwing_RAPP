@@ -42,6 +42,20 @@ import VendorQuoteDetail from './pages/vendor/VendorQuoteDetail';
 import VendorCreateQuote from './pages/vendor/VendorCreateQuote';
 import VendorEditQuote from './pages/vendor/VendorEditQuote';
 
+// Public pages
+import About from './pages/About';
+import Features from './pages/Features';
+import Solutions from './pages/Solutions';
+import Pricing from './pages/Pricing';
+import Demo from './pages/Demo';
+import Team from './pages/Team';
+import Careers from './pages/Careers';
+import News from './pages/News';
+import Documentation from './pages/Documentation';
+import KnowledgeBase from './pages/KnowledgeBase';
+import Blog from './pages/Blog';
+import Guides from './pages/Guides';
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -99,6 +113,20 @@ const App: React.FC = () => {
 
           {/* Authentication Callback */}
           <Route path={ROUTES.AUTH.CALLBACK} element={<AuthCallback />} />
+
+          {/* New Public Pages */}
+          <Route path={ROUTES.PUBLIC.ABOUT} element={<PublicRoute><About /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.FEATURES} element={<PublicRoute><Features /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.SOLUTIONS} element={<PublicRoute><Solutions /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.PRICING} element={<PublicRoute><Pricing /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.DEMO} element={<PublicRoute><Demo /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.TEAM} element={<PublicRoute><Team /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.CAREERS} element={<PublicRoute><Careers /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.NEWS} element={<PublicRoute><News /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.DOCS} element={<PublicRoute><Documentation /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.KNOWLEDGE_BASE} element={<PublicRoute><KnowledgeBase /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.BLOG} element={<PublicRoute><Blog /></PublicRoute>} />
+          <Route path={ROUTES.PUBLIC.GUIDES} element={<PublicRoute><Guides /></PublicRoute>} />
 
           {/* Company Protected Routes */}
           <Route path={ROUTES.PROTECTED.COMPANY.DASHBOARD} element={

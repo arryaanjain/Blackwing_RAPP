@@ -16,6 +16,17 @@ export const ROUTES = {
     CONTACT: '/contact',
     PRIVACY: '/privacy',
     TERMS: '/terms',
+    FEATURES: '/features',
+    SOLUTIONS: '/solutions',
+    PRICING: '/pricing',
+    DEMO: '/demo',
+    TEAM: '/team',
+    CAREERS: '/careers',
+    NEWS: '/news',
+    DOCS: '/docs',
+    KNOWLEDGE_BASE: '/knowledge-base',
+    BLOG: '/blog',
+    GUIDES: '/guides',
   },
 
   // Authentication related routes
@@ -32,7 +43,7 @@ export const ROUTES = {
     PROFILE: '/profile',
     SETTINGS: '/settings',
     COMPLETE_PROFILE: '/complete-profile',
-    
+
     // Company specific routes
     COMPANY: {
       DASHBOARD: '/company/dashboard',
