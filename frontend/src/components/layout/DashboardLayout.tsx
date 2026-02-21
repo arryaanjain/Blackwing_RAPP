@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../config/routes';
@@ -11,7 +11,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, currentProfile } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  /* Removed unused mobile menu state as it's not being used in this desktop-focused layout */
 
   // Custom logout handler that redirects to home
   const handleLogout = async () => {
@@ -30,11 +30,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const name = currentProfile?.name || currentProfile?.company_name || currentProfile?.vendor_name || 'User';
   const shareId = currentProfile?.share_id || null;
 
-  const isActive = (path: string) => {
-    return location.pathname === path
-      ? 'bg-blue-700 text-white'
-      : 'text-blue-300 hover:bg-blue-700/50 hover:text-white';
-  };
+  /* Removed unused isActive */
 
   const navItems = userType === 'company'
     ? [
@@ -113,7 +109,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <div className="h-0 flex-1 flex flex-col pt-10 pb-4 overflow-y-auto">
               <div className="px-6 mb-12">
                 <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-3">
-                  {userType === 'company' ? 'Enterprise Console' : 'Vendor Terminal'}
+                  {userType === 'company' ? 'Company Console' : 'Vendor Terminal'}
                 </div>
                 <div className="text-2xl font-black text-white uppercase tracking-tighter truncate">
                   {name}
@@ -125,8 +121,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     key={item.name}
                     to={item.path}
                     className={`${location.pathname === item.path
-                        ? 'bg-white/5 text-white border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.02)]'
-                        : 'text-gray-500 hover:bg-white/[0.02] hover:text-gray-300 border-transparent'
+                      ? 'bg-white/5 text-white border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.02)]'
+                      : 'text-gray-500 hover:bg-white/[0.02] hover:text-gray-300 border-transparent'
                       } group flex items-center px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl border transition-all`}
                   >
                     {item.name}

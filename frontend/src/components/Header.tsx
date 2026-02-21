@@ -1,82 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ROUTES } from '../config/routes';
-import Button from './ui/Button';
 import Container from './ui/Container';
+import Button from './ui/Button';
+import { ROUTES } from '../config/routes';
 
 interface NavLink {
   name: string;
   href?: string;
-  subLinks?: { name: string; href: string }[];
+  subLinks?: { name: string; href: string; }[];
 }
 
 const Header: React.FC = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null);
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const scrollToJoinPlatform = () => {
-    if (location.pathname !== '/') {
-      navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById('join-platform');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    } else {
-      const element = document.getElementById('join-platform');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks: NavLink[] = [
-    { name: 'Home', href: '/' },
     {
       name: 'Platform',
       subLinks: [
         { name: 'Features', href: ROUTES.PUBLIC.FEATURES },
         { name: 'Solutions', href: ROUTES.PUBLIC.SOLUTIONS },
         { name: 'Pricing', href: ROUTES.PUBLIC.PRICING },
-        { name: 'Demo', href: ROUTES.PUBLIC.DEMO }
-      ]
-    },
-    {
-      name: 'Company',
-      subLinks: [
-        { name: 'About', href: ROUTES.PUBLIC.ABOUT },
-        { name: 'Team', href: ROUTES.PUBLIC.TEAM },
-        { name: 'Careers', href: ROUTES.PUBLIC.CAREERS },
-        { name: 'News', href: ROUTES.PUBLIC.NEWS }
+        { name: 'Demo', href: ROUTES.PUBLIC.DEMO },
       ]
     },
     {
       name: 'Resources',
       subLinks: [
+        { name: 'Guides', href: ROUTES.PUBLIC.GUIDES },
         { name: 'Documentation', href: ROUTES.PUBLIC.DOCS },
         { name: 'Knowledge Base', href: ROUTES.PUBLIC.KNOWLEDGE_BASE },
-        { name: 'Blog', href: ROUTES.PUBLIC.BLOG },
-        { name: 'Guides', href: ROUTES.PUBLIC.GUIDES }
+        { name: 'News & Updates', href: ROUTES.PUBLIC.NEWS },
+      ]
+    },
+    {
+      name: 'Company',
+      subLinks: [
+        { name: 'About Us', href: ROUTES.PUBLIC.ABOUT },
+        { name: 'Our Team', href: ROUTES.PUBLIC.TEAM },
+        { name: 'Careers', href: ROUTES.PUBLIC.CAREERS },
+        { name: 'Contact', href: ROUTES.PUBLIC.CONTACT },
       ]
     }
   ];
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 bg-[#05070a]/60 backdrop-blur-2xl border-b border-white/[0.03]' : 'py-6 bg-transparent'}`}>
+    <header className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 bg-[#05070a]/80 backdrop-blur-3xl border-b border-white/[0.03]' : 'py-6 bg-transparent'}`}>
       <Container>
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center group">
@@ -107,13 +90,13 @@ const Header: React.FC = () => {
                 {link.href ? (
                   <Link to={link.href} className="px-4 py-2 text-[13px] font-semibold text-gray-400 hover:text-white transition-colors relative group">
                     {link.name}
-                    {isActive(link.href) && (
+                    {isActive(link.href!) && (
                       <motion.div
                         layoutId="nav-underline"
                         {...({ className: "absolute bottom-0 left-4 right-4 h-px bg-white/40" } as any)}
                       />
                     )}
-                    {hoveredNavItem === link.name && !isActive(link.href) && (
+                    {hoveredNavItem === link.name && !isActive(link.href!) && (
                       <motion.div
                         layoutId="nav-hover-bg"
                         {...({ className: "absolute inset-0 bg-white/[0.03] rounded-lg -z-10" } as any)}
@@ -148,7 +131,7 @@ const Header: React.FC = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 6, scale: 0.98 }}
                       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                      {...({ className: "absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] glass-premium rounded-xl p-2 z-[60] shadow-2xl border border-white/10 backdrop-blur-3xl" } as any)}
+                      {...({ className: "absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] glass-premium rounded-xl p-2 z-[60] shadow-2xl border border-white/10 backdrop-blur-3xl overflow-hidden" } as any)}
                     >
                       {link.subLinks.map((subLink) => (
                         <Link
@@ -172,17 +155,12 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-8">
-            <Link to="/login" className="text-[11px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-[0.15em] relative group">
-              Log in
-              <motion.span
-                layoutId="login-underline"
-                {...({ className: "absolute -bottom-1 left-0 w-0 h-px bg-white/20 transition-all group-hover:w-full" } as any)}
-              />
+          <div className="hidden md:flex items-center gap-4">
+            <Link to={ROUTES.PUBLIC.ONBOARDING}>
+              <Button variant="primary" size="sm" className="uppercase tracking-widest text-[9px] font-black py-2.5 px-6 rounded-lg bg-white text-black hover:bg-gray-100 shadow-none border-0">
+                Get Started
+              </Button>
             </Link>
-            <Button onClick={scrollToJoinPlatform} variant="primary" size="sm" className="uppercase tracking-widest text-[9px] font-black py-2.5 px-6 rounded-lg bg-white text-black hover:bg-gray-100 shadow-none border-0">
-              Get Started
-            </Button>
           </div>
 
           <div className="md:hidden">
@@ -205,7 +183,7 @@ const Header: React.FC = () => {
               {navLinks.map((link) => (
                 <div key={link.name}>
                   {link.href ? (
-                    <Link to={link.href} className="text-xl font-bold text-white block" onClick={() => setMobileMenuOpen(false)}>{link.name}</Link>
+                    <Link to={link.href!} className="text-xl font-bold text-white block" onClick={() => setMobileMenuOpen(false)}>{link.name}</Link>
                   ) : (
                     <div className="space-y-4">
                       <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">{link.name}</div>
@@ -216,9 +194,10 @@ const Header: React.FC = () => {
                   )}
                 </div>
               ))}
-              <div className="pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
-                <Link to="/login" className="flex items-center justify-center py-4 text-white font-bold uppercase text-xs tracking-widest bg-white/5 rounded-2xl" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
-                <Button onClick={() => { scrollToJoinPlatform(); setMobileMenuOpen(false); }} className="w-full uppercase text-xs tracking-widest font-black py-4">Get Started</Button>
+              <div className="pt-6 border-t border-white/5">
+                <Link to={ROUTES.PUBLIC.ONBOARDING} onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full uppercase text-xs tracking-widest font-black py-4">Get Started</Button>
+                </Link>
               </div>
             </div>
           </motion.div>

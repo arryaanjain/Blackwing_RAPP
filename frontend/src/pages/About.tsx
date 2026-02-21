@@ -20,7 +20,7 @@ const About: React.FC = () => {
             </p>
             <p className="text-gray-400 mb-10 text-lg font-medium leading-relaxed">
               Our platform eliminates traditional procurement pain points including lack of transparency,
-              manual processes, and trust issues between buyers and suppliers.
+              manual processes, and trust issues between buyers and Vendors.
             </p>
             <div className="grid grid-cols-2 gap-8">
               {[
@@ -73,7 +73,7 @@ const About: React.FC = () => {
             {[
               { title: "Transparency", desc: "Every transaction is visible and verifiable on the blockchain, ensuring complete transparency in all processes.", icon: "M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
               { title: "Innovation", desc: "We continuously push the boundaries of what's possible in procurement technology, staying ahead of trends.", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-              { title: "Community", desc: "We believe in building a strong community of buyers and suppliers who support each other's success.", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857" }
+              { title: "Community", desc: "We believe in building a strong community of buyers and Vendors who support each other's success.", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857" }
             ].map((v, i) => (
               <div key={i} className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500 border-white/5 group">
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-700 w-16 h-16 rounded-2xl mx-auto mb-8 flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-500">
@@ -95,7 +95,7 @@ const About: React.FC = () => {
           <div className="space-y-12">
             {[
               { year: "2023", title: "Protocol Founded", desc: "RAPP was founded with the vision to revolutionize procurement using decentralized architecture." },
-              { year: "2024", title: "Mainnet Beta Launch", desc: "Launched our MVP with core features including reverse auctions and integrated smart contracts." },
+              { year: "2024", title: "Testnet Beta Launch", desc: "Launched our MVP with core features including reverse auctions and integrated smart contracts." },
               { year: "2025", title: "Global Expansion", desc: "Expanded to serve companies and vendors across multiple industrial sectors and global territories." }
             ].map((entry, i) => (
               <div key={i} className="flex group items-center">

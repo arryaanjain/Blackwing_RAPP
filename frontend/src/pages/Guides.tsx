@@ -1,13 +1,39 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import BasePage from '../components/BasePage';
+import { ROUTES } from '../config/routes';
 
 const Guides: React.FC = () => {
   const guides = [
-    { title: "Setting up your Company profile", time: "5 min", level: "Beginner", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
-    { title: "Onboarding as a verified Vendor", time: "8 min", level: "Beginner", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-    { title: "Managing reverse auction listings", time: "12 min", level: "Intermediate", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-    { title: "Smart Contract security best practices", time: "20 min", level: "Advanced", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" }
+    {
+      title: "Setting up your Company profile",
+      time: "5 min",
+      level: "Beginner",
+      href: ROUTES.PUBLIC.GUIDE_COMPANY_SETUP,
+      icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+    },
+    {
+      title: "Onboarding as a verified Vendor",
+      time: "8 min",
+      level: "Beginner",
+      href: ROUTES.PUBLIC.GUIDE_VENDOR_ONBOARDING,
+      icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    },
+    {
+      title: "Managing Listing",
+      time: "12 min",
+      level: "Intermediate",
+      href: ROUTES.PUBLIC.GUIDE_MANAGING_LISTING,
+      icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    },
+    {
+      title: "Smart Contract security best practices",
+      time: "20 min",
+      level: "Advanced",
+      href: ROUTES.PUBLIC.GUIDE_SECURITY_BEST_PRACTICES,
+      icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+    }
   ];
 
   return (
@@ -37,9 +63,11 @@ const Guides: React.FC = () => {
                   <span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">{guide.level}</span>
                 </div>
                 <h3 className="text-2xl font-black text-white mb-6 uppercase tracking-tight group-hover:text-indigo-400 transition-colors leading-tight">{guide.title}</h3>
-                <button className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                  Start Guide
-                </button>
+                <Link to={guide.href}>
+                  <button className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                    Start Guide
+                  </button>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -53,12 +81,11 @@ const Guides: React.FC = () => {
             Want to contribute to the protocol? Review our architect guides for recursive ZK implementors and node operators.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
-            <button className="px-10 py-4 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all">
-              Developer Docs
-            </button>
-            <button className="px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-              Node Setup
-            </button>
+            <Link to={ROUTES.PUBLIC.DOCS}>
+              <button className="px-10 py-4 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all">
+                Developer Docs
+              </button>
+            </Link>
           </div>
         </div>
       </div>

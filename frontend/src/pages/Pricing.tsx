@@ -1,4 +1,4 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import BasePage from '../components/BasePage';
 
 const Pricing: React.FC = () => {
@@ -34,9 +34,11 @@ const Pricing: React.FC = () => {
             ))}
           </ul>
 
-          <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
-            Initalize Plan
-          </button>
+          <Link to="/onboarding">
+            <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
+              Initalize Plan
+            </button>
+          </Link>
         </div>
 
         {/* Professional Plan */}
@@ -74,16 +76,18 @@ const Pricing: React.FC = () => {
               ))}
             </ul>
 
-            <button className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300">
-              Get Started Now
-            </button>
+            <Link to="/onboarding">
+              <button className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300">
+                Get Started Now
+              </button>
+            </Link>
           </div>
         </div>
 
-        {/* Enterprise Plan */}
+        {/* Company Plan */}
         <div className="glass-premium rounded-3xl p-10 hover-lift transition-all duration-500">
           <div className="text-center mb-10">
-            <h3 className="text-xl font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Enterprise</h3>
+            <h3 className="text-xl font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Company</h3>
             <div className="text-6xl font-black text-white mb-4 tracking-tighter">
               Custom
             </div>
@@ -107,9 +111,11 @@ const Pricing: React.FC = () => {
             ))}
           </ul>
 
-          <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
-            Connect with Sales
-          </button>
+          <Link to="/onboarding">
+            <button className="w-full py-5 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300">
+              Connect with Sales
+            </button>
+          </Link>
         </div>
       </div>
     </BasePage>

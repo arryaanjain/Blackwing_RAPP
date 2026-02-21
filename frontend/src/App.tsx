@@ -1,49 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
-import AuthCallback from './components/AuthCallback';
-import CompanyProfileSetup from './components/profile/CompanyProfileSetup';
-import VendorProfileSetup from './components/profile/VendorProfileSetup';
-import { ROUTES } from './config/routes';
-import './App.css';
-
-// Import existing page components
+import Header from './components/Header';
+import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
-import CompanyLogin from './pages/CompanyLogin';
-import VendorLogin from './pages/VendorLogin';
-import CompanySignup from './pages/CompanySignup';
-import VendorSignup from './pages/VendorSignup';
-
-// Dashboard components
-import CompanyDashboard from './pages/company/CompanyDashboard';
-import VendorDashboard from './pages/vendor/VendorDashboard';
-
-// Management components
-import ManageVendors from './pages/company/ManageVendors';
-import ManageCompanies from './pages/vendor/ManageCompanies';
-
-// Profile components
-import CompanyProfile from './pages/company/CompanyProfile';
-import VendorProfile from './pages/vendor/VendorProfile';
-
-// Company Listings and Quotes components
-import CompanyListingsManager from './pages/company/CompanyListingsManager';
-import CompanyListingDetail from './pages/company/CompanyListingDetail';
-import CompanyCreateListing from './pages/company/CompanyCreateListing';
-import CompanyEditListing from './pages/company/CompanyEditListing';
-
-// Vendor Listings and Quotes components
-import VendorListingsBrowser from './pages/vendor/VendorListingsBrowser';
-import VendorListingDetail from './pages/vendor/VendorListingDetail';
-import VendorQuotesManager from './pages/vendor/VendorQuotesManager';
-import VendorQuoteDetail from './pages/vendor/VendorQuoteDetail';
-import VendorCreateQuote from './pages/vendor/VendorCreateQuote';
-import VendorEditQuote from './pages/vendor/VendorEditQuote';
-
-// Public pages
 import About from './pages/About';
+// import Contact from './pages/Contact'; // Temporarily disabled until file is located
+const Contact = () => <div>Contact Page Coming Soon</div>;
 import Features from './pages/Features';
 import Solutions from './pages/Solutions';
 import Pricing from './pages/Pricing';
@@ -51,273 +13,146 @@ import Demo from './pages/Demo';
 import Team from './pages/Team';
 import Careers from './pages/Careers';
 import News from './pages/News';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import Documentation from './pages/Documentation';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Blog from './pages/Blog';
 import Guides from './pages/Guides';
+import CompanyProfileSetupGuide from './pages/guides/CompanyProfileSetupGuide';
+import VendorOnboardingGuide from './pages/guides/VendorOnboardingGuide';
+import ManagingListingGuide from './pages/guides/ManagingListingGuide';
+import SecurityBestPracticesGuide from './pages/guides/SecurityBestPracticesGuide';
+
+import ScrollToTop from './components/ScrollToTop';
+import Onboarding from './pages/Onboarding';
+
+import CompanyDashboard from './pages/company/CompanyDashboard';
+import CompleteCompanyProfile from './components/profile/CompanyProfileSetup';
+import CompanyListings from './pages/company/CompanyListingsManager';
+import CreateListing from './pages/company/CompanyCreateListing';
+import CompanyVendors from './pages/company/ManageVendors';
+import CompanyProfile from './pages/company/CompanyProfile';
+
+import VendorDashboard from './pages/vendor/VendorDashboard';
+import CompleteVendorProfile from './components/profile/VendorProfileSetup';
+import VendorListings from './pages/vendor/VendorListingsBrowser';
+import SearchListings from './pages/vendor/VendorListingsBrowser';
+import VendorProfile from './pages/vendor/VendorProfile';
+
+import AuthCallback from './components/AuthCallback';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import { AuthProvider } from './context/AuthContext';
+import { ROUTES } from './config/routes';
 
 const App: React.FC = () => {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
-        <Routes>
-          {/* Public Routes */}
-          <Route path={ROUTES.PUBLIC.HOME} element={
-            <PublicRoute>
-              <LandingPage />
-            </PublicRoute>
-          } />
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow">
+            <Routes>
+              {/* Public Routes */}
+              <Route path={ROUTES.PUBLIC.HOME} element={
+                <PublicRoute>
+                  <LandingPage />
+                </PublicRoute>
+              } />
 
-          <Route path={ROUTES.PUBLIC.COMPANY_LOGIN} element={
-            <PublicRoute redirectIfAuthenticated={true}>
-              <CompanyLogin />
-            </PublicRoute>
-          } />
+              <Route path={ROUTES.PUBLIC.ONBOARDING} element={
+                <PublicRoute>
+                  <Onboarding />
+                </PublicRoute>
+              } />
 
-          <Route path={ROUTES.PUBLIC.VENDOR_LOGIN} element={
-            <PublicRoute redirectIfAuthenticated={true}>
-              <VendorLogin />
-            </PublicRoute>
-          } />
+              <Route path={ROUTES.PUBLIC.ABOUT} element={<About />} />
+              <Route path={ROUTES.PUBLIC.CONTACT} element={<Contact />} />
+              <Route path={ROUTES.PUBLIC.PRIVACY} element={<Privacy />} />
+              <Route path={ROUTES.PUBLIC.TERMS} element={<Terms />} />
+              <Route path={ROUTES.PUBLIC.FEATURES} element={<Features />} />
+              <Route path={ROUTES.PUBLIC.SOLUTIONS} element={<Solutions />} />
+              <Route path={ROUTES.PUBLIC.PRICING} element={<Pricing />} />
+              <Route path={ROUTES.PUBLIC.DEMO} element={<Demo />} />
+              <Route path={ROUTES.PUBLIC.TEAM} element={<Team />} />
+              <Route path={ROUTES.PUBLIC.CAREERS} element={<Careers />} />
+              <Route path={ROUTES.PUBLIC.NEWS} element={<News />} />
+              <Route path={ROUTES.PUBLIC.DOCS} element={<Documentation />} />
+              <Route path={ROUTES.PUBLIC.KNOWLEDGE_BASE} element={<KnowledgeBase />} />
+              <Route path={ROUTES.PUBLIC.BLOG} element={<Blog />} />
+              <Route path={ROUTES.PUBLIC.GUIDES} element={<Guides />} />
+              <Route path={ROUTES.PUBLIC.GUIDE_COMPANY_SETUP} element={<CompanyProfileSetupGuide />} />
+              <Route path={ROUTES.PUBLIC.GUIDE_VENDOR_ONBOARDING} element={<VendorOnboardingGuide />} />
+              <Route path={ROUTES.PUBLIC.GUIDE_MANAGING_LISTING} element={<ManagingListingGuide />} />
+              <Route path={ROUTES.PUBLIC.GUIDE_SECURITY_BEST_PRACTICES} element={<SecurityBestPracticesGuide />} />
 
-          <Route path={ROUTES.PUBLIC.COMPANY_SIGNUP} element={
-            <PublicRoute redirectIfAuthenticated={true}>
-              <CompanySignup />
-            </PublicRoute>
-          } />
+              {/* Auth Callback */}
+              <Route path={ROUTES.AUTH.CALLBACK} element={<AuthCallback />} />
 
-          <Route path={ROUTES.PUBLIC.VENDOR_SIGNUP} element={
-            <PublicRoute redirectIfAuthenticated={true}>
-              <VendorSignup />
-            </PublicRoute>
-          } />
+              {/* Protected Company Routes */}
+              <Route path={ROUTES.PROTECTED.COMPANY.DASHBOARD} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.COMPLETE_PROFILE} element={
+                <ProtectedRoute profileType="company">
+                  <CompleteCompanyProfile />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyListings />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.CREATE_LISTING} element={
+                <ProtectedRoute profileType="company">
+                  <CreateListing />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.VENDORS} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyVendors />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.COMPANY.PROFILE} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyProfile />
+                </ProtectedRoute>
+              } />
 
-          {/* Legacy login route redirect */}
-          <Route path={ROUTES.PUBLIC.LOGIN} element={
-            <PublicRoute>
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-4">Choose Login Type</h1>
-                  <div className="space-x-4">
-                    <a href={ROUTES.PUBLIC.COMPANY_LOGIN} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                      Company Login
-                    </a>
-                    <a href={ROUTES.PUBLIC.VENDOR_LOGIN} className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-                      Vendor Login
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </PublicRoute>
-          } />
-
-          {/* Authentication Callback */}
-          <Route path={ROUTES.AUTH.CALLBACK} element={<AuthCallback />} />
-
-          {/* New Public Pages */}
-          <Route path={ROUTES.PUBLIC.ABOUT} element={<PublicRoute><About /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.FEATURES} element={<PublicRoute><Features /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.SOLUTIONS} element={<PublicRoute><Solutions /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.PRICING} element={<PublicRoute><Pricing /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.DEMO} element={<PublicRoute><Demo /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.TEAM} element={<PublicRoute><Team /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.CAREERS} element={<PublicRoute><Careers /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.NEWS} element={<PublicRoute><News /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.DOCS} element={<PublicRoute><Documentation /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.KNOWLEDGE_BASE} element={<PublicRoute><KnowledgeBase /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.BLOG} element={<PublicRoute><Blog /></PublicRoute>} />
-          <Route path={ROUTES.PUBLIC.GUIDES} element={<PublicRoute><Guides /></PublicRoute>} />
-
-          {/* Company Protected Routes */}
-          <Route path={ROUTES.PROTECTED.COMPANY.DASHBOARD} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.VENDORS} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <ManageVendors />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.COMPLETE_PROFILE} element={
-            <ProtectedRoute requireAuth={true}>
-              <CompanyProfileSetup />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.PROFILE} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyProfile />
-            </ProtectedRoute>
-          } />
-
-          {/* Company Listings Management Routes */}
-          <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyListingsManager />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_CREATE} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyCreateListing />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyListingDetail />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyEditListing />
-            </ProtectedRoute>
-          } />
-
-          {/* Vendor Protected Routes */}
-          <Route path={ROUTES.PROTECTED.VENDOR.DASHBOARD} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.COMPANIES} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <ManageCompanies />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.COMPLETE_PROFILE} element={
-            <ProtectedRoute requireAuth={true}>
-              <VendorProfileSetup />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorProfile />
-            </ProtectedRoute>
-          } />
-
-          {/* Vendor Listings and Quotes Routes */}
-          <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorListingsBrowser />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorListingDetail />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorCreateQuote />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.QUOTES} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorQuotesManager />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorQuoteDetail />
-            </ProtectedRoute>
-          } />
-
-          <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT} element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorEditQuote />
-            </ProtectedRoute>
-          } />
-
-          {/* Add missing company quotes management route */}
-          <Route path={ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES} element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyListingsManager />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/listings/create" element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyCreateListing />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/listings/:id" element={
-            <ProtectedRoute requireAuth={true} requireCompleteProfile={true}>
-              <CompanyListingDetail />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/listings/:id/edit" element={
-            <ProtectedRoute requireAuth={true} requireProfile="company" requireCompleteProfile={true}>
-              <CompanyEditListing />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/quotes" element={
-            <ProtectedRoute requireAuth={true} requireProfile="vendor" requireCompleteProfile={true}>
-              <VendorQuotesManager />
-            </ProtectedRoute>
-          } />
-
-          {/* General Protected Routes */}
-          <Route path={ROUTES.PROTECTED.DASHBOARD} element={
-            <ProtectedRoute requireAuth={true}>
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to RAPP</h1>
-                  <p className="text-gray-600">Please complete your profile setup to continue.</p>
-                </div>
-              </div>
-            </ProtectedRoute>
-          } />
-
-          {/* Error Routes */}
-          <Route path={ROUTES.UTILITY.UNAUTHORIZED} element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-red-600 mb-4">401</h1>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Unauthorized</h2>
-                <p className="text-gray-600">You don't have permission to access this resource.</p>
-              </div>
-            </div>
-          } />
-
-          <Route path={ROUTES.UTILITY.NOT_FOUND} element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-red-600 mb-4">404</h1>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h2>
-                <p className="text-gray-600">The page you're looking for doesn't exist.</p>
-              </div>
-            </div>
-          } />
-
-          {/* Catch all route */}
-          <Route path="*" element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-red-600 mb-4">404</h1>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h2>
-                <p className="text-gray-600">The page you're looking for doesn't exist.</p>
-                <a href={ROUTES.PUBLIC.HOME} className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                  Go Home
-                </a>
-              </div>
-            </div>
-          } />
-        </Routes>
+              {/* Protected Vendor Routes */}
+              <Route path={ROUTES.PROTECTED.VENDOR.DASHBOARD} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.COMPLETE_PROFILE} element={
+                <ProtectedRoute profileType="vendor">
+                  <CompleteVendorProfile />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.MY_LISTINGS} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorListings />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.SEARCH_LISTINGS} element={
+                <ProtectedRoute profileType="vendor">
+                  <SearchListings />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorProfile />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
       </AuthProvider>
     </Router>
   );

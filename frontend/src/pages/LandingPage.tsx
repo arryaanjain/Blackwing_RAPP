@@ -31,7 +31,7 @@ const LandingPage: React.FC = () => {
     }
   }, [location.state, logout]);
 
-  const handleGetStarted = () => navigate('/login');
+  const handleGetStarted = () => navigate('/onboarding');
   const handleContactSales = () => navigate('/contact');
 
   return (
