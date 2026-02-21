@@ -41,12 +41,15 @@ import SearchListings from './pages/vendor/VendorListingsBrowser';
 import VendorListingDetail from './pages/vendor/VendorListingDetail';
 import VendorQuotesManager from './pages/vendor/VendorQuotesManager';
 import VendorQuoteDetail from './pages/vendor/VendorQuoteDetail';
+import VendorQuoteForm from './pages/vendor/VendorQuoteForm';
 import VendorCreateQuote from './pages/vendor/VendorCreateQuote';
 import VendorEditQuote from './pages/vendor/VendorEditQuote';
 import ManageCompanies from './pages/vendor/ManageCompanies';
 import VendorProfile from './pages/vendor/VendorProfile';
 import CompanyListingDetail from './pages/company/CompanyListingDetail';
 import CompanyEditListing from './pages/company/CompanyEditListing';
+import CompanyAuctionRoom from './pages/company/CompanyAuctionRoom';
+import VendorAuctionRoom from './pages/vendor/VendorAuctionRoom';
 import Wallet from './pages/Wallet';
 
 import AuthCallback from './components/AuthCallback';
@@ -146,6 +149,11 @@ const App: React.FC = () => {
                   <CompanyListingDetail />
                 </ProtectedRoute>
               } />
+              <Route path={ROUTES.PROTECTED.COMPANY.AUCTION_ROOM} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyAuctionRoom />
+                </ProtectedRoute>
+              } />
 
               {/* Protected Vendor Routes */}
               <Route path={ROUTES.PROTECTED.VENDOR.DASHBOARD} element={
@@ -198,39 +206,9 @@ const App: React.FC = () => {
                   <VendorProfile />
                 </ProtectedRoute>
               } />
-              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS} element={
+              <Route path={ROUTES.PROTECTED.VENDOR.AUCTION_ROOM} element={
                 <ProtectedRoute profileType="vendor">
-                  <VendorListings />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL} element={
-                <ProtectedRoute profileType="vendor">
-                  <VendorListingDetail />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES} element={
-                <ProtectedRoute profileType="vendor">
-                  <VendorQuotesManager />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL} element={
-                <ProtectedRoute profileType="vendor">
-                  <VendorQuoteDetail />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE} element={
-                <ProtectedRoute profileType="vendor">
-                  <VendorCreateQuote />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT} element={
-                <ProtectedRoute profileType="vendor">
-                  <VendorEditQuote />
-                </ProtectedRoute>
-              } />
-              <Route path={ROUTES.PROTECTED.VENDOR.COMPANIES} element={
-                <ProtectedRoute profileType="vendor">
-                  <ManageCompanies />
+                  <VendorAuctionRoom />
                 </ProtectedRoute>
               } />
 
