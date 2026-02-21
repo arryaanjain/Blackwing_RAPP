@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../config/routes';
 
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -10,7 +11,8 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, currentProfile } = useAuth();
+  const { logout, currentProfile, user } = useAuth();
+  const walletBalance = user?.wallet_balance ?? 0;
   /* Removed unused mobile menu state as it's not being used in this desktop-focused layout */
 
   // Custom logout handler that redirects to home
@@ -39,6 +41,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       { name: 'Create Listing', path: ROUTES.PROTECTED.COMPANY.LISTINGS_CREATE },
       { name: 'Manage Vendors', path: ROUTES.PROTECTED.COMPANY.VENDORS },
       { name: 'Profile', path: ROUTES.PROTECTED.COMPANY.PROFILE },
+      { name: 'Wallet', path: ROUTES.PROTECTED.WALLET },
     ]
     : [
       { name: 'Dashboard', path: ROUTES.PROTECTED.VENDOR.DASHBOARD },
@@ -46,6 +49,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       { name: 'My Quotes', path: ROUTES.PROTECTED.VENDOR.QUOTES },
       { name: 'Manage Companies', path: ROUTES.PROTECTED.VENDOR.COMPANIES },
       { name: 'Profile', path: ROUTES.PROTECTED.VENDOR.PROFILE },
+      { name: 'Wallet', path: ROUTES.PROTECTED.WALLET },
     ];
 
   return (
@@ -77,6 +81,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse"></span>
                   {shareId || 'PRO'}
                 </div>
+
+                <Link
+                  to={ROUTES.PROTECTED.WALLET}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/40 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400 flex items-center gap-1.5 transition-all"
+                  title="Wallet"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.09 12.97 12 12l-1 8 8.91-10.97H12l1-8z"/></svg>
+                  {walletBalance} pts
+                </Link>
 
                 <div className="h-8 w-px bg-white/5 mx-2"></div>
 

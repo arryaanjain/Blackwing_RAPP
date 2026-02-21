@@ -44,6 +44,7 @@ interface User {
   current_profile_id?: number;
   profiles?: Profile[];
   available_profiles?: Profile[];
+  wallet_balance?: number;
   created_at: string;
 }
 
