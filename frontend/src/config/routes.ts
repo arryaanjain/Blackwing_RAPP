@@ -70,6 +70,7 @@ export const ROUTES = {
       SEARCH_LISTINGS: '/vendor/search-listings',
       LISTINGS_DETAIL: '/vendor/listings/:id',
       QUOTES: '/vendor/quotes',
+      QUOTES_DETAIL: '/vendor/quotes/:quoteId',
       QUOTES_CREATE: '/vendor/listings/:id/quote',
       QUOTES_EDIT: '/vendor/quotes/:id/edit',
     },

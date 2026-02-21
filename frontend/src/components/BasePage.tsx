@@ -1,14 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Header from './Header';
-import Footer from './Footer';
 import CursorGlow from './ui/CursorGlow';
 import HeroParticles from './ui/HeroParticles';
 import Section from './ui/Section';
 import Container from './ui/Container';
 
 interface BasePageProps {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   children: React.ReactNode;
 }
@@ -21,8 +19,6 @@ const BasePage: React.FC<BasePageProps> = ({ title, subtitle, children }) => {
       <div className="noise-overlay" />
       <CursorGlow />
       <HeroParticles />
-
-      <Header />
 
       <main className="relative z-10">
         <Section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
@@ -58,8 +54,6 @@ const BasePage: React.FC<BasePageProps> = ({ title, subtitle, children }) => {
           </Container>
         </Section>
       </main>
-
-      <Footer />
     </div>
   );
 };
