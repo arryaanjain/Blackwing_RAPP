@@ -18,7 +18,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onCtaClick
 }) => {
   return (
-    <Section className="relative pt-32 pb-20 md:pt-48 md:pb-48 overflow-hidden">
+    <Section className="relative pt-32 pb-32 md:pt-48 md:pb-48 overflow-hidden">
 
       {/* Particle Background */}
       <HeroParticles />
@@ -72,39 +72,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               View Documentation
             </button>
           </div>
-        </motion.div>
-
-        {/* Dashboard Mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          {...({ className: "mt-24 relative max-w-6xl mx-auto" } as any)}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent z-10" />
-
-          <div className="glass-premium rounded-[32px] p-1.5 md:p-3 overflow-hidden shadow-2xl">
-            <div className="rounded-[22px] overflow-hidden bg-black/60 aspect-video relative group">
-
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              <img
-                src="https://images.unsplash.com/photo-1551288049-bbda38a5f452?auto=format&fit=crop&q=80&w=2000"
-                alt="Dashboard Mockup"
-                className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-100 transition-transform duration-1000"
-              />
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
         </motion.div>
 
       </Container>

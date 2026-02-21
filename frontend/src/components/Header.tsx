@@ -145,20 +145,20 @@ const Header: React.FC = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 8, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 4, scale: 0.99 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
                       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                      {...({ className: "absolute top-full left-1/2 -translate-x-1/2 mt-1 w-60 glass-premium rounded-xl p-1.5 z-50 shadow-premium" } as any)}
+                      {...({ className: "absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] glass-premium rounded-xl p-2 z-[60] shadow-2xl border border-white/10 backdrop-blur-3xl" } as any)}
                     >
                       {link.subLinks.map((subLink) => (
                         <Link
                           key={subLink.name}
                           to={subLink.href}
-                          className="flex items-center px-3 py-2.5 text-[13px] text-gray-400 hover:text-white hover:bg-white/[0.03] rounded-lg transition-all relative group"
+                          className="flex items-center px-4 py-3 text-[13px] text-gray-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all relative group"
                         >
                           <motion.div
                             initial={{ height: 0 }}
-                            whileHover={{ height: 12 }}
-                            {...({ className: "absolute left-0 w-0.5 bg-white/20 rounded-full" } as any)}
+                            whileHover={{ height: 16 }}
+                            {...({ className: "absolute left-0 w-0.5 bg-white/40 rounded-full" } as any)}
                           />
                           {subLink.name}
                         </Link>
