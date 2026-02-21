@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use App\Services\BlockchainService;
 
 class VendorCompanyConnectionController extends Controller
 {
@@ -73,35 +74,49 @@ class VendorCompanyConnectionController extends Controller
                 ], 409);
             }
 
-            // Get vendor profile data for snapshot
+            // ── Blockchain first: record connection request on-chain ──
             $vendorProfile = $user->vendorProfile;
+            $vendorShareId = $vendorProfile ? $vendorProfile->share_id : 'unknown';
+            $messageHash = hash('sha256', $validated['message'] ?? '');
+
+            $blockchainService = new BlockchainService();
+            $blockchainResult = $blockchainService->sendConnectionRequest(
+                $vendorShareId,
+                $validated['company_share_id'],
+                $messageHash
+            );
+
+            // Get vendor profile data for snapshot
             $vendorProfileData = $vendorProfile ? [
                 'vendor_name' => $vendorProfile->vendor_name,
                 'specialization' => $vendorProfile->specialization,
                 'location' => $vendorProfile->location,
-                'contact_email' => $vendorProfile->contact_email,
-                'business_description' => $vendorProfile->business_description,
+                'contact_email' => $vendorProfile->contact_email ?? null,
+                'business_description' => $vendorProfile->business_description ?? null,
             ] : null;
 
-            // Create the connection request
+            // ── Off-chain: persist to DB only after blockchain success ──
             $connectionRequest = VendorCompanyConnectionRequest::create([
                 'vendor_user_id' => $user->id,
                 'company_share_id' => $validated['company_share_id'],
                 'company_user_id' => $company->user_id,
                 'message' => $validated['message'] ?? null,
                 'vendor_profile_data' => $vendorProfileData,
-                'expires_at' => now()->addDays(30), // 30-day expiration
+                'expires_at' => now()->addDays(30),
+                'blockchain_tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
-            Log::info('Vendor connection request sent', [
+            Log::info('Vendor connection request sent (on-chain + off-chain)', [
                 'vendor_id' => $user->id,
                 'company_share_id' => $validated['company_share_id'],
-                'request_id' => $connectionRequest->id
+                'request_id' => $connectionRequest->id,
+                'tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
             return response()->json([
                 'message' => 'Connection request sent successfully',
-                'request' => $connectionRequest->load(['vendor', 'company'])
+                'request' => $connectionRequest->load(['vendor', 'company']),
+                'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
             ], 201);
 
         } catch (ValidationException $e) {
@@ -182,16 +197,24 @@ class VendorCompanyConnectionController extends Controller
                 ], 400);
             }
 
-            $request->cancel();
+            // ── Blockchain first ──
+            $blockchainService = new BlockchainService();
+            $blockchainResult = $blockchainService->cancelConnectionRequest($request->id);
 
-            Log::info('Vendor connection request cancelled', [
+            // ── Off-chain ──
+            $request->cancel();
+            $request->update(['blockchain_tx_hash' => $blockchainResult['transactionHash']]);
+
+            Log::info('Vendor connection request cancelled (on-chain + off-chain)', [
                 'request_id' => $request->id,
-                'vendor_id' => $user->id
+                'vendor_id' => $user->id,
+                'tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
             return response()->json([
                 'message' => 'Connection request cancelled successfully',
-                'request' => $request->fresh()
+                'request' => $request->fresh(),
+                'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
             ]);
 
         } catch (\Exception $e) {
@@ -273,11 +296,16 @@ class VendorCompanyConnectionController extends Controller
                 'review_notes' => 'nullable|string|max:1000',
             ]);
 
-            DB::transaction(function () use ($request, $user, $validated) {
-                // Approve the request
-                $request->approve($user, $validated['review_notes'] ?? null);
+            // ── Blockchain first ──
+            $reviewNotesHash = hash('sha256', $validated['review_notes'] ?? '');
+            $blockchainService = new BlockchainService();
+            $blockchainResult = $blockchainService->approveConnectionRequest($request->id, $reviewNotesHash);
 
-                // Create the connection
+            // ── Off-chain: approve + create connection ──
+            DB::transaction(function () use ($request, $user, $validated, $blockchainResult) {
+                $request->approve($user, $validated['review_notes'] ?? null);
+                $request->update(['blockchain_tx_hash' => $blockchainResult['transactionHash']]);
+
                 VendorCompanyConnection::create([
                     'vendor_user_id' => $request->vendor_user_id,
                     'company_user_id' => $user->id,
@@ -285,18 +313,21 @@ class VendorCompanyConnectionController extends Controller
                     'approved_by' => $user->id,
                     'original_request_id' => $request->id,
                     'connected_at' => now(),
+                    'blockchain_tx_hash' => $blockchainResult['transactionHash'],
                 ]);
             });
 
-            Log::info('Vendor connection request approved', [
+            Log::info('Vendor connection request approved (on-chain + off-chain)', [
                 'request_id' => $request->id,
                 'company_id' => $user->id,
-                'vendor_id' => $request->vendor_user_id
+                'vendor_id' => $request->vendor_user_id,
+                'tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
             return response()->json([
                 'message' => 'Connection request approved successfully',
-                'request' => $request->fresh()->load(['vendor', 'company'])
+                'request' => $request->fresh()->load(['vendor', 'company']),
+                'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
             ]);
 
         } catch (ValidationException $e) {
@@ -344,17 +375,26 @@ class VendorCompanyConnectionController extends Controller
                 'review_notes' => 'nullable|string|max:1000',
             ]);
 
-            $request->deny($user, $validated['review_notes'] ?? null);
+            // ── Blockchain first ──
+            $reviewNotesHash = hash('sha256', $validated['review_notes'] ?? '');
+            $blockchainService = new BlockchainService();
+            $blockchainResult = $blockchainService->denyConnectionRequest($request->id, $reviewNotesHash);
 
-            Log::info('Vendor connection request denied', [
+            // ── Off-chain ──
+            $request->deny($user, $validated['review_notes'] ?? null);
+            $request->update(['blockchain_tx_hash' => $blockchainResult['transactionHash']]);
+
+            Log::info('Vendor connection request denied (on-chain + off-chain)', [
                 'request_id' => $request->id,
                 'company_id' => $user->id,
-                'vendor_id' => $request->vendor_user_id
+                'vendor_id' => $request->vendor_user_id,
+                'tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
             return response()->json([
                 'message' => 'Connection request denied',
-                'request' => $request->fresh()->load(['vendor', 'company'])
+                'request' => $request->fresh()->load(['vendor', 'company']),
+                'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
             ]);
 
         } catch (ValidationException $e) {
@@ -446,17 +486,26 @@ class VendorCompanyConnectionController extends Controller
                 'reason' => 'nullable|string|max:1000',
             ]);
 
-            $connection->revoke($user, $validated['reason'] ?? null);
+            // ── Blockchain first ──
+            $reasonHash = hash('sha256', $validated['reason'] ?? '');
+            $blockchainService = new BlockchainService();
+            $blockchainResult = $blockchainService->revokeConnection($connection->id, $reasonHash);
 
-            Log::info('Vendor connection revoked', [
+            // ── Off-chain ──
+            $connection->revoke($user, $validated['reason'] ?? null);
+            $connection->update(['blockchain_tx_hash' => $blockchainResult['transactionHash']]);
+
+            Log::info('Vendor connection revoked (on-chain + off-chain)', [
                 'connection_id' => $connection->id,
                 'company_id' => $user->id,
-                'vendor_id' => $connection->vendor_user_id
+                'vendor_id' => $connection->vendor_user_id,
+                'tx_hash' => $blockchainResult['transactionHash'],
             ]);
 
             return response()->json([
                 'message' => 'Connection revoked successfully',
-                'connection' => $connection->fresh()
+                'connection' => $connection->fresh(),
+                'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
             ]);
 
         } catch (ValidationException $e) {

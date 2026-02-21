@@ -54,11 +54,10 @@ class BlockchainController extends Controller
                 'type' => $company ? 'company' : 'vendor',
                 'name' => $company ? $company->company_name : $vendor->vendor_name,
                 'blockchain_tx_hash' => $dbRecord->blockchain_tx_hash,
-                'blockchain_verified' => $dbRecord->blockchain_verified,
-                'blockchain_registered_at' => $dbRecord->blockchain_registered_at,
+                'blockchain_verified' => $dbRecord->blockchain_verified ?? false,
+                'blockchain_registered_at' => $dbRecord->blockchain_registered_at ?? null,
             ],
             'blockchain_verified' => $blockchainResult['verified'],
-            'blockchain_success' => $blockchainResult['success'],
         ]);
     }
 
@@ -92,7 +91,13 @@ class BlockchainController extends Controller
             'network_healthy' => $isHealthy,
             'current_block' => $currentBlock,
             'node_url' => env('BLOCKCHAIN_NODE_URL'),
-            'contract_address' => env('BLOCKCHAIN_CONTRACT_ADDRESS'),
+            'contracts' => [
+                'registry' => env('BLOCKCHAIN_REGISTRY_ADDRESS'),
+                'connection_manager' => env('BLOCKCHAIN_CONNECTION_MANAGER_ADDRESS'),
+                'listing_manager' => env('BLOCKCHAIN_LISTING_MANAGER_ADDRESS'),
+                'quote_manager' => env('BLOCKCHAIN_QUOTE_MANAGER_ADDRESS'),
+                'rapp_token' => env('BLOCKCHAIN_RAPP_TOKEN_ADDRESS'),
+            ],
         ]);
     }
 
@@ -139,26 +144,35 @@ class BlockchainController extends Controller
 
         if ($type === 'company') {
             $entity = Company::findOrFail($id);
-            $result = $this->blockchainService->registerCompany(
-                $entity->company_name,
+            $metadataHash = hash('sha256', json_encode([
+                'business_type' => $entity->business_type,
+                'location' => $entity->location,
+            ]));
+            $result = $this->blockchainService->registerEntity(
                 $entity->share_id,
-                $entity->business_type,
-                $entity->location ?? ''
+                $entity->company_name,
+                0, // COMPANY
+                $metadataHash
             );
         } else {
             $entity = Vendor::findOrFail($id);
-            $result = $this->blockchainService->registerVendor(
-                $entity->vendor_name,
+            $metadataHash = hash('sha256', json_encode([
+                'specialization' => $entity->specialization,
+                'location' => $entity->location,
+            ]));
+            $result = $this->blockchainService->registerEntity(
                 $entity->share_id,
-                $entity->specialization,
-                $entity->location ?? ''
+                $entity->vendor_name,
+                1, // VENDOR
+                $metadataHash
             );
         }
 
         if ($result['success']) {
             $entity->update([
-                'blockchain_tx_hash' => $result['transaction_hash'],
+                'blockchain_tx_hash' => $result['transactionHash'],
                 'blockchain_registered_at' => now(),
+                'blockchain_verified' => true,
             ]);
         }
 
@@ -187,10 +201,10 @@ class BlockchainController extends Controller
             ], 400);
         }
 
-        $result = $this->blockchainService->verifyTransaction($transactionHash);
+        $result = $this->blockchainService->getTransactionStatus($transactionHash);
         
         return response()->json([
-            'message' => $result['success'] ? 'Transaction verified successfully' : 'Transaction verification failed',
+            'message' => $result['confirmed'] ? 'Transaction verified successfully' : 'Transaction not yet confirmed',
             'transaction_hash' => $transactionHash,
             'verification_result' => $result
         ]);

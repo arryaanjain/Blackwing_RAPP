@@ -230,13 +230,18 @@ class ProfileController extends Controller
         try {
             $company = $user->companies()->create($data);
             
-            // Register on blockchain
+            // Register on blockchain (on-chain first)
             $blockchainService = new BlockchainService();
-            $blockchainResult = $blockchainService->registerCompany(
-                $company->company_name,
+            $metadataHash = hash('sha256', json_encode([
+                'business_type' => $company->business_type,
+                'location' => $company->location,
+                'gst_number' => $company->gst_number,
+            ]));
+            $blockchainResult = $blockchainService->registerEntity(
                 $company->share_id,
-                $company->business_type,
-                $company->location ?? ''
+                $company->company_name,
+                0, // EntityType.COMPANY
+                $metadataHash
             );
             
             if ($blockchainResult['success']) {
@@ -349,13 +354,18 @@ class ProfileController extends Controller
         try {
             $vendor = $user->vendors()->create($validator->validated());
             
-            // Register on blockchain
+            // Register on blockchain (on-chain first)
             $blockchainService = new BlockchainService();
-            $blockchainResult = $blockchainService->registerVendor(
-                $vendor->vendor_name,
+            $metadataHash = hash('sha256', json_encode([
+                'specialization' => $vendor->specialization,
+                'location' => $vendor->location,
+                'skills' => $vendor->skills,
+            ]));
+            $blockchainResult = $blockchainService->registerEntity(
                 $vendor->share_id,
-                $vendor->specialization,
-                $vendor->location ?? ''
+                $vendor->vendor_name,
+                1, // EntityType.VENDOR
+                $metadataHash
             );
             
             if ($blockchainResult['success']) {

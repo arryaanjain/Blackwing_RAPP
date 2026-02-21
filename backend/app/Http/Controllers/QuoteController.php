@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Quote;
 use App\Models\Listing;
+use App\Models\Vendor;
 use App\Models\Wallet;
+use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +26,7 @@ class QuoteController extends Controller
             $query->forVendor($user->id);
         } elseif ($user->current_profile_type === 'company') {
             $query->whereHas('listing', function ($q) use ($user) {
-                $q->where('company_id', $user->companyProfile->id);
+                $q->where('company_id', $user->current_profile_id);
             });
         }
 
@@ -96,18 +99,51 @@ class QuoteController extends Controller
             return response()->json(['error' => 'You have already submitted a quote for this listing'], 400);
         }
 
+        // ── Blockchain first: submit quote on-chain ──
+        $vendorProfile = $user->vendorProfile;
+        $vendorShareId = $vendorProfile ? $vendorProfile->share_id : 'unknown';
+        $quoteNumber = 'QUO-' . strtoupper(Str::random(10));
+        $proposalHash = hash('sha256', json_encode([
+            'proposal_details' => $validated['proposal_details'],
+            'terms_and_conditions' => $validated['terms_and_conditions'] ?? '',
+            'line_items' => $validated['line_items'] ?? [],
+        ]));
+        $quotedPriceCents = intval($validated['quoted_price'] * 100);
+        $expiresAtTs = isset($validated['expires_at']) ? strtotime($validated['expires_at']) : 0;
+
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->submitQuote(
+            $quoteNumber,
+            $listing->id,
+            $vendorShareId,
+            $quotedPriceCents,
+            $proposalHash,
+            $validated['delivery_days'],
+            $expiresAtTs
+        );
+
+        // ── Off-chain: persist to DB only after blockchain success ──
         $quote = Quote::create([
             ...$validated,
-            'quote_number' => 'QUO-' . strtoupper(Str::random(10)),
+            'quote_number' => $quoteNumber,
             'vendor_user_id' => $user->id,
             'status' => 'submitted',
-            'submitted_at' => now()
+            'submitted_at' => now(),
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
         ]);
 
         // Deduct points for quote submission
         $wallet->deduct($cost, 'Submitted quote for listing #' . $validated['listing_id'], 'quote', (string) $quote->id);
 
-        return response()->json($quote->load(['listing', 'vendor']), 201);
+        Log::info('Quote submitted (on-chain + off-chain)', [
+            'quote_id' => $quote->id,
+            'tx_hash' => $blockchainResult['transactionHash'],
+        ]);
+
+        $quoteData = $quote->load(['listing', 'vendor'])->toArray();
+        $quoteData['blockchain'] = ['transaction_hash' => $blockchainResult['transactionHash']];
+
+        return response()->json($quoteData, 201);
     }
 
     public function show(string $id): JsonResponse
@@ -150,9 +186,28 @@ class QuoteController extends Controller
             'expires_at' => 'nullable|date|after:now'
         ]);
 
-        $quote->update($validated);
+        // ── Blockchain first ──
+        $proposalHash = hash('sha256', json_encode([
+            'proposal_details' => $validated['proposal_details'] ?? $quote->proposal_details,
+            'terms_and_conditions' => $validated['terms_and_conditions'] ?? $quote->terms_and_conditions,
+        ]));
+        $newPriceCents = intval(($validated['quoted_price'] ?? $quote->quoted_price) * 100);
+        $deliveryDays = $validated['delivery_days'] ?? $quote->delivery_days;
 
-        return response()->json($quote->load(['listing', 'vendor']));
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->updateQuote(
+            $quote->id, $newPriceCents, $proposalHash, $deliveryDays
+        );
+
+        // ── Off-chain ──
+        $quote->update(array_merge($validated, [
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
+        ]));
+
+        $quoteData = $quote->load(['listing', 'vendor'])->toArray();
+        $quoteData['blockchain'] = ['transaction_hash' => $blockchainResult['transactionHash']];
+
+        return response()->json($quoteData);
     }
 
     public function withdraw(string $id): JsonResponse
@@ -168,9 +223,20 @@ class QuoteController extends Controller
             return response()->json(['error' => 'Quote cannot be withdrawn'], 400);
         }
 
-        $quote->update(['status' => 'withdrawn']);
+        // ── Blockchain first ──
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->withdrawQuote($quote->id);
 
-        return response()->json(['message' => 'Quote withdrawn successfully']);
+        // ── Off-chain ──
+        $quote->update([
+            'status' => 'withdrawn',
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
+        ]);
+
+        return response()->json([
+            'message' => 'Quote withdrawn successfully',
+            'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
+        ]);
     }
 
     public function review(Request $request, string $id): JsonResponse
@@ -179,7 +245,7 @@ class QuoteController extends Controller
         $quote = Quote::findOrFail($id);
 
         if ($user->current_profile_type !== 'company' || 
-            $quote->listing->company_id !== $user->companyProfile->id) {
+            $quote->listing->company_id !== $user->current_profile_id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -188,14 +254,27 @@ class QuoteController extends Controller
             'review_notes' => 'nullable|string'
         ]);
 
+        // ── Blockchain first ──
+        $statusMap = ['under_review' => 1, 'accepted' => 2, 'rejected' => 3];
+        $chainStatus = $statusMap[$validated['status']] ?? 1;
+        $reviewNotesHash = hash('sha256', $validated['review_notes'] ?? '');
+
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->reviewQuote($quote->id, $chainStatus, $reviewNotesHash);
+
+        // ── Off-chain ──
         $quote->update([
             'status' => $validated['status'],
             'review_notes' => $validated['review_notes'] ?? null,
             'reviewed_by' => $user->id,
-            'reviewed_at' => now()
+            'reviewed_at' => now(),
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
         ]);
 
-        return response()->json($quote->load(['listing', 'vendor', 'reviewedBy']));
+        $quoteData = $quote->load(['listing', 'vendor', 'reviewedBy'])->toArray();
+        $quoteData['blockchain'] = ['transaction_hash' => $blockchainResult['transactionHash']];
+
+        return response()->json($quoteData);
     }
 
     public function getByListing(string $listingId): JsonResponse
@@ -204,7 +283,7 @@ class QuoteController extends Controller
         $listing = Listing::findOrFail($listingId);
 
         if ($user->current_profile_type !== 'company' || 
-            $listing->company_id !== $user->companyProfile->id) {
+            $listing->company_id !== $user->current_profile_id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use App\Models\Company;
+use App\Models\Vendor;
 use App\Models\Wallet;
+use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -83,12 +86,45 @@ class ListingController extends Controller
             'accessible_vendor_ids.*' => 'exists:users,id'
         ]);
 
+        // ── Blockchain first: record listing on-chain ──
+        $company = Company::find($user->current_profile_id);
+        $companyShareId = $company ? $company->share_id : 'unknown';
+        $listingNumber = 'LST-' . strtoupper(Str::random(10));
+        $contentHash = hash('sha256', json_encode([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category' => $validated['category'],
+            'requirements' => $validated['requirements'] ?? [],
+            'specifications' => $validated['specifications'] ?? [],
+        ]));
+        $visibility = ($validated['visibility'] ?? 'public') === 'public' ? 0 : 1;
+        $status = ($validated['status'] ?? 'active') === 'active' ? 1 : 0;
+        $basePrice = intval(($validated['base_price'] ?? 0) * 100); // cents
+        $closesAt = isset($validated['closes_at']) ? strtotime($validated['closes_at']) : 0;
+
+        // Collect authorized vendor shareIds for private listings
+        $authorizedVendorShareIds = [];
+        if ($visibility === 1 && !empty($validated['accessible_vendor_ids'])) {
+            $authorizedVendorShareIds = Vendor::whereIn('user_id', $validated['accessible_vendor_ids'])
+                ->pluck('share_id')
+                ->toArray();
+        }
+
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->createListing(
+            $listingNumber, $companyShareId, $contentHash,
+            $basePrice, $visibility, $status,
+            $closesAt, $authorizedVendorShareIds
+        );
+
+        // ── Off-chain: persist to DB only after blockchain success ──
         $listing = Listing::create([
             ...$validated,
-            'listing_number' => 'LST-' . strtoupper(Str::random(10)),
+            'listing_number' => $listingNumber,
             'company_id' => $user->current_profile_id,
             'created_by' => $user->id,
-            'status' => $validated['status'] ?? 'active'  // Default to active if not specified
+            'status' => $validated['status'] ?? 'active',
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
         ]);
 
         // Deduct points for listing creation
@@ -107,7 +143,15 @@ class ListingController extends Controller
             $listing->accessibleVendors()->attach($accessData);
         }
 
-        return response()->json($listing->load(['company', 'createdBy']), 201);
+        Log::info('Listing created (on-chain + off-chain)', [
+            'listing_id' => $listing->id,
+            'tx_hash' => $blockchainResult['transactionHash'],
+        ]);
+
+        $listingData = $listing->load(['company', 'createdBy'])->toArray();
+        $listingData['blockchain'] = ['transaction_hash' => $blockchainResult['transactionHash']];
+
+        return response()->json($listingData, 201);
     }
 
     public function show(string $id): JsonResponse
@@ -155,9 +199,26 @@ class ListingController extends Controller
             'blockchain_enabled' => 'boolean'
         ]);
 
-        $listing->update($validated);
+        // ── Blockchain first ──
+        $statusMap = ['draft' => 0, 'active' => 1, 'closed' => 2, 'cancelled' => 3];
+        $newStatus = $statusMap[$validated['status'] ?? $listing->status] ?? 1;
+        $contentHash = hash('sha256', json_encode([
+            'title' => $validated['title'] ?? $listing->title,
+            'description' => $validated['description'] ?? $listing->description,
+        ]));
 
-        return response()->json($listing->load(['company', 'createdBy']));
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->updateListing($listing->id, $contentHash, $newStatus);
+
+        // ── Off-chain ──
+        $listing->update(array_merge($validated, [
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
+        ]));
+
+        $listingData = $listing->load(['company', 'createdBy'])->toArray();
+        $listingData['blockchain'] = ['transaction_hash' => $blockchainResult['transactionHash']];
+
+        return response()->json($listingData);
     }
 
     public function destroy(string $id): JsonResponse
@@ -169,9 +230,20 @@ class ListingController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $listing->delete();
+        // ── Blockchain first: close listing on-chain ──
+        $blockchainService = new BlockchainService();
+        $blockchainResult = $blockchainService->closeListing($listing->id);
 
-        return response()->json(['message' => 'Listing deleted successfully']);
+        // ── Off-chain: soft-close by updating status ──
+        $listing->update([
+            'status' => 'cancelled',
+            'blockchain_tx_hash' => $blockchainResult['transactionHash'],
+        ]);
+
+        return response()->json([
+            'message' => 'Listing deleted successfully',
+            'blockchain' => ['transaction_hash' => $blockchainResult['transactionHash']],
+        ]);
     }
 
     public function grantAccess(Request $request, string $id): JsonResponse
@@ -188,6 +260,18 @@ class ListingController extends Controller
             'vendor_user_ids.*' => 'exists:users,id'
         ]);
 
+        // ── Blockchain first: grant access for each vendor ──
+        $blockchainService = new BlockchainService();
+        $txHashes = [];
+        foreach ($validated['vendor_user_ids'] as $vendorUserId) {
+            $vendor = Vendor::where('user_id', $vendorUserId)->first();
+            if ($vendor) {
+                $result = $blockchainService->grantVendorAccess($listing->id, $vendor->share_id);
+                $txHashes[] = $result['transactionHash'];
+            }
+        }
+
+        // ── Off-chain ──
         $accessData = collect($validated['vendor_user_ids'])->map(function ($vendorId) use ($user) {
             return [
                 'vendor_user_id' => $vendorId,
@@ -198,7 +282,10 @@ class ListingController extends Controller
 
         $listing->accessibleVendors()->syncWithoutDetaching($accessData);
 
-        return response()->json(['message' => 'Access granted successfully']);
+        return response()->json([
+            'message' => 'Access granted successfully',
+            'blockchain' => ['transaction_hashes' => $txHashes],
+        ]);
     }
 
     public function revokeAccess(Request $request, string $id): JsonResponse
@@ -215,8 +302,23 @@ class ListingController extends Controller
             'vendor_user_ids.*' => 'exists:users,id'
         ]);
 
+        // ── Blockchain first: revoke access for each vendor ──
+        $blockchainService = new BlockchainService();
+        $txHashes = [];
+        foreach ($validated['vendor_user_ids'] as $vendorUserId) {
+            $vendor = Vendor::where('user_id', $vendorUserId)->first();
+            if ($vendor) {
+                $result = $blockchainService->revokeVendorAccess($listing->id, $vendor->share_id);
+                $txHashes[] = $result['transactionHash'];
+            }
+        }
+
+        // ── Off-chain ──
         $listing->accessibleVendors()->detach($validated['vendor_user_ids']);
 
-        return response()->json(['message' => 'Access revoked successfully']);
+        return response()->json([
+            'message' => 'Access revoked successfully',
+            'blockchain' => ['transaction_hashes' => $txHashes],
+        ]);
     }
 }
