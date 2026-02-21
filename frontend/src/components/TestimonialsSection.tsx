@@ -1,4 +1,7 @@
 import React from 'react';
+import Container from './ui/Container';
+import Section from './ui/Section';
+import GlassCard from './ui/GlassCard';
 
 interface TestimonialProps {
   quote: string;
@@ -10,23 +13,32 @@ interface TestimonialProps {
 
 const Testimonial: React.FC<TestimonialProps> = ({ quote, name, title, company, image }) => {
   return (
-    <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/30 rounded-xl p-6 shadow-lg">
-      <div className="flex items-center mb-4">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 
-        flex items-center justify-center text-white font-bold text-lg mr-4">
+    <GlassCard className="flex flex-col h-full group border-indigo-500/5 hover:border-indigo-500/20">
+      <div className="mb-8">
+        <svg className="w-8 h-8 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors" fill="currentColor" viewBox="0 0 32 32">
+          <path d="M10 8v8h6v-8h-6zm12 0v8h6v-8h-6zM8 6h10v12h-8v-12zm12 0h10v12h-8v-12zm-12 14h6v2h-6v-2zm12 0h6v2h-6v-2z" />
+          <path d="M10 10v6h6v-6h-6zm12 0v6h6v-6h-6z" />
+        </svg>
+      </div>
+
+      <p className="text-gray-300 text-lg leading-relaxed mb-8 flex-grow">
+        "{quote}"
+      </p>
+
+      <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
           {image ? (
-            <img src={image} alt={name} className="h-full w-full object-cover rounded-full" />
+            <img src={image} alt={name} className="h-full w-full object-cover" />
           ) : (
             name.charAt(0)
           )}
         </div>
         <div>
-          <div className="text-white font-medium">{name}</div>
-          <div className="text-blue-200 text-sm">{title}, {company}</div>
+          <div className="text-white font-bold uppercase tracking-tight text-sm">{name}</div>
+          <div className="text-gray-500 text-xs uppercase tracking-widest">{title} @ {company}</div>
         </div>
       </div>
-      <p className="text-blue-100 italic">&ldquo;{quote}&rdquo;</p>
-    </div>
+    </GlassCard>
   );
 };
 
@@ -53,20 +65,23 @@ const TestimonialsSection: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-indigo-900 to-blue-900 py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white">What Our Users Say</h2>
-          <p className="mt-4 text-xl text-blue-200">Trusted by procurement professionals worldwide</p>
+    <Section id="testimonials">
+      <Container>
+        <div className="text-center mb-20">
+          <h2 className="text-indigo-400 font-semibold uppercase tracking-widest text-sm mb-4">Proof of Work</h2>
+          <h3 className="text-4xl md:text-5xl font-bold mb-6 text-gradient">Trusted by market leaders</h3>
+          <p className="max-w-2xl mx-auto text-gray-400 text-lg">
+            Join thousands of organizations securing their supply chain with the Rapp protocol.
+          </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
             <Testimonial key={index} {...testimonial} />
           ))}
         </div>
-      </div>
-    </div>
+      </Container>
+    </Section>
   );
 };
 
