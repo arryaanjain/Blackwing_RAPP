@@ -137,7 +137,7 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
         navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
       } else if (quote) {
         await listingService.updateQuote(quote.id, submitData as UpdateQuoteData);
-        navigate(`/dashboard/vendor/quotes/${quote.id}`);
+        navigate(ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', quote.id.toString()));
       }
     } catch (err: any) {
       setError(err.response?.data?.message || `Failed to ${mode} quote`);
@@ -199,7 +199,9 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
           <div>
             <div className="flex items-center gap-4 mb-2">
               <Link
-                to={mode === 'edit' ? `/dashboard/vendor/quotes/${quote?.id}` : `/dashboard/vendor/listings/${listing.id}`}
+                to={mode === 'edit'
+                  ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
+                  : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
                 className="text-blue-300 hover:text-blue-100"
               >
                 ← Back
@@ -425,7 +427,9 @@ const VendorQuoteForm: React.FC<VendorQuoteFormProps> = ({ mode }) => {
           {/* Submit Button */}
           <div className="flex justify-end gap-3">
             <Link
-              to={mode === 'edit' ? `/dashboard/vendor/quotes/${quote?.id}` : `/dashboard/vendor/listings/${listing.id}`}
+              to={mode === 'edit'
+                ? ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL.replace(':quoteId', String(quote?.id))
+                : ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
               className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Cancel

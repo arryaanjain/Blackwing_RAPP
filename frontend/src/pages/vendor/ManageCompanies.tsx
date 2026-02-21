@@ -140,13 +140,13 @@ const ManageCompanies: React.FC = () => {
   // Filter requests and connections based on search
   const filteredRequests = requests.filter(request =>
     request.company_share_id.toLowerCase().includes(search.toLowerCase()) ||
-    request.company?.companyProfile?.company_name?.toLowerCase().includes(search.toLowerCase()) ||
+    request.company?.company_profile?.company_name?.toLowerCase().includes(search.toLowerCase()) ||
     request.status.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredConnections = connections.filter(connection =>
     connection.company_share_id.toLowerCase().includes(search.toLowerCase()) ||
-    connection.company?.companyProfile?.company_name?.toLowerCase().includes(search.toLowerCase())
+    connection.company?.company_profile?.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -199,7 +199,7 @@ const ManageCompanies: React.FC = () => {
                       {filteredConnections.map(connection => (
                         <tr key={connection.id} className="border-b border-green-800 hover:bg-green-800/30 transition-all">
                           <td className="px-4 py-3 text-white">
-                            {connection.company?.companyProfile?.company_name || 'Unknown Company'}
+                            {connection.company?.company_profile?.company_name || 'Unknown Company'}
                           </td>
                           <td className="px-4 py-3 text-green-200 font-mono">{connection.company_share_id}</td>
                           <td className="px-4 py-3 text-green-200">
@@ -242,7 +242,7 @@ const ManageCompanies: React.FC = () => {
                       {filteredRequests.map(request => (
                         <tr key={request.id} className="border-b border-blue-800 hover:bg-blue-800/30 transition-all">
                           <td className="px-4 py-3 text-white">
-                            {request.company?.companyProfile?.company_name || 'Pending Resolution'}
+                            {request.company?.company_profile?.company_name || request.company_share_id}
                           </td>
                           <td className="px-4 py-3 text-blue-200 font-mono">{request.company_share_id}</td>
                           <td className="px-4 py-3">
