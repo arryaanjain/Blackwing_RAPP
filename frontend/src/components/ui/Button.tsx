@@ -25,8 +25,8 @@ const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', size = '
     const baseStyles = 'relative inline-flex items-center justify-center font-black transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none rounded-xl overflow-hidden';
 
     const variants = {
-        primary: 'bg-white text-black hover:bg-gray-100',
-        secondary: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-glow-indigo',
+        primary: 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-glow-primary hover:from-indigo-400 hover:to-indigo-600 border border-white/10',
+        secondary: 'bg-white/5 text-white hover:bg-white/10 border border-white/10 backdrop-blur-md',
         glass: 'glass-premium text-white hover:bg-white/10 backdrop-blur-md',
         outline: 'border border-white/10 text-white hover:bg-white/5'
     };

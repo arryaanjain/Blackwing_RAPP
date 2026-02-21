@@ -5,10 +5,12 @@
   --color-brand-secondary: #818cf8;
   --color-brand-accent: #f43f5e;
   --color-brand-cyan: #22d3ee;
+  --color-brand-indigo: #4338ca;
 
-  --shadow-glass: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
-  --shadow-premium: 0 32px 64px -16px rgba(0, 0, 0, 0.7);
-  --shadow-glow-indigo: 0 0 40px -10px rgba(99, 102, 241, 0.3);
+  --shadow-glass: 0 8px 32px -1px rgba(0, 0, 0, 0.5);
+  --shadow-premium: 0 32px 64px -16px rgba(0, 0, 0, 0.8);
+  --shadow-glow-indigo: 0 0 40px -10px rgba(99, 102, 241, 0.4);
+  --shadow-glow-primary: 0 0 30px -5px rgba(99, 102, 241, 0.5);
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-glow: glow 4s ease-in-out infinite;
