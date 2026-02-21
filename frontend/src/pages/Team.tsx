@@ -6,7 +6,7 @@ const Team: React.FC = () => {
   const teamMembers = [
     { name: "Siddharth Anwar", role: "Chief Executive Officer", bio: "Leading the global vision for decentralized procurement solutions.", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=sid" },
     { name: "Dr. Elena Vance", role: "Head of Protocol", bio: "Architect of our recursive consensus mechanism and smart contract security.", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=elena" },
-    { name: "Marcus Thorne", role: "Chief Product Officer", bio: "Translating complex blockchain logic into world-class enterprise experiences.", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=marcus" },
+    { name: "Marcus Thorne", role: "Chief Product Officer", bio: "Translating complex blockchain logic into world-class Company experiences.", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=marcus" },
     { name: "Aisha Chen", role: "Lead Systems Engineer", bio: "Optimizing zero-knowledge verification for high-frequency purchasing.", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=aisha" }
   ];
 

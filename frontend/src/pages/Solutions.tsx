@@ -9,14 +9,14 @@ const Solutions: React.FC = () => {
       subtitle="Comprehensive procurement solutions tailored for modern businesses"
     >
       <div className="space-y-24">
-        {/* Enterprise Section */}
+        {/* Company Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="order-2 lg:order-1">
             <h2 className="text-4xl md:text-5xl font-black text-white mb-8 tracking-tighter uppercase leading-[0.9]">
-              Enterprise <span className="text-indigo-500">Protocol</span>
+              Company <span className="text-indigo-500">Protocol</span>
             </h2>
             <p className="text-gray-400 mb-8 text-lg font-medium leading-relaxed">
-              Streamline your enterprise procurement processes with our blockchain-powered platform.
+              Streamline your Company procurement processes with our blockchain-powered platform.
               Manage complex supply chains, multiple vendors, and large-scale purchases with confidence.
             </p>
             <ul className="space-y-4">
@@ -90,8 +90,8 @@ const Solutions: React.FC = () => {
               SME <span className="text-purple-500">Optimization</span>
             </h2>
             <p className="text-gray-400 mb-8 text-lg font-medium leading-relaxed">
-              Tailored solutions for small and medium enterprises looking to optimize their procurement
-              processes without the complexity of enterprise-level systems.
+              Tailored solutions for small and medium Companys looking to optimize their procurement
+              processes without the complexity of Company-level systems.
             </p>
             <ul className="space-y-4">
               {[
