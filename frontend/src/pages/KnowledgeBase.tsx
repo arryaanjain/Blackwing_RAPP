@@ -59,7 +59,7 @@ const KnowledgeBase: React.FC = () => {
             {[
               "Standardizing RFP recursive bids",
               "Vendor staking mechanism update",
-              "Mainnet gas optimization guides"
+              "Testnet gas optimization guides"
             ].map((item, i) => (
               <div key={i} className="flex justify-between items-center group cursor-pointer">
                 <span className="text-gray-400 font-medium group-hover:text-white transition-colors">{item}</span>
