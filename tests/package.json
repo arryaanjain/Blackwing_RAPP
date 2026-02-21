@@ -1,0 +1,22 @@
+{
+  "name": "rapp-auth-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for RAPP authentication system",
+  "type": "module",
+  "scripts": {
+    "test": "node auth-flow-test.js",
+    "test:auth": "node auth-flow-test.js",
+    "test:oauth": "node oauth-flow-test.js",
+    "test:refresh": "node refresh-token-test.js",
+    "test:all": "npm run test:auth && npm run test:oauth && npm run test:refresh",
+    "test:cleanup": "node localStorage-analyzer.js cleanup"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": ["auth", "testing", "oauth", "laravel", "react"],
+  "author": "RAPP Development Team",
+  "license": "MIT"
+}
