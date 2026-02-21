@@ -72,8 +72,8 @@ export const ROUTES = {
       LISTINGS_DETAIL: '/vendor/listings/:id',
       QUOTES: '/vendor/quotes',
       QUOTES_DETAIL: '/vendor/quotes/:quoteId',
-      QUOTES_CREATE: '/vendor/listings/:id/quote',
-      QUOTES_EDIT: '/vendor/quotes/:id/edit',
+      QUOTES_CREATE: '/vendor/listings/:listingId/quote',
+      QUOTES_EDIT: '/vendor/quotes/:quoteId/edit',
     },
   },
 };

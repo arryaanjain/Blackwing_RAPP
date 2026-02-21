@@ -40,7 +40,7 @@ const VendorQuoteDetail: React.FC = () => {
 
     try {
       await listingService.withdrawQuote(quote.id);
-      navigate('/dashboard/vendor/quotes');
+      navigate(ROUTES.PROTECTED.VENDOR.QUOTES);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to withdraw quote');
     }
@@ -159,7 +159,7 @@ const VendorQuoteDetail: React.FC = () => {
         {quote.status === 'submitted' && (
           <div className="flex gap-3">
             <Link
-              to={`/dashboard/vendor/quotes/${quote.id}/edit`}
+              to={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT.replace(':quoteId', String(quote.id))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
             >
               Edit Quote
