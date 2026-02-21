@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../config/routes';
 import authService from '../../services/authService';
+import BasePage from '../BasePage';
 
 interface CompanyProfileSetupProps { }
 
@@ -185,35 +186,24 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#05070a] relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
-      {/* Immersive Background System */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-mesh opacity-30"></div>
-        <div className="absolute inset-0 noise-overlay opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#05070a] via-[#020617]/90 to-[#05070a]"></div>
-      </div>
-
-      <div className="max-w-xl w-full space-y-8 relative z-10">
-        <div className="glass-premium rounded-[40px] p-10 border-white/5 shadow-2xl bg-[#05070a]/40 animate-in fade-in zoom-in duration-700">
+    <BasePage
+      title={<>Company <span className="text-indigo-500">Genesis</span></>}
+      subtitle={isEditing ? 'Finalize your protocol identity to access the reverse-auction terminal.' : 'Initialize your corporate node on the RAPP network.'}
+    >
+      <div className="max-w-xl mx-auto">
+        <div className="glass-premium rounded-[40px] p-10 border-white/5 shadow-2xl bg-[#05070a]/40">
           <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/20 group hover:rotate-12 transition-transform duration-500">
-              <svg className="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/20 group hover:rotate-12 transition-transform duration-500 text-black">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">
-              {isEditing ? 'Profile <span className="text-indigo-500">Sync</span>' : 'Company <span className="text-indigo-500">Genesis</span>'}
-            </h2>
-            <div className="h-1 w-12 bg-indigo-500 mx-auto rounded-full opacity-50 mb-6"></div>
-            <p className="text-gray-400 font-medium">
-              {isEditing ? 'Finalize your protocol identity to access the reverse-auction terminal.' : 'Initialize your corporate node on the RAPP network.'}
-            </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-8">
               {/* Company Name */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="company_name" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Company Name
                 </label>
@@ -230,7 +220,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
               </div>
 
               {/* Business Type */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="business_type" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Sector Classification
                 </label>
@@ -257,7 +247,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
               </div>
 
               {/* GST Number */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="gst_number" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   GST / Tax Identity
                 </label>
@@ -285,7 +275,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
                 </div>
 
                 {gstVerified && gstData && (
-                  <div className="mt-4 p-4 bg-green-500/5 border border-green-500/10 rounded-2xl animate-in fade-in slide-in-from-top-2">
+                  <div className="mt-4 p-4 bg-green-500/5 border border-green-500/10 rounded-2xl">
                     <p className="text-[10px] font-black uppercase text-green-500 mb-2">Verified Identity</p>
                     <p className="text-white font-bold text-sm">{gstData.legal_name || gstData.trade_name}</p>
                   </div>
@@ -296,7 +286,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label htmlFor="location" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Base Location</label>
                   <input
                     id="location" name="location" type="text" required
@@ -304,7 +294,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
                     placeholder="Ex. Mumbai, India" value={formData.location} onChange={handleInputChange}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <label htmlFor="contact_phone" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Secure Hotline</label>
                   <input
                     id="contact_phone" name="contact_phone" type="tel" required
@@ -314,7 +304,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <label htmlFor="description" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                   Commercial Profile
                 </label>
@@ -365,7 +355,7 @@ const CompanyProfileSetup: React.FC<CompanyProfileSetupProps> = () => {
           </form>
         </div>
       </div>
-    </div>
+    </BasePage>
   );
 };
 
