@@ -158,14 +158,39 @@ const App: React.FC = () => {
                   <CompleteVendorProfile />
                 </ProtectedRoute>
               } />
-              <Route path={ROUTES.PROTECTED.VENDOR.MY_LISTINGS} element={
+              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS} element={
                 <ProtectedRoute profileType="vendor">
                   <VendorListings />
                 </ProtectedRoute>
               } />
-              <Route path={ROUTES.PROTECTED.VENDOR.SEARCH_LISTINGS} element={
+              <Route path={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL} element={
                 <ProtectedRoute profileType="vendor">
-                  <SearchListings />
+                  <VendorListingDetail />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuotesManager />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_DETAIL} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteDetail />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_CREATE} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteForm mode="create" />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.QUOTES_EDIT} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorQuoteForm mode="edit" />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.COMPANIES} element={
+                <ProtectedRoute profileType="vendor">
+                  <ManageCompanies />
                 </ProtectedRoute>
               } />
               <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
