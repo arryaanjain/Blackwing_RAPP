@@ -1,0 +1,406 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
+import listingService from '../../services/listingService';
+import { ROUTES } from '../../config/routes';
+import type { Quote } from '../../types/listings';
+
+const VendorQuoteDetail: React.FC = () => {
+  const { quoteId } = useParams<{ quoteId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (quoteId) {
+      loadQuote();
+    }
+  }, [quoteId]);
+
+  const loadQuote = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await listingService.getQuote(parseInt(quoteId!));
+      setQuote(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load quote');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!quote || !confirm('Are you sure you want to withdraw this quote? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await listingService.withdrawQuote(quote.id);
+      navigate('/dashboard/vendor/quotes');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to withdraw quote');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'submitted': return 'bg-blue-900/50 text-blue-300';
+      case 'under_review': return 'bg-yellow-900/50 text-yellow-300';
+      case 'accepted': return 'bg-green-900/50 text-green-300';
+      case 'rejected': return 'bg-red-900/50 text-red-300';
+      case 'withdrawn': return 'bg-gray-900/50 text-gray-300';
+      default: return 'bg-gray-900/50 text-gray-300';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  if (user?.current_profile_type !== 'vendor') {
+    return (
+      <DashboardLayout>
+        <div className="bg-red-900/20 backdrop-blur-sm border border-red-800/40 rounded-lg p-6 text-center">
+          <p className="text-red-300 mb-4">Only vendors can view quote details. Please switch to a vendor profile.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !quote) {
+    return (
+      <DashboardLayout>
+        <div className="bg-red-900/20 backdrop-blur-sm border border-red-800/40 rounded-lg p-6 text-center">
+          <p className="text-red-300 mb-4">{error || 'Quote not found'}</p>
+          <Link
+            to={ROUTES.PROTECTED.VENDOR.QUOTES}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Back to Quotes
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-4 mb-2">
+              <Link
+                to="/dashboard/vendor/quotes"
+                className="text-blue-300 hover:text-blue-100"
+              >
+                ← Back to Quotes
+              </Link>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Quote #{quote.quote_number}
+            </h1>
+            <p className="text-blue-300">
+              For listing: <Link 
+                to={`/dashboard/vendor/listings/${quote.listing.id}`}
+                className="text-blue-300 hover:text-blue-100 font-medium underline"
+              >
+                {quote.listing.title}
+              </Link>
+            </p>
+          </div>
+          
+          <div className="text-right">
+            <div className="text-3xl font-bold text-green-300 mb-2">
+              {formatCurrency(quote.quoted_price)}
+            </div>
+            <span className={`px-4 py-2 text-sm font-medium rounded-full ${getStatusColor(quote.status)}`}>
+              <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
+                quote.status === 'accepted' ? 'bg-green-500' : 
+                quote.status === 'rejected' ? 'bg-red-500' :
+                quote.status === 'under_review' ? 'bg-yellow-500' :
+                quote.status === 'withdrawn' ? 'bg-gray-500' : 'bg-blue-500'
+              }`}></span>
+              {quote.status.replace('_', ' ').toUpperCase()}
+            </span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        {quote.status === 'submitted' && (
+          <div className="flex gap-3">
+            <Link
+              to={`/dashboard/vendor/quotes/${quote.id}/edit`}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            >
+              Edit Quote
+            </Link>
+            <button
+              onClick={handleWithdraw}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium"
+            >
+              Withdraw Quote
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-900/30 border border-red-800 text-red-300 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Quote Details */}
+            <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Quote Details</h2>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-1">Delivery Time</label>
+                    <p className="text-white font-medium">{quote.delivery_days} days</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-1">Quoted Price</label>
+                    <p className="text-white font-medium">{formatCurrency(quote.quoted_price)}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-2">Proposal Details</label>
+                  <div className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
+                    <p className="text-blue-100 whitespace-pre-wrap">{quote.proposal_details}</p>
+                  </div>
+                </div>
+
+                {quote.terms_and_conditions && (
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-2">Terms & Conditions</label>
+                    <div className="bg-blue-800/20 border border-blue-700/30 rounded-lg p-4">
+                      <p className="text-blue-100 whitespace-pre-wrap">{quote.terms_and_conditions}</p>
+                    </div>
+                  </div>
+                )}
+
+
+              </div>
+            </div>
+
+            {/* Line Items */}
+            {quote.line_items && quote.line_items.length > 0 && (
+              <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Line Items</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-blue-700/30">
+                        <th className="text-left text-blue-200 font-medium py-2">Description</th>
+                        <th className="text-right text-blue-200 font-medium py-2">Quantity</th>
+                        <th className="text-right text-blue-200 font-medium py-2">Unit Price</th>
+                        <th className="text-right text-blue-200 font-medium py-2">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-blue-700/20">
+                      {quote.line_items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="text-blue-100 py-3">
+                            <div>
+                              <p className="font-medium">{item.description}</p>
+                              {item.specifications && (
+                                <p className="text-sm text-blue-300 mt-1">{item.specifications}</p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="text-right text-blue-100 py-3">{item.quantity}</td>
+                          <td className="text-right text-blue-100 py-3">{formatCurrency(item.unit_price)}</td>
+                          <td className="text-right text-blue-100 py-3 font-medium">
+                            {formatCurrency(item.total_price)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="border-t border-blue-700/50">
+                      <tr>
+                        <td colSpan={3} className="text-right text-blue-200 font-medium py-3">Total:</td>
+                        <td className="text-right text-green-300 font-bold py-3 text-lg">
+                          {formatCurrency(quote.quoted_price)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Review Notes */}
+            {quote.review_notes && (
+              <div className="bg-yellow-900/20 border border-yellow-800/40 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-yellow-200 mb-4">Review Notes</h2>
+                <p className="text-yellow-100 whitespace-pre-wrap">{quote.review_notes}</p>
+                {quote.reviewed_by_user && quote.reviewed_at && (
+                  <p className="text-sm text-yellow-300 mt-3">
+                    Reviewed by {quote.reviewed_by_user.name} on {formatDate(quote.reviewed_at)}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Quote Timeline */}
+            <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Timeline</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p className="text-blue-100 font-medium">Quote Submitted</p>
+                    <p className="text-blue-300 text-sm">{formatDate(quote.submitted_at)}</p>
+                  </div>
+                </div>
+                
+                {quote.reviewed_at && (
+                  <div className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                      quote.status === 'accepted' ? 'bg-green-500' : 
+                      quote.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
+                    }`}></div>
+                    <div>
+                      <p className="text-blue-100 font-medium">Quote Reviewed</p>
+                      <p className="text-blue-300 text-sm">{formatDate(quote.reviewed_at)}</p>
+                      <p className="text-blue-400 text-xs">by {quote.reviewed_by_user?.name}</p>
+                    </div>
+                  </div>
+                )}
+
+                {quote.expires_at && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="text-blue-100 font-medium">Expires</p>
+                      <p className="text-blue-300 text-sm">{formatDate(quote.expires_at)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Listing Info */}
+            <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Listing Information</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-1">Company</label>
+                  <p className="text-white">{quote.listing.company.name}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-1">Title</label>
+                  <p className="text-white">{quote.listing.title}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-1">Status</label>
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${
+                    quote.listing.status === 'active' ? 'bg-green-900/50 text-green-300' :
+                    quote.listing.status === 'closed' ? 'bg-red-900/50 text-red-300' :
+                    'bg-gray-900/50 text-gray-300'
+                  }`}>
+                    {quote.listing.status.toUpperCase()}
+                  </span>
+                </div>
+
+                {quote.listing.closes_at && (
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-1">Closes</label>
+                    <p className="text-white text-sm">
+                      {formatDate(quote.listing.closes_at)}
+                    </p>
+                  </div>
+                )}
+                
+                <Link
+                  to={`/dashboard/vendor/listings/${quote.listing.id}`}
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium mt-3"
+                >
+                  View Full Listing
+                </Link>
+              </div>
+            </div>
+
+            {/* Company Contact Info */}
+            <div className="bg-blue-900/20 backdrop-blur-sm border border-blue-800/40 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Company Information</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-blue-200 mb-1">Company Name</label>
+                  <p className="text-white">{quote.listing.company.name}</p>
+                </div>
+                
+                {quote.listing.company.description && (
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-1">Description</label>
+                    <p className="text-blue-100 text-sm">{quote.listing.company.description}</p>
+                  </div>
+                )}
+                
+                {quote.listing.company.website && (
+                  <div>
+                    <label className="block text-sm font-medium text-blue-200 mb-1">Website</label>
+                    <a 
+                      href={quote.listing.company.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-300 hover:text-blue-100 underline"
+                    >
+                      {quote.listing.company.website}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default VendorQuoteDetail;
