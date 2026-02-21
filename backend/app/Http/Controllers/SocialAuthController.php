@@ -22,8 +22,10 @@ class SocialAuthController extends Controller
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
             return redirect($frontendUrl . '/login?error=oauth_not_configured');
         }
+        $certPath = storage_path('cacert.pem');
         return Socialite::driver('google')
             ->stateless()
+            ->setHttpClient(new \GuzzleHttp\Client(['verify' => $certPath]))
             ->with(['state' => base64_encode(json_encode(['timestamp' => now()->timestamp]))])
             ->redirect();
     }
@@ -31,8 +33,12 @@ class SocialAuthController extends Controller
     public function handleGoogleCallback(Request $request)
     {
         try {
-            // Get the Google user data
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // Get the Google user data – use local cacert.pem to fix cURL SSL error 60
+            $certPath = storage_path('cacert.pem');
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->setHttpClient(new \GuzzleHttp\Client(['verify' => $certPath]))
+                ->user();
 
             // Create or update user using the enhanced method with sub_id extraction
             $user = User::createOrUpdateFromGoogle([
