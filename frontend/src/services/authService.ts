@@ -18,6 +18,21 @@ interface SwitchProfileResponse {
   };
 }
 
+interface GstVerificationResponse {
+  valid: boolean;
+  message: string;
+  data: {
+    gstin: string;
+    legal_name?: string;
+    trade_name?: string;
+    status?: string;
+    registration_date?: string;
+    state?: string;
+    taxpayer_type?: string;
+    verified_via?: string;
+  } | null;
+}
+
 class AuthService {
   async switchProfile(profileType: 'company' | 'vendor'): Promise<AxiosResponse<SwitchProfileResponse>> {
     return httpClient.post<SwitchProfileResponse>('/api/profiles/switch', {
@@ -27,6 +42,12 @@ class AuthService {
 
   async getCurrentUser(): Promise<AxiosResponse<{ user: User }>> {
     return httpClient.get<{ user: User }>('/api/auth/me');
+  }
+
+  async verifyGst(gstNumber: string): Promise<AxiosResponse<GstVerificationResponse>> {
+    return httpClient.post<GstVerificationResponse>('/api/profiles/verify-gst', {
+      gst_number: gstNumber
+    });
   }
 }
 

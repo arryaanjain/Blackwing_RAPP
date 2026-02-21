@@ -4,6 +4,23 @@ import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../config/routes';
 import authService from '../services/authService';
 
+/**
+ * AuthCallback Component
+ *
+ * Handles the OAuth callback flow after Google authentication:
+ * 1. Receives encoded tokens from backend via URL parameter (?tokens=...)
+ * 2. Decodes and stores tokens in localStorage via AuthContext
+ * 3. Shows profile selection screen for users to choose Company or Vendor profile
+ * 4. Handles both new profile creation and existing profile continuation
+ *
+ * Flow:
+ * - User clicks "Sign in with Google" → /auth/google (backend)
+ * - Backend redirects to Google OAuth
+ * - Google redirects back to /auth/google/callback (backend)
+ * - Backend processes OAuth and redirects to /auth/callback?tokens=... (frontend)
+ * - This component decodes tokens and shows profile selection
+ */
+
 interface AuthCallbackProps {}
 
 const AuthCallback: React.FC<AuthCallbackProps> = () => {
@@ -175,30 +192,49 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
 
         // Check if this is an OAuth callback with tokens
         const encodedTokens = extractTokensFromURL();
-        
+
         if (encodedTokens) {
+          console.log('🔐 Processing OAuth callback with tokens...');
+
           // This is an OAuth callback - process the tokens
           await handleOAuthCallback(encodedTokens);
-          
-          // Wait for AuthContext to update, then show profile selection
-          setTimeout(() => {
+
+          console.log('✅ OAuth callback processed successfully');
+
+          // Wait a bit for AuthContext to update
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Check if user is authenticated now
+          const accessToken = localStorage.getItem('access_token');
+          const storedUser = localStorage.getItem('user');
+
+          if (accessToken && storedUser) {
+            console.log('✅ User authenticated, showing profile selection');
             setShowProfileSelection(true);
             setLoading(false);
-          }, 1500);
+          } else {
+            console.error('❌ Authentication failed - no tokens found');
+            setError('Authentication failed. Please try again.');
+            setLoading(false);
+          }
         } else {
+          console.log('📍 Direct navigation to callback page');
+
           // This is direct navigation - check auth state
           if (!isAuthenticated) {
+            console.log('❌ Not authenticated, redirecting to login');
             navigate(ROUTES.PUBLIC.LOGIN);
             return;
           }
-          
+
           // Show profile selection for authenticated users
+          console.log('✅ Already authenticated, showing profile selection');
           setShowProfileSelection(true);
           setLoading(false);
         }
 
       } catch (error) {
-        console.error('Callback processing error:', error);
+        console.error('❌ Callback processing error:', error);
         setError(error instanceof Error ? error.message : 'Authentication failed');
         setLoading(false);
       }
@@ -215,6 +251,14 @@ const AuthCallback: React.FC<AuthCallbackProps> = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-white mb-2">Completing Authentication</h2>
           <p className="text-blue-200">Please wait while we set up your account...</p>
+          {/* Debug info in development */}
+          {import.meta.env.DEV && (
+            <div className="mt-4 text-xs text-blue-300 font-mono">
+              <p>Auth Loading: {authLoading ? 'Yes' : 'No'}</p>
+              <p>Has Processed: {hasProcessed ? 'Yes' : 'No'}</p>
+              <p>Show Profile Selection: {showProfileSelection ? 'Yes' : 'No'}</p>
+            </div>
+          )}
         </div>
       </div>
     );
