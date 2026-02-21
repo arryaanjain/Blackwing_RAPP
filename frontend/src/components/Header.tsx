@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ROUTES } from '../config/routes';
 import Button from './ui/Button';
 import Container from './ui/Container';
 
@@ -40,28 +41,28 @@ const Header: React.FC = () => {
     {
       name: 'Platform',
       subLinks: [
-        { name: 'Features', href: '/features' },
-        { name: 'Solutions', href: '/solutions' },
-        { name: 'Pricing', href: '/pricing' },
-        { name: 'Demo', href: '/demo' }
+        { name: 'Features', href: ROUTES.PUBLIC.FEATURES },
+        { name: 'Solutions', href: ROUTES.PUBLIC.SOLUTIONS },
+        { name: 'Pricing', href: ROUTES.PUBLIC.PRICING },
+        { name: 'Demo', href: ROUTES.PUBLIC.DEMO }
       ]
     },
     {
       name: 'Company',
       subLinks: [
-        { name: 'About', href: '/about' },
-        { name: 'Team', href: '/team' },
-        { name: 'Careers', href: '/careers' },
-        { name: 'News', href: '/news' }
+        { name: 'About', href: ROUTES.PUBLIC.ABOUT },
+        { name: 'Team', href: ROUTES.PUBLIC.TEAM },
+        { name: 'Careers', href: ROUTES.PUBLIC.CAREERS },
+        { name: 'News', href: ROUTES.PUBLIC.NEWS }
       ]
     },
     {
       name: 'Resources',
       subLinks: [
-        { name: 'Documentation', href: '/docs' },
-        { name: 'Knowledge Base', href: '/knowledge-base' },
-        { name: 'Blog', href: '/blog' },
-        { name: 'Guides', href: '/guides' }
+        { name: 'Documentation', href: ROUTES.PUBLIC.DOCS },
+        { name: 'Knowledge Base', href: ROUTES.PUBLIC.KNOWLEDGE_BASE },
+        { name: 'Blog', href: ROUTES.PUBLIC.BLOG },
+        { name: 'Guides', href: ROUTES.PUBLIC.GUIDES }
       ]
     }
   ];
@@ -153,6 +154,7 @@ const Header: React.FC = () => {
                         <Link
                           key={subLink.name}
                           to={subLink.href}
+                          onClick={() => setActiveDropdown(null)}
                           className="flex items-center px-4 py-3 text-[13px] text-gray-400 hover:text-white hover:bg-white/[0.05] rounded-lg transition-all relative group"
                         >
                           <motion.div
