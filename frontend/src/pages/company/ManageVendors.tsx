@@ -85,13 +85,13 @@ const ManageVendors: React.FC = () => {
 
   const filteredRequests = requests.filter(request =>
     request.vendor?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    request.vendor?.vendorProfile?.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
+    request.vendor?.vendor_profile?.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
     request.message?.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredConnections = connections.filter(connection =>
     connection.vendor?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    connection.vendor?.vendorProfile?.vendor_name?.toLowerCase().includes(search.toLowerCase())
+    connection.vendor?.vendor_profile?.vendor_name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
@@ -175,7 +175,7 @@ const ManageVendors: React.FC = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-xl font-semibold text-white">
-                              {request.vendor?.vendorProfile?.vendor_name || request.vendor?.name || 'Unknown Vendor'}
+                              {request.vendor?.vendor_profile?.vendor_name || request.vendor?.name || 'Unknown Vendor'}
                             </h3>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(request.status)}`}>
                               {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
@@ -263,16 +263,16 @@ const ManageVendors: React.FC = () => {
                           <td className="px-4 py-3">
                             <div>
                               <p className="text-white font-medium">
-                                {connection.vendor?.vendorProfile?.vendor_name || connection.vendor?.name || 'Unknown'}
+                                {connection.vendor?.vendor_profile?.vendor_name || connection.vendor?.name || 'Unknown'}
                               </p>
                               <p className="text-blue-300 text-sm">{connection.vendor?.email}</p>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-blue-200">
-                            {connection.vendor?.vendorProfile?.specialization || 'Not specified'}
+                            {connection.vendor?.vendor_profile?.specialization || 'Not specified'}
                           </td>
                           <td className="px-4 py-3 text-blue-200">
-                            {connection.vendor?.vendorProfile?.location || 'Not specified'}
+                            {connection.vendor?.vendor_profile?.location || 'Not specified'}
                           </td>
                           <td className="px-4 py-3 text-blue-200">
                             {formatDate(connection.connected_at)}
