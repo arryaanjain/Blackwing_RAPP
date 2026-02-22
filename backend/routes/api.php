@@ -156,6 +156,9 @@ Route::prefix('wallet')->middleware('auth:sanctum')->group(function () {
 
 // Auction Routes
 Route::prefix('auctions')->middleware('auth:sanctum')->group(function () {
+    // Vendor: list my enrolled auctions
+    Route::get('/my', [AuctionController::class, 'myAuctions']);
+
     // Single auction detail (buyer or enrolled vendor)
     Route::get('/{id}', [AuctionController::class, 'show']);
 
