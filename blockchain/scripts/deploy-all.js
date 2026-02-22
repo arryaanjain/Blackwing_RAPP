@@ -59,6 +59,14 @@ async function main() {
     const quoteManagerAddress = await quoteManager.getAddress();
     console.log("  ✅ QuoteManager deployed to:", quoteManagerAddress);
 
+    // ──────────────── 6. RAPPAuction ────────────────
+    console.log("Deploying RAPPAuction...");
+    const RAPPAuction = await ethers.getContractFactory("RAPPAuction");
+    const rappAuction = await RAPPAuction.deploy(registryAddress);
+    await rappAuction.waitForDeployment();
+    const auctionAddress = await rappAuction.getAddress();
+    console.log("  ✅ RAPPAuction deployed to:", auctionAddress);
+
     // ──────────────── Post-Deployment: Authorize Deductors ────────────────
     console.log("\n--- Authorizing deductors on RAPPToken ---");
 
@@ -78,6 +86,7 @@ async function main() {
     console.log(`  ConnectionManager:  ${connectionManagerAddress}`);
     console.log(`  ListingManager:     ${listingManagerAddress}`);
     console.log(`  QuoteManager:       ${quoteManagerAddress}`);
+    console.log(`  RAPPAuction:        ${auctionAddress}`);
     console.log("========================================");
     console.log("\n✅ All contracts deployed successfully!");
     console.log("\nNext steps:");
@@ -91,6 +100,7 @@ async function main() {
         connectionManager: connectionManagerAddress,
         listingManager: listingManagerAddress,
         quoteManager: quoteManagerAddress,
+        auction: auctionAddress,
     };
 }
 
