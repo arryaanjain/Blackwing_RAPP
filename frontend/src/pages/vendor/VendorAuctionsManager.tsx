@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { Auction } from '../../types/auction';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 interface AuctionWithRelations extends Auction {
     listing?: {
@@ -36,6 +37,11 @@ const VendorAuctionsManager: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [, setTick] = useState(0);
 
+    // Receipt Modal State
+    const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [receiptData, setReceiptData] = useState<any>(null);
+    const [loadingReceipt, setLoadingReceipt] = useState(false);
+
     const fetchAuctions = useCallback(async () => {
         try {
             const res = await auctionService.getMyAuctions();
@@ -60,6 +66,19 @@ const VendorAuctionsManager: React.FC = () => {
     const completedAuctions = auctions.filter(a => a.status === 'completed' || a.status === 'cancelled');
 
     const getMyParticipant = (auction: AuctionWithRelations) => auction.participants?.[0];
+
+    const openReceiptModal = async (auctionId: number) => {
+        setReceiptModalOpen(true);
+        setLoadingReceipt(true);
+        try {
+            const res = await auctionService.getReceipt(auctionId);
+            setReceiptData(res.data);
+        } catch (err: any) {
+            console.error('Failed to load receipt:', err);
+        } finally {
+            setLoadingReceipt(false);
+        }
+    };
 
     const statusConfig: Record<string, { label: string; bg: string; dot: string; text: string }> = {
         running: { label: 'LIVE', bg: 'bg-red-900/40', dot: 'bg-red-500 animate-pulse', text: 'text-red-300' },
@@ -148,8 +167,35 @@ const VendorAuctionsManager: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Blockchain receipt indicator for completed auctions */}
+                    {isFinished && auction.receipt_tx_hash && (
+                        <div className="mt-3 flex items-center gap-2 text-[10px] text-green-400 bg-green-900/20 border border-green-800/30 rounded-lg px-3 py-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span className="shrink-0">On-chain receipt verified</span>
+                            <div className="ml-auto">
+                                <TxHashBadge hash={auction.receipt_tx_hash} />
+                            </div>
+                        </div>
+                    )}
+
                     {/* Action row */}
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-4 flex items-center justify-between">
+                        {isFinished && auction.receipt_tx_hash ? (
+                            <button
+                                onClick={() => openReceiptModal(auction.id)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                View History
+                            </button>
+                        ) : (
+                            <div /> // Spacer
+                        )}
+
                         <Link
                             to={ROUTES.PROTECTED.VENDOR.AUCTION_ROOM.replace(':auctionId', String(auction.id))}
                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isLive
@@ -160,7 +206,11 @@ const VendorAuctionsManager: React.FC = () => {
                                 }`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                {isFinished ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                )}
                             </svg>
                             {isLive ? 'Enter Auction' : isFinished ? 'View Results' : 'View Details'}
                         </Link>
@@ -265,6 +315,115 @@ const VendorAuctionsManager: React.FC = () => {
                     </>
                 )}
             </div>
+
+            {/* Receipt Modal */}
+            {receiptModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-white/10 flex items-center justify-between shrink-0 bg-gray-900/50">
+                            <div>
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Blockchain Receipt History
+                                </h3>
+                                <p className="text-sm text-gray-400 mt-1">
+                                    Chronological on-chain transactions for this auction
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setReceiptModalOpen(false)}
+                                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto overflow-x-hidden flex-1">
+                            {loadingReceipt ? (
+                                <div className="flex flex-col items-center justify-center h-48 space-y-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
+                                    <p className="text-indigo-400 text-sm font-mono">Fetching receipt records from chain...</p>
+                                </div>
+                            ) : receiptData?.transactions?.length > 0 ? (
+                                <div className="relative border-l-2 border-indigo-500/30 ml-4 py-2 space-y-8">
+                                    {receiptData.transactions.map((tx: any, idx: number) => {
+                                        const isCreation = tx.event === 'auction_created';
+                                        const isEnd = tx.event === 'auction_ended';
+                                        const isBid = tx.event === 'bid_placed';
+
+                                        return (
+                                            <div key={tx.tx_hash || idx} className="relative pl-6">
+                                                {/* Node dot */}
+                                                <div className={`absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-4 border-gray-900 ${isCreation ? 'bg-amber-400' :
+                                                    isEnd ? 'bg-green-400' : 'bg-blue-400'
+                                                    }`} />
+
+                                                <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-indigo-500/30 transition-colors">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${isCreation ? 'bg-amber-500/20 text-amber-300' :
+                                                                    isEnd ? 'bg-green-500/20 text-green-300' : 'bg-blue-500/20 text-blue-300'
+                                                                    }`}>
+                                                                    {isCreation && 'Auction Created'}
+                                                                    {isEnd && 'Auction Ended / Receipt Generated'}
+                                                                    {isBid && 'Bid Placed'}
+                                                                </span>
+                                                                <span className="text-xs text-gray-500 font-mono">
+                                                                    {new Date(tx.timestamp).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                            <h4 className="text-white font-medium">
+                                                                {isCreation && `Listing: ${tx.details?.listing_title || 'N/A'}`}
+                                                                {isEnd && (tx.details?.winner_name ? `Winner: ${tx.details.winner_name}` : 'Auction Ended Without Winner')}
+                                                                {isBid && `Vendor: ${tx.details?.vendor_name || 'N/A'}`}
+                                                            </h4>
+                                                        </div>
+                                                        {tx.tx_hash && <TxHashBadge hash={tx.tx_hash} />}
+                                                    </div>
+
+                                                    {isBid && (
+                                                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-white/5">
+                                                            <div>
+                                                                <span className="text-[10px] text-gray-500 uppercase">Amount</span>
+                                                                <p className="text-sm text-green-400 font-mono font-bold">${tx.details.bid_amount?.toLocaleString()}</p>
+                                                            </div>
+                                                            {!tx.details.valid && (
+                                                                <span className="text-[10px] text-red-400 border border-red-500/30 bg-red-500/10 px-2 py-0.5 rounded uppercase">Invalidated</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {isEnd && tx.details?.winner_name && (
+                                                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-white/5">
+                                                            <div>
+                                                                <span className="text-[10px] text-gray-500 uppercase">Winning Bid</span>
+                                                                <p className="text-sm text-green-400 font-mono font-bold">${tx.details.winning_bid?.toLocaleString()}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-[10px] text-gray-500 uppercase">Total Bids</span>
+                                                                <p className="text-sm text-blue-300 font-mono font-bold">{tx.details.total_bids}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-400">
+                                    No tracked transactions found for this auction.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

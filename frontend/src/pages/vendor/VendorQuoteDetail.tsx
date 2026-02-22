@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
 import { ROUTES } from '../../config/routes';
 import type { Quote } from '../../types/listings';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const VendorQuoteDetail: React.FC = () => {
   const { quoteId } = useParams<{ quoteId: string }>();
@@ -134,9 +135,14 @@ const VendorQuoteDetail: React.FC = () => {
                 ← Back to Quotes
               </Link>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Quote #{quote.quote_number}
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-white">
+                Quote #{quote.quote_number}
+              </h1>
+              {quote.blockchain_tx_hash && (
+                <TxHashBadge hash={quote.blockchain_tx_hash} label="Quote On-chain" />
+              )}
+            </div>
             <p className="text-blue-300">
               For listing: <Link
                 to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', String(quote.listing.id))}

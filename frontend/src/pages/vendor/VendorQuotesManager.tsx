@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
 import { ROUTES } from '../../config/routes';
 import type { Quote, QuoteFilters, PaginatedResponse } from '../../types/listings';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const VendorQuotesManager: React.FC = () => {
   const { user } = useAuth();
@@ -195,6 +196,9 @@ const VendorQuotesManager: React.FC = () => {
                           }`} />
                         <span className="text-[9px] font-black uppercase tracking-widest">{quote.status.replace('_', ' ')}</span>
                       </div>
+                      {quote.blockchain_tx_hash && (
+                        <TxHashBadge hash={quote.blockchain_tx_hash} label="Quote On-chain" />
+                      )}
                     </div>
 
                     <div className="space-y-2">

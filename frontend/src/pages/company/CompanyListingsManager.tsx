@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
 import { ROUTES } from '../../config/routes';
 import type { Listing, ListingFilters, PaginatedResponse } from '../../types/listings';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const CompanyListingsManager: React.FC = () => {
   const { user } = useAuth();
@@ -179,6 +180,9 @@ const CompanyListingsManager: React.FC = () => {
                         }`}></span>
                       {listing.status.toUpperCase()}
                     </span>
+                    {listing.blockchain_tx_hash && (
+                      <TxHashBadge hash={listing.blockchain_tx_hash} label="Listing On-chain" />
+                    )}
                   </div>
                   <p className="text-blue-200 mb-3 line-clamp-2">{listing.description}</p>
                   <div className="flex items-center gap-4 text-sm text-blue-300">

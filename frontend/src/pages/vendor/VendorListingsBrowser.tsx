@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import listingService from '../../services/listingService';
 import { ROUTES } from '../../config/routes';
 import type { Listing, ListingFilters, PaginatedResponse } from '../../types/listings';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const VendorListingsBrowser: React.FC = () => {
   const { user } = useAuth();
@@ -176,6 +177,9 @@ const VendorListingsBrowser: React.FC = () => {
                       <span className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-lg filter grayscale opacity-50">
                         {listing.visibility === 'public' ? '🌐' : '🔒'}
                       </span>
+                      {listing.blockchain_tx_hash && (
+                        <TxHashBadge hash={listing.blockchain_tx_hash} label="Listing On-chain" />
+                      )}
                     </div>
 
                     <div>

@@ -19,6 +19,7 @@ const CompanyCreateListing: React.FC = () => {
     requirements: [],
     specifications: [],
     opens_at: '',
+
     closes_at: '',
     blockchain_enabled: false,
     accessible_vendor_ids: [],
@@ -341,16 +342,16 @@ const CompanyCreateListing: React.FC = () => {
                           <label key={connection.id} className="flex items-center p-4 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
                             <input
                               type="checkbox"
-                              checked={formData.accessible_vendor_ids?.includes(connection.vendor.id) || false}
-                              onChange={() => handleVendorSelection(connection.vendor.id)}
+                              checked={formData.accessible_vendor_ids?.includes(connection.vendor?.id) || false}
+                              onChange={() => handleVendorSelection(connection.vendor?.id)}
                               className="h-5 w-5 bg-white/5 border-white/10 rounded-lg text-indigo-500 focus:ring-offset-0 focus:ring-indigo-500/50"
                             />
                             <div className="ml-4">
                               <p className="text-white font-bold text-sm group-hover:text-indigo-400 transition-colors">
-                                {connection.vendor.vendorProfile?.vendor_name || connection.vendor.name}
+                                {connection.vendor?.vendorProfile?.vendor_name || connection.vendor?.name}
                               </p>
                               <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-1">
-                                {connection.vendor.vendorProfile?.specialization || 'General Protocol'}
+                                {connection.vendor?.vendorProfile?.specialization || 'General Protocol'}
                               </p>
                             </div>
                           </label>

@@ -7,6 +7,7 @@ import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { Listing } from '../../types/listings';
 import type { Auction } from '../../types/auction';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const VendorListingDetail: React.FC = () => {
   const { listingId } = useParams<{ listingId: string }>();
@@ -149,9 +150,14 @@ const VendorListingDetail: React.FC = () => {
         {/* Hero Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 pb-10 border-b border-white/5">
           <div className="space-y-4">
-            <h1 className="text-5xl font-black text-white tracking-tight uppercase leading-tight">
-              {listing.title}
-            </h1>
+            <div className="flex items-center gap-4 flex-wrap">
+              <h1 className="text-5xl font-black text-white tracking-tight uppercase leading-tight mr-2">
+                {listing.title}
+              </h1>
+              {listing.blockchain_tx_hash && (
+                <TxHashBadge hash={listing.blockchain_tx_hash} label="Listing On-chain" />
+              )}
+            </div>
             <div className="flex items-center gap-4">
               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Origin</p>
               <p className="text-emerald-500 font-black uppercase text-sm tracking-widest">{listing.company.name}</p>

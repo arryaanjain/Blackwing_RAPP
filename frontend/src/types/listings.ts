@@ -38,7 +38,7 @@ export interface Listing {
   blockchain_tx_hash?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Relationships
   company: Company;
   created_by_user: User;
@@ -63,9 +63,10 @@ export interface Quote {
   reviewed_by?: number;
   reviewed_at?: string;
   review_notes?: string;
+  blockchain_tx_hash?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Relationships
   listing: Listing;
   vendor: User;
@@ -117,7 +118,7 @@ export interface CreateQuoteData {
   expires_at?: string;
 }
 
-export interface UpdateQuoteData extends Partial<Omit<CreateQuoteData, 'listing_id'>> {}
+export interface UpdateQuoteData extends Partial<Omit<CreateQuoteData, 'listing_id'>> { }
 
 export interface ReviewQuoteData {
   status: 'under_review' | 'accepted' | 'rejected';

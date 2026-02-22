@@ -6,6 +6,7 @@ import listingService from '../../services/listingService';
 import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { Listing, Quote } from '../../types/listings';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const CompanyBidViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -299,11 +300,14 @@ const CompanyBidViewer: React.FC = () => {
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className="bg-blue-700 text-white text-xs px-2 py-1 rounded-full">
                           #{quote.quote_number}
                         </span>
-                        <h3 className="text-lg font-medium text-white">{quote.vendor?.name || 'Unknown Vendor'}</h3>
+                        <h3 className="text-lg font-medium text-white mr-4">{quote.vendor?.name || 'Unknown Vendor'}</h3>
+                        {quote.blockchain_tx_hash && (
+                          <TxHashBadge hash={quote.blockchain_tx_hash} label="Quote On-chain" />
+                        )}
                       </div>
                       <p className="text-blue-300 line-clamp-2 mb-2">{quote.proposal_details}</p>
                       <div className="flex gap-4 text-sm text-blue-400">

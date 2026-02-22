@@ -7,6 +7,7 @@ import auctionService from '../../services/auctionService';
 import { ROUTES } from '../../config/routes';
 import type { Listing, Quote } from '../../types/listings';
 import type { Auction } from '../../types/auction';
+import { TxHashBadge } from '../../components/common/TxHashBadge';
 
 const CompanyListingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -201,8 +202,11 @@ const CompanyListingDetail: React.FC = () => {
                   }`}></span>
                 {listing.status.toUpperCase()}
               </span>
+              {listing.blockchain_tx_hash && (
+                <TxHashBadge hash={listing.blockchain_tx_hash} label="Listing On-chain" />
+              )}
             </div>
-            <p className="text-blue-300 text-lg">
+            <p className="text-blue-300 text-lg mb-2">
               Listing #{listing.listing_number}
             </p>
           </div>
