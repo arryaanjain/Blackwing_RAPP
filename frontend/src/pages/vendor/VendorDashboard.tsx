@@ -229,7 +229,7 @@ const VendorDashboard: React.FC = () => {
                           {bidSubmitted ? 'Protocol Injection Active' : 'Uplink Pending'}
                         </div>
                         <Link
-                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                          to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                           className={`w-full md:w-auto px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all text-center flex items-center justify-center gap-4 group/btn ${bidSubmitted
                             ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
                             : 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-glow-indigo hover:scale-105 hover:shadow-glow-primary'
@@ -244,8 +244,8 @@ const VendorDashboard: React.FC = () => {
                       <Link
                         to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                         className={`${bidSubmitted
-                            ? 'bg-blue-700 hover:bg-blue-600'
-                            : 'bg-green-700 hover:bg-green-600'
+                          ? 'bg-blue-700 hover:bg-blue-600'
+                          : 'bg-green-700 hover:bg-green-600'
                           } text-white px-4 py-2 rounded-md shadow-md shadow-blue-950/20 transition-colors flex items-center text-sm font-medium`}
                       >
                         {bidSubmitted ? (

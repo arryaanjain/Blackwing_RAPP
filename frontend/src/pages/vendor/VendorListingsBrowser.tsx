@@ -180,7 +180,7 @@ const VendorListingsBrowser: React.FC = () => {
 
                     <div>
                       <h2 className="text-3xl font-black text-white group-hover:text-indigo-400 transition-colors mb-4 tracking-tight">
-                        <Link to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}>
+                        <Link to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}>
                           {listing.title}
                         </Link>
                       </h2>
@@ -190,11 +190,11 @@ const VendorListingsBrowser: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-10 pt-6 border-t border-white/5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-xs font-black text-white">
-                          {listing.company.name.charAt(0)}
+                          {listing.company?.name?.charAt(0) || '?'}
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Peer Identity</p>
-                          <p className="text-white text-xs font-bold">{listing.company.name}</p>
+                          <p className="text-white text-xs font-bold">{listing.company?.name || 'Unknown Company'}</p>
                         </div>
                       </div>
 
@@ -226,7 +226,7 @@ const VendorListingsBrowser: React.FC = () => {
 
                     <div className="flex flex-col gap-3">
                       <Link
-                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
+                        to={ROUTES.PROTECTED.VENDOR.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
                         className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] text-center hover:bg-white/10 transition-all border border-white/10"
                       >
                         Analyze Details
