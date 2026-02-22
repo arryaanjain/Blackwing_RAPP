@@ -14,7 +14,9 @@ use App\Models\Quote;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Services\BlockchainService;
 
 class AuctionController extends Controller
 {
@@ -37,6 +39,25 @@ class AuctionController extends Controller
                 $q->where('vendor_id', $user->id);
             }])
             ->whereIn('id', $participantAuctionIds)
+            ->orderByRaw("CASE status WHEN 'running' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END")
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        return response()->json(['auctions' => $auctions]);
+    }
+
+    // ── GET /api/auctions/company ──────────────────────────────────────────────
+
+    public function companyAuctions(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->isCompany()) {
+            return response()->json(['message' => 'Only company accounts can view company auctions.'], 403);
+        }
+
+        $auctions = Auction::with(['listing', 'participants.vendor:id,name'])
+            ->where('buyer_id', $user->id)
             ->orderByRaw("CASE status WHEN 'running' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END")
             ->orderBy('start_time', 'desc')
             ->get();
@@ -154,6 +175,31 @@ class AuctionController extends Controller
             return $auction;
         });
 
+        // ── Blockchain: record auction creation (BLOCKING) ───────────────
+        $blockchain = app(BlockchainService::class);
+        $buyerShareId = $request->user()->companyProfile->share_id ?? ('company-' . $request->user()->id);
+
+        try {
+            $bcResult = $blockchain->createAuctionOnChain(
+                $auction->listing_id,
+                $buyerShareId,
+                $eligibleVendorIds->count(),
+                $auction->start_time->timestamp,
+                $auction->end_time->timestamp
+            );
+        } catch (\Exception $e) {
+            // Roll back: delete auction + participants since blockchain failed
+            $auction->participants()->delete();
+            $auction->delete();
+            Log::error('Blockchain: createAuction FAILED — auction rolled back', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Failed to record auction on blockchain. Auction not created.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+
+        $auction->update(['blockchain_tx_hash' => $bcResult['transactionHash'] ?? null]);
+
         // Schedule the auto-end job and fire AuctionStarted
         EndAuction::dispatch($auction)->delay($endTime);
         event(new AuctionStarted($auction));
@@ -202,7 +248,48 @@ class AuctionController extends Controller
             return response()->json(['message' => 'Auction is not running.'], 422);
         }
 
+        // ── Gather receipt data ────────────────────────────────────────────
+        $winner = $auction->participants()->orderBy('current_rank')->first();
+        $allBidTxHashes = $auction->bids()->orderBy('timestamp')->pluck('blockchain_tx_hash')->filter()->values();
+
+        // Build receipt hash: SHA256 of all tx hashes + creation tx + end marker
+        $hashChain = implode('|', array_filter([
+            $auction->blockchain_tx_hash,
+            ...$allBidTxHashes->toArray(),
+        ]));
+        $receiptHash = '0x' . hash('sha256', $hashChain);
+
         $auction->update(['status' => 'completed']);
+
+        // ── Blockchain: record auction end + receipt (BLOCKING) ──────────
+        $blockchain = app(BlockchainService::class);
+        $winnerShareId = '';
+        $winningBid = 0;
+        if ($winner && $winner->current_rank === 1) {
+            $winnerVendor = $winner->vendor;
+            $winnerShareId = $winnerVendor->vendorProfile->share_id ?? ('vendor-' . $winnerVendor->id);
+            $winningBid = (int) round(((float) $winner->current_best_bid) * 100);
+        }
+
+        try {
+            $bcResult = $blockchain->endAuctionOnChain(
+                $auction->id,
+                $winnerShareId,
+                $winningBid,
+                $receiptHash
+            );
+        } catch (\Exception $e) {
+            // Revert: set status back to running
+            $auction->update(['status' => 'running']);
+            Log::error('Blockchain: endAuction FAILED — auction reverted to running', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Failed to record auction end on blockchain. Auction remains running.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+
+        $auction->update(['receipt_tx_hash' => $bcResult['transactionHash'] ?? null]);
+
         event(new AuctionEnded($auction));
 
         return response()->json(['message' => 'Auction ended.', 'auction' => $auction->fresh()]);
@@ -306,5 +393,89 @@ class AuctionController extends Controller
 
         return response()->json($logs);
     }
-}
 
+    // ── GET /api/auctions/{id}/receipt ──────────────────────────────────────
+
+    public function receipt(Request $request, int $id): JsonResponse
+    {
+        $auction = Auction::with(['listing', 'participants.vendor:id,name', 'bids' => function ($q) {
+            $q->orderBy('timestamp');
+        }])->findOrFail($id);
+
+        // Only buyer or participants may view
+        $user = $request->user();
+        $isParticipant = AuctionParticipant::where('auction_id', $id)
+            ->where('vendor_id', $user->id)
+            ->exists();
+
+        if ($auction->buyer_id !== $user->id && !$isParticipant) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        // Build chronological transaction list
+        $transactions = collect();
+
+        // 1. Auction creation tx
+        if ($auction->blockchain_tx_hash) {
+            $transactions->push([
+                'event'     => 'auction_created',
+                'tx_hash'   => $auction->blockchain_tx_hash,
+                'timestamp' => $auction->start_time->toIso8601String(),
+                'details'   => [
+                    'listing_id'       => $auction->listing_id,
+                    'listing_title'    => $auction->listing->title ?? null,
+                    'participant_count'=> $auction->participants->count(),
+                ],
+            ]);
+        }
+
+        // 2. Each bid tx (chronological)
+        foreach ($auction->bids as $bid) {
+            $entry = [
+                'event'     => 'bid_placed',
+                'tx_hash'   => $bid->blockchain_tx_hash,
+                'timestamp' => $bid->timestamp->toIso8601String(),
+                'details'   => [
+                    'vendor_id'  => $bid->vendor_id,
+                    'vendor_name'=> $bid->vendor->name ?? null,
+                    'bid_amount' => (float) $bid->bid_amount,
+                    'valid'      => $bid->valid,
+                ],
+            ];
+
+            // If vendor is viewing, show only their own bids with full details
+            if ($isParticipant && $auction->buyer_id !== $user->id) {
+                if ($bid->vendor_id === $user->id) {
+                    $transactions->push($entry);
+                }
+            } else {
+                $transactions->push($entry);
+            }
+        }
+
+        // 3. Auction end / receipt tx
+        if ($auction->receipt_tx_hash) {
+            $winner = $auction->participants()->orderBy('current_rank')->first();
+            $transactions->push([
+                'event'     => 'auction_ended',
+                'tx_hash'   => $auction->receipt_tx_hash,
+                'timestamp' => $auction->end_time->toIso8601String(),
+                'details'   => [
+                    'winner_id'       => $winner?->vendor_id,
+                    'winner_name'     => $winner?->vendor?->name,
+                    'winning_bid'     => $winner ? (float) $winner->current_best_bid : null,
+                    'total_bids'      => $auction->bids->count(),
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'auction_id'        => $auction->id,
+            'listing_title'     => $auction->listing->title ?? null,
+            'status'            => $auction->status,
+            'creation_tx'       => $auction->blockchain_tx_hash,
+            'receipt_tx'        => $auction->receipt_tx_hash,
+            'transactions'      => $transactions->values(),
+        ]);
+    }
+}

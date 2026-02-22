@@ -15,6 +15,7 @@ class Bid extends Model
         'is_auto_bid',
         'timestamp',
         'valid',
+        'blockchain_tx_hash',
     ];
 
     protected $casts = [

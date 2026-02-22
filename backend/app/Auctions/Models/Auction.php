@@ -20,6 +20,8 @@ class Auction extends Model
         'extension_window_seconds',
         'extension_duration_seconds',
         'status',
+        'blockchain_tx_hash',
+        'receipt_tx_hash',
     ];
 
     /** Mirror the database column defaults so in-memory models are consistent. */

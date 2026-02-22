@@ -109,7 +109,8 @@ class BlockchainSync extends Command
 
                     $visibility = $listing->visibility === 'public' ? 0 : 1;
                     $status     = $listing->status === 'active' ? 1 : 0;
-                    $closesAt   = $listing->closes_at ? strtotime($listing->closes_at) : 0;
+                    $closesAtRaw = $listing->closes_at ? strtotime($listing->closes_at) : 0;
+                    $closesAt    = ($closesAtRaw > 0 && $closesAtRaw > time()) ? $closesAtRaw : 0;
 
                     // Use the existing listing_number if available, otherwise generate one
                     $listingNumber = $listing->listing_number ?? ('LST-' . strtoupper(substr(md5($listing->id), 0, 10)));

@@ -17,6 +17,7 @@ use kornrunner\Keccak;
  *   3. ListingManager      — product listings
  *   4. QuoteManager        — vendor quotations
  *   5. RAPPToken           — ERC-20 points/credits
+ *   6. RAPPAuction         — auction lifecycle records
  *
  * Each public method:
  *   1. ABI-encodes the function call
@@ -35,6 +36,7 @@ class BlockchainService
     private string $listingManagerAddress;
     private string $quoteManagerAddress;
     private string $rappTokenAddress;
+    private string $auctionAddress;
 
     public function __construct()
     {
@@ -46,6 +48,7 @@ class BlockchainService
         $this->listingManagerAddress = env('BLOCKCHAIN_LISTING_MANAGER_ADDRESS', '');
         $this->quoteManagerAddress = env('BLOCKCHAIN_QUOTE_MANAGER_ADDRESS', '');
         $this->rappTokenAddress = env('BLOCKCHAIN_RAPP_TOKEN_ADDRESS', '');
+        $this->auctionAddress = env('BLOCKCHAIN_RAPP_AUCTION_ADDRESS', '');
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -393,6 +396,80 @@ class BlockchainService
         ]);
 
         return $this->executeTransaction('0x' . $sig . $encoded, $this->rappTokenAddress, 200000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  6. RAPP AUCTION
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * createAuction(uint256 _listingId, string _buyerShareId, uint256 _participantCount, uint256 _startTime, uint256 _endTime)
+     */
+    public function createAuctionOnChain(int $listingId, string $buyerShareId, int $participantCount, int $startTime, int $endTime): array
+    {
+        Log::info('Blockchain: createAuction', compact('listingId', 'buyerShareId', 'participantCount'));
+
+        $sig = $this->getFunctionSignature('createAuction', ['uint256', 'string', 'uint256', 'uint256', 'uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $listingId],
+            ['type' => 'string', 'value' => $buyerShareId],
+            ['type' => 'uint256', 'value' => $participantCount],
+            ['type' => 'uint256', 'value' => $startTime],
+            ['type' => 'uint256', 'value' => $endTime],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->auctionAddress, 500000);
+    }
+
+    /**
+     * recordBid(uint256 _auctionId, string _vendorShareId, uint256 _bidAmount, uint256 _rank)
+     */
+    public function recordBidOnChain(int $auctionId, string $vendorShareId, int $bidAmount, int $rank): array
+    {
+        Log::info('Blockchain: recordBid', compact('auctionId', 'vendorShareId', 'bidAmount', 'rank'));
+
+        $sig = $this->getFunctionSignature('recordBid', ['uint256', 'string', 'uint256', 'uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $auctionId],
+            ['type' => 'string', 'value' => $vendorShareId],
+            ['type' => 'uint256', 'value' => $bidAmount],
+            ['type' => 'uint256', 'value' => $rank],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->auctionAddress, 300000);
+    }
+
+    /**
+     * endAuction(uint256 _auctionId, string _winnerShareId, uint256 _winningBid, bytes32 _receiptHash)
+     */
+    public function endAuctionOnChain(int $auctionId, string $winnerShareId, int $winningBid, string $receiptHash): array
+    {
+        Log::info('Blockchain: endAuction', compact('auctionId', 'winnerShareId', 'winningBid'));
+
+        $sig = $this->getFunctionSignature('endAuction', ['uint256', 'string', 'uint256', 'bytes32']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $auctionId],
+            ['type' => 'string', 'value' => $winnerShareId],
+            ['type' => 'uint256', 'value' => $winningBid],
+            ['type' => 'bytes32', 'value' => $receiptHash],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->auctionAddress, 500000);
+    }
+
+    /**
+     * cancelAuction(uint256 _auctionId)
+     */
+    public function cancelAuctionOnChain(int $auctionId): array
+    {
+        Log::info('Blockchain: cancelAuction', compact('auctionId'));
+
+        $sig = $this->getFunctionSignature('cancelAuction', ['uint256']);
+        $encoded = $this->encodeParams([
+            ['type' => 'uint256', 'value' => $auctionId],
+        ]);
+
+        return $this->executeTransaction('0x' . $sig . $encoded, $this->auctionAddress, 200000);
     }
 
     // ═══════════════════════════════════════════════════════════════

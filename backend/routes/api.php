@@ -159,6 +159,9 @@ Route::prefix('auctions')->middleware('auth:sanctum')->group(function () {
     // Vendor: list my enrolled auctions
     Route::get('/my', [AuctionController::class, 'myAuctions']);
 
+    // Company: list my created auctions
+    Route::get('/company', [AuctionController::class, 'companyAuctions']);
+
     // Single auction detail (buyer or enrolled vendor)
     Route::get('/{id}', [AuctionController::class, 'show']);
 
@@ -168,6 +171,7 @@ Route::prefix('auctions')->middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/end', [AuctionController::class, 'end']);
     Route::get('/{id}/leaderboard', [AuctionController::class, 'leaderboard']);
     Route::get('/{id}/audit-log', [AuctionController::class, 'auditLog']);
+    Route::get('/{id}/receipt', [AuctionController::class, 'receipt']);
 
     // Shared — buyer sees full history, vendor sees own bids
     Route::get('/{id}/bids', [BidController::class, 'index']);

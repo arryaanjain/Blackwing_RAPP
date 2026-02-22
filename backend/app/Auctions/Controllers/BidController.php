@@ -5,8 +5,10 @@ namespace App\Auctions\Controllers;
 use App\Auctions\Models\Auction;
 use App\Auctions\Services\BidProcessingService;
 use App\Http\Controllers\Controller;
+use App\Services\BlockchainService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BidController extends Controller
 {
@@ -50,6 +52,30 @@ class BidController extends Controller
 
         // Deduct points only after a successful bid
         $wallet->deduct($cost, 'auction_bid', "Bid placed on auction #{$auction->id}");
+
+        // ── Blockchain: record bid on-chain (BLOCKING) ───────────────────
+        $blockchain = app(BlockchainService::class);
+        $vendorShareId = $user->vendorProfile->share_id ?? ('vendor-' . $user->id);
+        $participant = \App\Auctions\Models\AuctionParticipant::where('auction_id', $auction->id)
+            ->where('vendor_id', $user->id)->first();
+        $rank = $participant?->current_rank ?? 0;
+        $bidAmountCents = (int) round((float) $data['bid_amount'] * 100);
+
+        try {
+            $bcResult = $blockchain->recordBidOnChain($auction->id, $vendorShareId, $bidAmountCents, $rank);
+        } catch (\Exception $e) {
+            // Refund points since blockchain failed
+            $wallet->credit($cost, 'auction_bid_refund', "Blockchain failed for bid on auction #{$auction->id}");
+            // Invalidate the bid
+            $result['bid']->update(['valid' => false]);
+            Log::error('Blockchain: recordBid FAILED — bid invalidated, points refunded', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Failed to record bid on blockchain. Bid cancelled, points refunded.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+
+        $result['bid']->update(['blockchain_tx_hash' => $bcResult['transactionHash'] ?? null]);
 
         return response()->json([
             'message' => $result['message'],

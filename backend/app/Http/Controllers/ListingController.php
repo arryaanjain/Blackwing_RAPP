@@ -80,7 +80,7 @@ class ListingController extends Controller
             'requirements' => 'nullable|array',
             'specifications' => 'nullable|array',
             'opens_at' => 'nullable|date',
-            'closes_at' => 'nullable|date|after:opens_at',
+            'closes_at' => 'nullable|date',
             'blockchain_enabled' => 'boolean',
             'accessible_vendor_ids' => 'nullable|array',
             'accessible_vendor_ids.*' => 'exists:users,id'
@@ -100,7 +100,10 @@ class ListingController extends Controller
         $visibility = ($validated['visibility'] ?? 'public') === 'public' ? 0 : 1;
         $status = ($validated['status'] ?? 'active') === 'active' ? 1 : 0;
         $basePrice = intval(($validated['base_price'] ?? 0) * 100); // cents
-        $closesAt = isset($validated['closes_at']) ? strtotime($validated['closes_at']) : 0;
+        $closesAtRaw = isset($validated['closes_at']) ? strtotime($validated['closes_at']) : 0;
+        // If closes_at is in the past, send 0 to the contract (= no expiry on-chain)
+        // This allows testing/backdated listings without the contract immediately expiring them
+        $closesAt = ($closesAtRaw > 0 && $closesAtRaw > time()) ? $closesAtRaw : 0;
 
         // Collect authorized vendor shareIds for private listings
         $authorizedVendorShareIds = [];
@@ -194,7 +197,7 @@ class ListingController extends Controller
             'requirements' => 'nullable|array',
             'specifications' => 'nullable|array',
             'opens_at' => 'nullable|date',
-            'closes_at' => 'nullable|date|after:opens_at',
+            'closes_at' => 'nullable|date',
             'status' => Rule::in(['draft', 'active', 'closed', 'cancelled']),
             'blockchain_enabled' => 'boolean'
         ]);
