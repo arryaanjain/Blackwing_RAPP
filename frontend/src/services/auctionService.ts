@@ -23,6 +23,16 @@ class AuctionService {
     return httpClient.get('/api/auctions/my');
   }
 
+  /** GET /api/auctions/company — auctions the company created */
+  async getCompanyAuctions(): Promise<AxiosResponse<{ auctions: Auction[] }>> {
+    return httpClient.get('/api/auctions/company');
+  }
+
+  /** GET /api/auctions/{id}/receipt — chronological tx hash receipt */
+  async getReceipt(auctionId: number): Promise<AxiosResponse<any>> {
+    return httpClient.get(`/api/auctions/${auctionId}/receipt`);
+  }
+
   /** GET /api/listings/{listingId}/auction — latest auction for a listing */
   async getAuctionForListing(listingId: number): Promise<AxiosResponse<{ auction: Auction | null }>> {
     return httpClient.get(`/api/listings/${listingId}/auction`);

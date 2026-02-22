@@ -11,6 +11,8 @@ export interface Auction {
   extension_window_seconds: number;
   extension_duration_seconds: number;
   status: 'scheduled' | 'running' | 'completed' | 'cancelled';
+  blockchain_tx_hash?: string | null;
+  receipt_tx_hash?: string | null;
   created_at: string;
   updated_at: string;
 }

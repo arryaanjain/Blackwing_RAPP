@@ -47,7 +47,9 @@ import VendorQuoteForm from './pages/vendor/VendorQuoteForm';
 import ManageCompanies from './pages/vendor/ManageCompanies';
 import VendorProfile from './pages/vendor/VendorProfile';
 import CompanyAuctionRoom from './pages/company/CompanyAuctionRoom';
+import CompanyAuctionsManager from './pages/company/CompanyAuctionsManager';
 import VendorAuctionRoom from './pages/vendor/VendorAuctionRoom';
+import VendorAuctionsManager from './pages/vendor/VendorAuctionsManager';
 import Wallet from './pages/Wallet';
 
 import AuthCallback from './components/AuthCallback';
@@ -147,6 +149,11 @@ const App: React.FC = () => {
                   <CompanyProfile />
                 </ProtectedRoute>
               } />
+              <Route path={ROUTES.PROTECTED.COMPANY.AUCTIONS} element={
+                <ProtectedRoute profileType="company">
+                  <CompanyAuctionsManager />
+                </ProtectedRoute>
+              } />
               <Route path={ROUTES.PROTECTED.COMPANY.AUCTION_ROOM} element={
                 <ProtectedRoute profileType="company">
                   <CompanyAuctionRoom />
@@ -207,6 +214,11 @@ const App: React.FC = () => {
               <Route path={ROUTES.PROTECTED.VENDOR.PROFILE} element={
                 <ProtectedRoute profileType="vendor">
                   <VendorProfile />
+                </ProtectedRoute>
+              } />
+              <Route path={ROUTES.PROTECTED.VENDOR.AUCTIONS} element={
+                <ProtectedRoute profileType="vendor">
+                  <VendorAuctionsManager />
                 </ProtectedRoute>
               } />
               <Route path={ROUTES.PROTECTED.VENDOR.AUCTION_ROOM} element={

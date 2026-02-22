@@ -145,14 +145,6 @@ const CompanyCreateListing: React.FC = () => {
       errors.category = ['Category is required'];
     }
 
-    if (formData.closes_at && formData.opens_at &&
-      new Date(formData.closes_at) <= new Date(formData.opens_at)) {
-      errors.closes_at = ['Close date must be after open date'];
-    }
-
-    if (formData.opens_at && new Date(formData.opens_at) <= new Date()) {
-      errors.opens_at = ['Open date must be in the future'];
-    }
 
     if (formData.visibility === 'private' && (!formData.accessible_vendor_ids || formData.accessible_vendor_ids.length === 0)) {
       errors.accessible_vendor_ids = ['Please select at least one vendor for private listings'];

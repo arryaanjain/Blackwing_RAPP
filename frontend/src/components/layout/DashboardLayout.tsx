@@ -40,6 +40,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       { name: 'Listings', path: ROUTES.PROTECTED.COMPANY.LISTINGS },
       { name: 'Create Listing', path: ROUTES.PROTECTED.COMPANY.LISTINGS_CREATE },
       { name: 'Manage Vendors', path: ROUTES.PROTECTED.COMPANY.VENDORS },
+      { name: 'Auctions', path: ROUTES.PROTECTED.COMPANY.AUCTIONS },
       { name: 'Profile', path: ROUTES.PROTECTED.COMPANY.PROFILE },
       { name: 'Wallet', path: ROUTES.PROTECTED.WALLET },
     ]
