@@ -47,6 +47,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       { name: 'Dashboard', path: ROUTES.PROTECTED.VENDOR.DASHBOARD },
       { name: 'Browse Listings', path: ROUTES.PROTECTED.VENDOR.LISTINGS },
       { name: 'My Quotes', path: ROUTES.PROTECTED.VENDOR.QUOTES },
+      { name: 'Auctions', path: ROUTES.PROTECTED.VENDOR.AUCTIONS },
       { name: 'Manage Companies', path: ROUTES.PROTECTED.VENDOR.COMPANIES },
       { name: 'Profile', path: ROUTES.PROTECTED.VENDOR.PROFILE },
       { name: 'Wallet', path: ROUTES.PROTECTED.WALLET },
