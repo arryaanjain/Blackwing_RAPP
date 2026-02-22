@@ -209,7 +209,7 @@ const CompanyListingDetail: React.FC = () => {
 
           <div className="flex gap-3 flex-wrap justify-end">
             <button
-              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':listingId', listing.id.toString()))}
+              onClick={() => navigate(ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':id', listing.id.toString()))}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
             >
               Edit Listing

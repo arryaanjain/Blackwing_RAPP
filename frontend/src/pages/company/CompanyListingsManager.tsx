@@ -163,7 +163,7 @@ const CompanyListingsManager: React.FC = () => {
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-xl font-semibold text-white">
                       <Link
-                        to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
+                        to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
                         className="hover:text-blue-300 transition-colors"
                       >
                         {listing.title}
@@ -174,8 +174,8 @@ const CompanyListingsManager: React.FC = () => {
                     </span>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(listing.status)}`}>
                       <span className={`inline-block h-2 w-2 rounded-full mr-2 ${listing.status === 'active' ? 'bg-green-500' :
-                          listing.status === 'draft' ? 'bg-yellow-500' :
-                            listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
+                        listing.status === 'draft' ? 'bg-yellow-500' :
+                          listing.status === 'closed' ? 'bg-gray-500' : 'bg-red-500'
                         }`}></span>
                       {listing.status.toUpperCase()}
                     </span>
@@ -204,19 +204,19 @@ const CompanyListingsManager: React.FC = () => {
 
               <div className="flex gap-3 pt-4 border-t border-blue-800/40">
                 <Link
-                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':listingId', listing.id.toString())}
+                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_DETAIL.replace(':id', listing.id.toString())}
                   className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                 >
                   View Details
                 </Link>
                 <Link
-                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':listingId', listing.id.toString())}
+                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_EDIT.replace(':id', listing.id.toString())}
                   className="text-blue-300 hover:text-blue-100 text-sm font-medium"
                 >
                   Edit
                 </Link>
                 <Link
-                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES.replace(':listingId', listing.id.toString())}
+                  to={ROUTES.PROTECTED.COMPANY.LISTINGS_QUOTES.replace(':id', listing.id.toString())}
                   className="text-green-300 hover:text-green-100 text-sm font-medium"
                 >
                   View Quotes ({listing.quotes?.length || 0})
@@ -257,8 +257,8 @@ const CompanyListingsManager: React.FC = () => {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`px-3 py-2 border rounded-md ${currentPage === page
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-blue-800/30 border-blue-700/50 hover:bg-blue-700/30 text-white'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-blue-800/30 border-blue-700/50 hover:bg-blue-700/30 text-white'
                     }`}
                 >
                   {page}
