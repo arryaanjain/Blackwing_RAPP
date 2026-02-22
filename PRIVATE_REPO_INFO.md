@@ -17,7 +17,7 @@ Sharing the direct commit history of those components would expose:
 
 As verified below, the private repository `RAPP_Blackwing` contains the full full-stack history, with **96 commits** encompassing the backend, blockchain, and frontend development starting on **February 21, 2026**.
 
-![Private Repository Snapshot](./public/private-repo-snapshot.png) *(Place your screenshot image in `public/private-repo-snapshot.png` to load this image)*
+![Private Repository Snapshot](./frontend/public/private-repo-snapshot.png) *(Place your screenshot image in `frontend/public/private-repo-snapshot.png` to load this image)*
 
 ## 🏗️ Architectural Snapshot (How it Works)
 

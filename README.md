@@ -29,8 +29,8 @@
 ### 📸 Private Backend & Blockchain Repository
 Due to the proprietary nature of our core auction algorithms and admin wallet integrations, the Laravel backend and Solidity smart contracts are maintained in a separate private repository. Below is a snapshot of our 96 commits starting from February 21, 2026.
 
-![Private Repository Snapshot](./public/private-repo-snapshot.png)
-*(Place the screenshot in `public/private-repo-snapshot.png` to render this image)*
+![Private Repository Snapshot](./frontend/public/private-repo-snapshot.png)
+*(Place the screenshot in `frontend/public/private-repo-snapshot.png` to render this image)*
 
 ### What Makes RAPP Special?
 
