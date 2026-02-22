@@ -20,6 +20,30 @@ class AuctionController extends Controller
 {
     public function __construct(private readonly AuctionRankingService $ranking) {}
 
+    // ── GET /api/auctions/my ──────────────────────────────────────────────────
+
+    public function myAuctions(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user->isVendor()) {
+            return response()->json(['message' => 'Only vendor accounts can view auctions.'], 403);
+        }
+
+        $participantAuctionIds = AuctionParticipant::where('vendor_id', $user->id)
+            ->pluck('auction_id');
+
+        $auctions = Auction::with(['listing.company', 'participants' => function ($q) use ($user) {
+                $q->where('vendor_id', $user->id);
+            }])
+            ->whereIn('id', $participantAuctionIds)
+            ->orderByRaw("CASE status WHEN 'running' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END")
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        return response()->json(['auctions' => $auctions]);
+    }
+
     // ── GET /api/auctions/{id} ─────────────────────────────────────────────
 
     public function show(Request $request, int $id): JsonResponse

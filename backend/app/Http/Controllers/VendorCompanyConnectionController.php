@@ -420,6 +420,7 @@ class VendorCompanyConnectionController extends Controller
      */
     public function getConnections(): JsonResponse
     {
+        Log::info('HIT CONNECTIONS ROUTE: getConnections() called');
         try {
             $user = Auth::user();
             

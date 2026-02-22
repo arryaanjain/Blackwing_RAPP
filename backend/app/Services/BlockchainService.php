@@ -732,7 +732,7 @@ class BlockchainService
      */
     private function rpcCall(string $method, array $params = []): array
     {
-        $request = Http::asJson();
+        $request = Http::asJson()->timeout(10); // 10s timeout to prevent DB locks
         if (app()->environment('local')) {
             $request = $request->withoutVerifying();
         }
