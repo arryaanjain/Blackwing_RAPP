@@ -13,7 +13,7 @@ class HttpClient {
   constructor() {
     this.instance = axios.create({
       baseURL: API_CONFIG.BASE_URL,
-      timeout: 10000,
+      timeout: 20000,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -74,7 +74,7 @@ class HttpClient {
             );
 
             const { access_token, refresh_token: newRefreshToken } = response.data;
-            
+
             // Update tokens
             localStorage.setItem('access_token', access_token);
             if (newRefreshToken) {
@@ -112,7 +112,7 @@ class HttpClient {
         resolve(token!);
       }
     });
-    
+
     this.failedQueue = [];
   }
 

@@ -18,6 +18,11 @@ class AuctionService {
     return httpClient.get(`/api/auctions/${id}`);
   }
 
+  /** GET /api/auctions/my — auctions the vendor is enrolled in */
+  async getMyAuctions(): Promise<AxiosResponse<{ auctions: Auction[] }>> {
+    return httpClient.get('/api/auctions/my');
+  }
+
   /** GET /api/listings/{listingId}/auction — latest auction for a listing */
   async getAuctionForListing(listingId: number): Promise<AxiosResponse<{ auction: Auction | null }>> {
     return httpClient.get(`/api/listings/${listingId}/auction`);
