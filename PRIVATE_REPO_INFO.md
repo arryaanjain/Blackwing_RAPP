@@ -4,6 +4,10 @@ RAPP (Reverse Auction Procurement Platform) is a comprehensive B2B enterprise pl
 
 Currently, this public repository **only contains the Frontend (React + TypeScript) codebase**.
 
+## 🌐 Live Application
+
+**Working Link:** [https://rapp.blackwing.tech](https://rapp.blackwing.tech)
+
 ## 🔒 Why is the Backend Private?
 
 Due to the nature of enterprise procurement data, cryptographic signing procedures, and proprietary reverse-auction algorithms, the **Backend (Laravel) and Blockchain (Solidity smart contracts)** reside in a separate, completely private repository to protect our Intellectual Property (IP).
@@ -17,7 +21,7 @@ Sharing the direct commit history of those components would expose:
 
 As verified below, the private repository `RAPP_Blackwing` contains the full full-stack history, with **96 commits** encompassing the backend, blockchain, and frontend development starting on **February 21, 2026**.
 
-![Private Repository Snapshot](./frontend/public/private-repo-snapshot.png) *(Place your screenshot image in `frontend/public/private-repo-snapshot.png` to load this image)*
+![Private Repository Snapshot](./frontend/public/private-repo-snapshot.png) 
 
 ## 🏗️ Architectural Snapshot (How it Works)
 

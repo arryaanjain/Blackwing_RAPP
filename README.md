@@ -4,6 +4,12 @@
 
 ---
 
+## 🌐 Live Application
+
+**Working Link:** [https://rapp.blackwing.tech](https://rapp.blackwing.tech)
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
@@ -30,7 +36,7 @@
 Due to the proprietary nature of our core auction algorithms and admin wallet integrations, the Laravel backend and Solidity smart contracts are maintained in a separate private repository. Below is a snapshot of our 96 commits starting from February 21, 2026.
 
 ![Private Repository Snapshot](./frontend/public/private-repo-snapshot.png)
-*(Place the screenshot in `frontend/public/private-repo-snapshot.png` to render this image)*
+
 
 ### What Makes RAPP Special?
 
